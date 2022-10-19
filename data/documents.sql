@@ -16,13 +16,18 @@ CREATE TABLE users (
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	settings TEXT NOT NULL DEFAULT '{}' COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	setting_id TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL,
 	status INTEGER NOT NULL DEFAULT 0
 );-- --
 CREATE UNIQUE INDEX idx_user_name ON users( username );-- --
 CREATE UNIQUE INDEX idx_user_clean ON users( user_clean );-- --
 CREATE INDEX idx_user_created ON users ( created );-- --
 CREATE INDEX idx_user_updated ON users ( updated );-- --
+CREATE INDEX idx_user_settings ON users ( setting_id ) 
+	WHERE setting_id IS NOT "";-- --
 CREATE INDEX idx_user_status ON users ( status );-- --
 
 
@@ -89,15 +94,21 @@ END;-- --
 
 CREATE TABLE documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	doc_type INTEGER NOT NULL,
 	abstract TEXT NOT NULL DEFAULT '',
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	settings TEXT NOT NULL DEFAULT '{}' COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	setting_id TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL,
 	status INTEGER NOT NULL DEFAULT 0
 );-- --
 CREATE INDEX idx_doc_created ON documents ( created );-- --
 CREATE INDEX idx_doc_updated ON documents ( updated );-- --
+CREATE INDEX idx_doc_settings ON users ( setting_id ) 
+	WHERE setting_id IS NOT "";-- --
 CREATE INDEX idx_doc_status ON documents ( status );-- --
 
 
@@ -190,7 +201,8 @@ CREATE TABLE user_documents (
 		REFERENCES documents ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE INDEX idx_user_document ON user_documents ( user_id, document_id );-- --
+CREATE UNIQUE INDEX idx_user_document 
+	ON user_documents ( user_id, document_id );-- --
 
 CREATE TABLE user_pages (
 	user_id, INTEGER NOT NULL,
@@ -206,7 +218,7 @@ CREATE TABLE user_pages (
 		REFERENCES pages ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE INDEX idx_user_page ON user_pages ( user_id, page_id );-- --
+CREATE UNIQUE INDEX idx_user_page ON user_pages ( user_id, page_id );-- --
 
 CREATE TABLE user_memos (
 	user_id, INTEGER NOT NULL,
@@ -222,6 +234,6 @@ CREATE TABLE user_memos (
 		REFERENCES memos ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE INDEX idx_user_memo ON user_memos ( user_id, memo_id );-- --
+CREATE UNIQUE INDEX idx_user_memo ON user_memos ( user_id, memo_id );-- --
 
 
