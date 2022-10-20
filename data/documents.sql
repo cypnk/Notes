@@ -91,11 +91,21 @@ BEGIN
 		WHERE id = OLD.id;
 END;-- --
 
+-- Structured content types
+CREATE TABLE document_types (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	content TEXT NOT NULL DEFAULT '{ "label" : "generic" }' COLLATE NOCASE, 
+	label TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.label' ), "generic" )
+	) STORED NOT NULL
+);-- --
+CREATE UNIQUE INDEX idx_doc_label ON document_types ( label );-- --
 
+-- Main content
 CREATE TABLE documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	doc_type INTEGER NOT NULL,
-	abstract TEXT NOT NULL DEFAULT '',
+	type_id INTEGER NOT NULL,
+	abstract TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -103,8 +113,14 @@ CREATE TABLE documents (
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
 	) STORED NOT NULL,
-	status INTEGER NOT NULL DEFAULT 0
+	status INTEGER NOT NULL DEFAULT 0,
+	
+	CONSTRAINT fk_document_type 
+		FOREIGN KEY ( type_id ) 
+		REFERENCES document_types ( id )
+		ON DELETE CASCADE
 );-- --
+CREATE INDEX idx_doc_type ON documents ( type_id );-- --
 CREATE INDEX idx_doc_created ON documents ( created );-- --
 CREATE INDEX idx_doc_updated ON documents ( updated );-- --
 CREATE INDEX idx_doc_settings ON users ( setting_id ) 
@@ -119,7 +135,7 @@ BEGIN
 		WHERE id = OLD.id;
 END;-- --
 
-
+-- Content segments
 CREATE TABLE pages (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	document_id INTEGER NOT NULL,
@@ -131,9 +147,10 @@ CREATE TABLE pages (
 		ON DELETE CASCADE
 );-- --
 
+-- Content breakpoints
 CREATE TABLE page_lines (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	body TEXT NOT NULL,
+	body TEXT NOT NULL COLLATE NOCASE,
 	page_id INTEGER NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
 	
@@ -143,9 +160,10 @@ CREATE TABLE page_lines (
 		ON DELETE CASCADE
 );-- --
 
+-- Special labels
 CREATE TABLE memos (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	body TEXT NOT NULL,
+	body TEXT NOT NULL COLLATE NOCASE,
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -187,6 +205,7 @@ BEGIN
 		WHERE id = OLD.id;
 END;-- --
 
+-- Authorship
 CREATE TABLE user_documents (
 	user_id, INTEGER NOT NULL,
 	document_id INTEGER NOT NULL,
@@ -235,5 +254,39 @@ CREATE TABLE user_memos (
 		ON DELETE CASCADE
 );-- --
 CREATE UNIQUE INDEX idx_user_memo ON user_memos ( user_id, memo_id );-- --
+
+-- Copied data
+CREATE TABLE clipboard (
+	user_id INTEGER NOT NULL,
+	content TEXT NOT NULL COLLATE NOCASE,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_clip_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_clip_user ON clipboard ( user_id );-- --
+CREATE INDEX idx_clip_created ON clipboard ( created );-- --
+
+-- Undo history
+CREATE TABLE history (
+	content TEXT NOT NULL DEFAULT '{ "label" : "action" }' COLLATE NOCASE,
+	user_id INTEGER NOT NULL,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	label TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.label' ), "action" )
+	) STORED NOT NULL,
+	
+	CONSTRAINT fk_history_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE RESTRICT
+);-- --
+CREATE INDEX idx_history_user ON history ( user_id );-- --
+CREATE INDEX idx_history_label ON history ( label );-- --
+CREATE INDEX idx_history_created ON history ( created );-- --
+
 
 
