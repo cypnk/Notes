@@ -146,6 +146,8 @@ CREATE TABLE pages (
 		REFERENCES documents ( id )
 		ON DELETE CASCADE
 );-- --
+CREATE INDEX idx_page_document ON pages ( document_id );-- --
+CREATE INDEX idx_page_sort ON pages ( sort_order );-- --
 
 -- Content breakpoints
 CREATE TABLE page_lines (
@@ -159,6 +161,8 @@ CREATE TABLE page_lines (
 		REFERENCES pages ( id )
 		ON DELETE CASCADE
 );-- --
+CREATE INDEX idx_line_page ON page_lines ( page_id );-- --
+CREATE INDEX idx_line_sort ON page_lines ( sort_order );-- --
 
 -- Special labels
 CREATE TABLE memos (
@@ -168,8 +172,8 @@ CREATE TABLE memos (
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );-- --
-CREATE INDEX idx_memo_created ON users ( created );-- --
-CREATE INDEX idx_memo_updated ON users ( updated );-- --
+CREATE INDEX idx_memo_created ON memos ( created );-- --
+CREATE INDEX idx_memo_updated ON memos ( updated );-- --
 
 CREATE TABLE memo_lines (
 	memo_id INTEGER NOT NULL,
@@ -203,6 +207,8 @@ CREATE TRIGGER memo_clean AFTER UPDATE ON documents FOR EACH ROW
 BEGIN
 	UPDATE documents SET updated = CURRENT_TIMESTAMP 
 		WHERE id = OLD.id;
+	
+	DELETE FROM memo_lines WHERE begin_range = end_range;
 END;-- --
 
 -- Authorship
