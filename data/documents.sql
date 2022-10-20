@@ -152,7 +152,7 @@ CREATE INDEX idx_page_sort ON pages ( sort_order );-- --
 -- Content breakpoints
 CREATE TABLE page_lines (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	body TEXT NOT NULL COLLATE NOCASE,
+	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE, 
 	page_id INTEGER NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
 	
@@ -164,16 +164,97 @@ CREATE TABLE page_lines (
 CREATE INDEX idx_line_page ON page_lines ( page_id );-- --
 CREATE INDEX idx_line_sort ON page_lines ( sort_order );-- --
 
+-- Content searching
+CREATE VIRTUAL TABLE line_search 
+	USING fts4( body, tokenize=unicode61 );-- --
+
+CREATE TRIGGER line_insert AFTER INSERT ON page_lines FOR EACH ROW 
+WHEN NEW.content IS NOT ""
+BEGIN
+	-- Create search data
+	INSERT INTO line_search( docid, body ) 
+		VALUES ( 
+			NEW.id, 
+			json_extract( NEW.content, '$.body' )
+		);
+	
+END;-- --
+
+CREATE TRIGGER line_update AFTER INSERT ON page_lines FOR EACH ROW 
+WHEN NEW.content IS NOT ""
+BEGIN
+	REPLACE INTO line_search( docid, body ) 
+		VALUES ( 
+			NEW.id, 
+			json_extract( NEW.content, '$.body' )
+		);
+	
+END;-- --
+
+CREATE TRIGGER line_clear AFTER UPDATE ON page_lines FOR EACH ROW 
+WHEN NEW.content IS ""
+BEGIN
+	DELETE FROM line_search WHERE docid = NEW.id;
+END;-- --
+
+CREATE TRIGGER line_delete BEFORE DELETE ON page_lines FOR EACH ROW 
+BEGIN
+	DELETE FROM memo_search WHERE docid = OLD.id;
+END;-- --
+
+
 -- Special labels
 CREATE TABLE memos (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	body TEXT NOT NULL COLLATE NOCASE,
+	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE, 
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );-- --
 CREATE INDEX idx_memo_created ON memos ( created );-- --
 CREATE INDEX idx_memo_updated ON memos ( updated );-- --
+
+-- Memo searching
+CREATE VIRTUAL TABLE memo_search 
+	USING fts4( body, tokenize=unicode61 );-- --
+
+CREATE TRIGGER memo_insert AFTER INSERT ON memos FOR EACH ROW 
+WHEN NEW.content IS NOT ""
+BEGIN
+	-- Create search data
+	INSERT INTO memo_search( docid, body ) 
+		VALUES ( 
+			NEW.id, 
+			json_extract( NEW.content, '$.body' )
+		);
+	
+END;-- --
+
+CREATE TRIGGER memo_update AFTER UPDATE ON memos FOR EACH ROW 
+WHEN NEW.content IS NOT ""
+BEGIN
+	REPLACE INTO memo_search( docid, body ) 
+		VALUES ( 
+			NEW.id, 
+			json_extract( NEW.content, '$.body' )
+		);
+	
+	UPDATE memos SET updated = CURRENT_TIMESTAMP 
+		WHERE id = NEW.id;
+END;-- --
+
+CREATE TRIGGER memo_clear AFTER UPDATE ON memos FOR EACH ROW 
+WHEN NEW.content IS ""
+BEGIN
+	DELETE FROM memo_search WHERE docid = NEW.id;
+	DELETE FROM memos WHERE id = NEW.id;
+END;-- --
+
+CREATE TRIGGER memo_delete BEFORE DELETE ON memos FOR EACH ROW 
+BEGIN
+	DELETE FROM memo_search WHERE docid = OLD.id;
+END;-- --
+
 
 CREATE TABLE memo_lines (
 	memo_id INTEGER NOT NULL,
@@ -196,18 +277,10 @@ CREATE UNIQUE INDEX idx_memo_line_range ON memo_lines
 	( memo_id, line_id, begin_range, end_range )
 	WHERE begin_range IS NOT 0 AND end_range IS NOT 0;-- --
 
-CREATE TRIGGER memo_update AFTER UPDATE ON memos FOR EACH ROW
-BEGIN
-	UPDATE documents SET updated = CURRENT_TIMESTAMP 
-		WHERE id = OLD.id;
-END;-- --
 
 -- Remove orphaned memo associations
-CREATE TRIGGER memo_clean AFTER UPDATE ON documents FOR EACH ROW
+CREATE TRIGGER memo_line_update AFTER UPDATE ON memo_lines FOR EACH ROW
 BEGIN
-	UPDATE documents SET updated = CURRENT_TIMESTAMP 
-		WHERE id = OLD.id;
-	
 	DELETE FROM memo_lines WHERE begin_range = end_range;
 END;-- --
 
