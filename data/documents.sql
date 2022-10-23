@@ -218,7 +218,7 @@ CREATE VIRTUAL TABLE memo_search
 	USING fts4( body, tokenize=unicode61 );-- --
 
 CREATE TRIGGER memo_insert AFTER INSERT ON memos FOR EACH ROW 
-WHEN NEW.content IS NOT ""
+WHEN NEW.body IS NOT ""
 BEGIN
 	-- Create search data
 	INSERT INTO memo_search( docid, body ) 
@@ -227,7 +227,7 @@ BEGIN
 END;-- --
 
 CREATE TRIGGER memo_update AFTER UPDATE ON memos FOR EACH ROW 
-WHEN NEW.content IS NOT ""
+WHEN NEW.body IS NOT ""
 BEGIN
 	REPLACE INTO memo_search( docid, body ) 
 		VALUES ( NEW.id, NEW.body );
@@ -237,7 +237,7 @@ BEGIN
 END;-- --
 
 CREATE TRIGGER memo_clear AFTER UPDATE ON memos FOR EACH ROW 
-WHEN NEW.content IS ""
+WHEN NEW.body IS ""
 BEGIN
 	DELETE FROM memo_search WHERE docid = NEW.id;
 	DELETE FROM memos WHERE id = NEW.id;
