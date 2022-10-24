@@ -140,6 +140,7 @@ CREATE TABLE pages (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	document_id INTEGER NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
+	status INTEGER NOT NULL DEFAULT 0,
 	
 	CONSTRAINT fk_document_page 
 		FOREIGN KEY ( document_id ) 
@@ -148,6 +149,7 @@ CREATE TABLE pages (
 );-- --
 CREATE INDEX idx_page_document ON pages ( document_id );-- --
 CREATE INDEX idx_page_sort ON pages ( sort_order );-- --
+CREATE INDEX idx_page_status ON pages ( status );-- --
 
 -- Content breakpoints
 CREATE TABLE page_blocks (
@@ -159,6 +161,7 @@ CREATE TABLE page_blocks (
 	) STORED NOT NULL, 
 	page_id INTEGER NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
+	status INTEGER NOT NULL DEFAULT 0,
 	
 	CONSTRAINT fk_block_page 
 		FOREIGN KEY ( page_id ) 
@@ -167,6 +170,7 @@ CREATE TABLE page_blocks (
 );-- --
 CREATE INDEX idx_block_page ON page_blocks ( page_id );-- --
 CREATE INDEX idx_block_sort ON page_blocks ( sort_order );-- --
+CREATE INDEX idx_block_status ON page_blocks ( status );-- --
 
 -- Content searching
 CREATE VIRTUAL TABLE block_search 
@@ -333,6 +337,19 @@ CREATE TABLE user_blocks (
 CREATE UNIQUE INDEX idx_user_block ON user_blocks ( user_id, block_id );-- --
 CREATE INDEX idx_user_block_status ON user_blocks ( status );-- --
 
+CREATE VIEW user_block_view AS SELECT 
+		pb.id AS id, 
+		pb.content AS content, 
+		pb.page_id AS page_id, 
+		pb.sort_order AS sort_order, 
+		pb.status AS block_status, 
+		u.username AS username, 
+		u.status AS user_status
+		
+		FROM page_blocks pb
+		LEFT JOIN user_blocks ub ON pb.id = ub.id 
+		LEFT JOIN users u ON ub.user_id = u.id;
+
 CREATE TABLE user_memos (
 	user_id, INTEGER NOT NULL,
 	memo_id INTEGER NOT NULL,
@@ -383,5 +400,15 @@ CREATE INDEX idx_history_user ON history ( user_id );-- --
 CREATE INDEX idx_history_label ON history ( label );-- --
 CREATE INDEX idx_history_created ON history ( created );-- --
 
+-- Errors and notices
+CREATE TABLE messages(
+	content TEXT NOT NULL DEFAULT '{ "type" : "notice" }' COLLATE NOCASE,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	mtype TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.type' ), "notice" )
+	) STORED NOT NULL
+);-- --
+CREATE INDEX idx_message_type ON messages ( mtype );-- --
+CREATE INDEX idx_message_created ON messages ( created );-- --
 
 
