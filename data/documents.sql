@@ -91,6 +91,41 @@ BEGIN
 		WHERE id = OLD.id;
 END;-- --
 
+-- Localization
+CREATE TABLE languages (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+	label TEXT NOT NULL COLLATE NOCASE,
+	display TEXT NOT NULL COLLATE NOCASE,
+	iso_code TEXT NOT NULL COLLATE NOCASE,
+	sort_order INTEGER NOT NULL DEFAULT 0,
+	
+	-- Default interface language
+	is_default INTEGER NOT NULL DEFAULT 0,
+	lang_group TEXT NOT NULL DEFAULT '' COLLATE NOCASE
+);-- --
+CREATE UNIQUE INDEX idx_lang_label ON languages ( label );-- --
+CREATE UNIQUE INDEX idx_lang_iso ON languages ( iso_code );-- --
+CREATE INDEX idx_lang_default ON languages ( is_default );-- --
+CREATE INDEX idx_lang_sort ON languages ( sort_order );-- --
+CREATE INDEX idx_lang_group ON languages ( lang_group );-- --
+
+-- Unset previous default language if new default is set
+CREATE TRIGGER language_default_insert BEFORE INSERT ON 
+	languages FOR EACH ROW 
+WHEN NEW.is_default <> 0 AND NEW.is_default IS NOT NULL
+BEGIN
+	UPDATE languages SET is_default = 0 
+		WHERE is_default IS NOT 0;
+END;-- --
+
+CREATE TRIGGER language_default_update BEFORE UPDATE ON 
+	languages FOR EACH ROW 
+WHEN NEW.is_default <> 0 AND NEW.is_default IS NOT NULL
+BEGIN
+	UPDATE languages SET is_default = 0 
+		WHERE is_default IS NOT 0 AND id IS NOT NEW.id;
+END;-- --
+
 -- Structured content types
 CREATE TABLE document_types (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -105,6 +140,7 @@ CREATE UNIQUE INDEX idx_doc_label ON document_types ( label );-- --
 CREATE TABLE documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	type_id INTEGER NOT NULL,
+	lang_id INTEGER DEFAULT NULL,
 	abstract TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -118,9 +154,16 @@ CREATE TABLE documents (
 	CONSTRAINT fk_document_type 
 		FOREIGN KEY ( type_id ) 
 		REFERENCES document_types ( id )
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_document_lang 
+		FOREIGN KEY ( lang_id ) 
+		REFERENCES languages ( id )
+		ON DELETE RESTRICT
 );-- --
 CREATE INDEX idx_doc_type ON documents ( type_id );-- --
+CREATE INDEX idx_doc_lang ON documents ( lang_id )
+	WHERE lang_id IS NOT NULL;-- --
 CREATE INDEX idx_doc_created ON documents ( created );-- --
 CREATE INDEX idx_doc_updated ON documents ( updated );-- --
 CREATE INDEX idx_doc_settings ON users ( setting_id ) 
@@ -160,15 +203,23 @@ CREATE TABLE page_blocks (
 		COALESCE( json_extract( content, '$.body' ), "" )
 	) STORED NOT NULL, 
 	page_id INTEGER NOT NULL,
+	lang_id INTEGER DEFAULT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
 	status INTEGER NOT NULL DEFAULT 0,
 	
 	CONSTRAINT fk_block_page 
 		FOREIGN KEY ( page_id ) 
 		REFERENCES pages ( id )
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_block_lang 
+		FOREIGN KEY ( lang_id ) 
+		REFERENCES languages ( id )
+		ON DELETE RESTRICT
 );-- --
 CREATE INDEX idx_block_page ON page_blocks ( page_id );-- --
+CREATE INDEX idx_block_lang ON page_blocks ( lang_id )
+	WHERE lang_id IS NOT NULL;-- --
 CREATE INDEX idx_block_sort ON page_blocks ( sort_order );-- --
 CREATE INDEX idx_block_status ON page_blocks ( status );-- --
 
@@ -211,9 +262,17 @@ CREATE TABLE memos (
 	body TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( content, '$.body' ), "" )
 	) STORED NOT NULL,
+	lang_id INTEGER DEFAULT NULL,
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_memo_lang 
+		FOREIGN KEY ( lang_id ) 
+		REFERENCES languages ( id )
+		ON DELETE RESTRICT
 );-- --
+CREATE INDEX idx_memo_lang ON memos ( lang_id )
+	WHERE lang_id IS NOT NULL;-- --
 CREATE INDEX idx_memo_created ON memos ( created );-- --
 CREATE INDEX idx_memo_updated ON memos ( updated );-- --
 
