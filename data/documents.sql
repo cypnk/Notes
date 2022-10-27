@@ -6,6 +6,18 @@ CREATE VIEW rnd AS
 SELECT lower( hex( randomblob( 16 ) ) ) AS id;-- --
 
 
+CREATE TABLE configs (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.realm' ), "" )
+	) STORED NOT NULL
+);-- --
+-- Unique configuration per specific realm
+CREATE UNIQUE INDEX idx_config_realm ON configs ( realm ) 
+	WHERE realm IS NOT "";-- --
+
+
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	username TEXT NOT NULL COLLATE NOCASE,
