@@ -84,14 +84,21 @@ UPDATE document_types SET content = json( '{ "label" : "historical", "lang" : "e
 
 INSERT INTO pages ( document_id, sort_order ) VALUES ( 1, 0 );-- --
 INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "Test content heading", "render" : [ "heading" ] }' ), 0 );-- --
+	VALUES ( 1, json( '{ "body": "Test content heading", "render" : [ "heading" ], "lang" : "en" }' ), 0 );-- --
 
 INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "This is a line of test content", "render" : [] }' ), 1 );-- --
+	VALUES ( 1, json( '{ "body": "This is a line of test content", "render" : [], "lang" : "en" }' ), 1 );-- --
 
 INSERT INTO page_blocks ( page_id, content, sort_order ) 
 	VALUES ( 1, json( '{ "body": "මෙම පාඨය සිංහල භාෂාවෙන් ඇත", "render" : [], "lang" : "si" }' ), 1 );-- --
+	
+INSERT INTO page_blocks ( page_id, content, sort_order ) 
+	VALUES ( 1, json( '{ "body": "The above text is in Sinhalese", "render" : [], "lang" : "en" }' ), 1 );-- --
 
+UPDATE page_blocks SET content = json( '{ "body": "Este texto fue cambiado a Español", "render" : [], "lang" : "es" }' ) 
+	WHERE id = 2;
 
+INSERT INTO page_blocks ( page_id, content, sort_order ) 
+	VALUES ( 1, json( '{ "body": "The second block of text was changed to Spanish", "render" : [], "lang" : "en" }' ), 1 );-- --
 
 
