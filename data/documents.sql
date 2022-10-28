@@ -183,11 +183,30 @@ CREATE INDEX idx_doc_settings ON users ( setting_id )
 CREATE INDEX idx_doc_status ON documents ( status );-- --
 
 
--- Update last modified
+-- Update document details
+CREATE TRIGGER document_insert AFTER INSERT ON documents FOR EACH ROW
+BEGIN
+	UPDATE documents SET lang_id = (
+			SELECT COALESCE( id, NULL ) FROM languages 
+				WHERE iso_code = 
+					json_extract( NEW.settings, '$.lang' )
+			LIMIT 1
+		) WHERE id = NEW.id AND 
+			json_extract( NEW.settings, '$.lang' ) IS NOT "";
+END;-- --
+
 CREATE TRIGGER document_update AFTER UPDATE ON documents FOR EACH ROW
 BEGIN
 	UPDATE documents SET updated = CURRENT_TIMESTAMP 
 		WHERE id = OLD.id;
+		
+	UPDATE documents SET lang_id = (
+			SELECT COALESCE( id, NULL ) FROM languages 
+				WHERE iso_code = 
+					json_extract( NEW.settings, '$.lang' )
+			LIMIT 1
+		) WHERE id = NEW.id AND 
+			json_extract( NEW.settings, '$.lang' ) IS NOT "";
 END;-- --
 
 -- Content segments
@@ -245,6 +264,14 @@ BEGIN
 	-- Create search data
 	INSERT INTO block_search( docid, body ) 
 		VALUES ( NEW.id, NEW.body );
+	
+	UPDATE page_blocks SET lang_id = (
+			SELECT COALESCE( id, NULL ) FROM languages 
+				WHERE iso_code = 
+					json_extract( NEW.content, '$.lang' )
+			LIMIT 1
+		) WHERE id = NEW.id AND 
+			json_extract( NEW.content, '$.lang' ) IS NOT "";
 END;-- --
 
 CREATE TRIGGER block_update AFTER UPDATE ON page_blocks FOR EACH ROW
@@ -252,6 +279,14 @@ WHEN NEW.body IS NOT ""
 BEGIN
 	REPLACE INTO block_search( docid, body ) 
 		VALUES ( NEW.id, NEW.body );
+	
+	UPDATE page_blocks SET lang_id = (
+			SELECT COALESCE( id, NULL ) FROM languages 
+				WHERE iso_code = 
+					json_extract( NEW.content, '$.lang' )
+			LIMIT 1
+		) WHERE id = NEW.id AND 
+			json_extract( NEW.content, '$.lang' ) IS NOT "";
 END;-- --
 
 CREATE TRIGGER block_clear AFTER UPDATE ON page_blocks FOR EACH ROW 
