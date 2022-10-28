@@ -7,7 +7,7 @@ INSERT INTO users ( username, user_clean, password )
 -- Default language
 INSERT INTO languages (
 	id, iso_code, label, display, is_default
-) VALUES ( 'en', 'English', 'English', 1 );-- --
+) VALUES ( 1, 'en', 'English', 'English', 1 );-- --
 
 -- Others
 INSERT INTO languages (
@@ -71,21 +71,27 @@ INSERT INTO languages (
 
 
 INSERT INTO document_types( content ) VALUES ( json( '{ "label" : "document" }' ) );
-INSERT INTO documents ( abstract, lang_id, type_id, settings ) 
+INSERT INTO documents ( abstract, type_id, settings ) 
 	VALUES ( 
 		'Test document1', 
-		1, 1, 
-		json( '{ "setting_id" : "test1", "title" : "This is Not a Document" }' 
-	) );-- --
+		1, 
+		json( '{ "setting_id" : "test1", "title" : "This is Not a Document", "lang" : "en" }' ) 
+	);-- --
 
 INSERT INTO history ( content, user_id ) VALUES ( json( '{ "label":"insert" }' ), 1 );-- --
 
-UPDATE document_types SET content = json( '{ "label" : "historical" }' ) WHERE id = 1;-- --
+UPDATE document_types SET content = json( '{ "label" : "historical", "lang" : "en" }' ) WHERE id = 1;-- --
 
 INSERT INTO pages ( document_id, sort_order ) VALUES ( 1, 0 );-- --
-INSERT INTO page_blocks ( page_id, lang_id, content, sort_order ) 
-	VALUES ( 1, 1, json( '{ "body": "Test content heading", "render" : [ "heading" ] }' ), 0 );-- --
+INSERT INTO page_blocks ( page_id, content, sort_order ) 
+	VALUES ( 1, json( '{ "body": "Test content heading", "render" : [ "heading" ] }' ), 0 );-- --
 
-INSERT INTO page_blocks ( page_id, lang_id, content, sort_order ) 
-	VALUES ( 1, 1, json( '{ "body": "This is a line of test content", "render" : [] }' ), 1 );-- --
+INSERT INTO page_blocks ( page_id, content, sort_order ) 
+	VALUES ( 1, json( '{ "body": "This is a line of test content", "render" : [] }' ), 1 );-- --
+
+INSERT INTO page_blocks ( page_id, content, sort_order ) 
+	VALUES ( 1, json( '{ "body": "මෙම පාඨය සිංහල භාෂාවෙන් ඇත", "render" : [], "lang" : "si" }' ), 1 );-- --
+
+
+
 
