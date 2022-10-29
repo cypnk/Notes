@@ -6,6 +6,17 @@ CREATE VIEW rnd AS
 SELECT lower( hex( randomblob( 16 ) ) ) AS id;-- --
 
 
+-- GUID/UUID generator helper
+CREATE VIEW uuid AS SELECT lower(
+	hex( randomblob( 4 ) ) || '-' || 
+	hex( randomblob( 2 ) ) || '-' || 
+	'4' || substr( hex( randomblob( 2 ) ), 2 ) || '-' || 
+	substr( 'AB89', 1 + ( abs( random() ) % 4 ) , 1 )  ||
+	substr( hex( randomblob( 2 ) ), 2 ) || '-' || 
+	hex( randomblob( 6 ) )
+) AS id;-- --
+
+
 CREATE TABLE configs (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
@@ -16,92 +27,6 @@ CREATE TABLE configs (
 -- Unique configuration per specific realm
 CREATE UNIQUE INDEX idx_config_realm ON configs ( realm ) 
 	WHERE realm IS NOT "";-- --
-
-
-CREATE TABLE users (
-	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	username TEXT NOT NULL COLLATE NOCASE,
-	password TEXT NOT NULL,
-	
-	-- Normalized, lowercase, and stripped of spaces
-	user_clean TEXT NOT NULL COLLATE NOCASE,
-	
-	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
-	setting_id TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.setting_id' ), "" )
-	) STORED NOT NULL,
-	status INTEGER NOT NULL DEFAULT 0
-);-- --
-CREATE UNIQUE INDEX idx_user_name ON users( username );-- --
-CREATE UNIQUE INDEX idx_user_clean ON users( user_clean );-- --
-CREATE INDEX idx_user_created ON users ( created );-- --
-CREATE INDEX idx_user_updated ON users ( updated );-- --
-CREATE INDEX idx_user_settings ON users ( setting_id ) 
-	WHERE setting_id IS NOT "";-- --
-CREATE INDEX idx_user_status ON users ( status );-- --
-
-
--- Cookie based login tokens
-CREATE TABLE logins(
-	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	user_id INTEGER NOT NULL,
-	lookup TEXT NOT NULL COLLATE NOCASE,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	hash TEXT DEFAULT NULL,
-	
-	CONSTRAINT fk_logins_user 
-		FOREIGN KEY ( user_id ) 
-		REFERENCES users ( id )
-		ON DELETE CASCADE
-);-- --
-CREATE UNIQUE INDEX idx_login_user ON logins( user_id );-- --
-CREATE UNIQUE INDEX idx_login_lookup ON logins( lookup );-- --
-CREATE INDEX idx_login_updated ON logins( updated );-- --
-CREATE INDEX idx_login_hash ON logins( hash )
-	WHERE hash IS NOT NULL;-- --
-
--- Login view
-CREATE VIEW login_view AS SELECT 
-	logins.user_id AS id,
-	logins.lookup AS lookup, 
-	logins.hash AS hash, 
-	logins.updated AS updated, 
-	users.status AS status, 
-	users.username AS name, 
-	users.password AS password
-	
-	FROM logins
-	JOIN users ON logins.user_id = users.id;-- --
-
-
--- Login regenerate
-CREATE VIEW logout_view AS 
-SELECT user_id, lookup FROM logins;-- --
-
--- Reset the lookup string to force logout a user
-CREATE TRIGGER user_logout INSTEAD OF UPDATE OF lookup ON logout_view
-BEGIN
-	UPDATE logins SET lookup = ( SELECT id FROM rnd ), 
-		updated = CURRENT_TIMESTAMP
-		WHERE user_id = NEW.user_id;
-END;-- --
-
--- New user, generate UUID, insert user search and create login lookups
-CREATE TRIGGER user_insert AFTER INSERT ON users FOR EACH ROW 
-BEGIN
-	-- New login lookup
-	INSERT INTO logins( user_id, lookup )
-		VALUES( NEW.id, ( SELECT id FROM rnd ) );
-END;-- --
-
--- Update last modified
-CREATE TRIGGER user_update AFTER UPDATE ON users FOR EACH ROW
-BEGIN
-	UPDATE users SET updated = CURRENT_TIMESTAMP 
-		WHERE id = OLD.id;
-END;-- --
 
 -- Localization
 CREATE TABLE languages (
@@ -137,6 +62,382 @@ BEGIN
 	UPDATE languages SET is_default = 0 
 		WHERE is_default IS NOT 0 AND id IS NOT NEW.id;
 END;-- --
+
+-- User profiles
+CREATE TABLE users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	uuid TEXT DEFAULT NULL COLLATE NOCASE,
+	username TEXT NOT NULL COLLATE NOCASE,
+	password TEXT NOT NULL,
+
+	-- Normalized, lowercase, and stripped of spaces
+	user_clean TEXT NOT NULL COLLATE NOCASE,
+	display TEXT DEFAULT NULL COLLATE NOCASE,
+	bio TEXT DEFAULT NULL COLLATE NOCASE,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	setting_id TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL,
+	status INTEGER NOT NULL DEFAULT 0
+);-- --
+CREATE UNIQUE INDEX idx_user_name ON users( username );-- --
+CREATE UNIQUE INDEX idx_user_clean ON users( user_clean );-- --
+CREATE UNIQUE INDEX idx_user_uuid ON users( uuid )
+	WHERE uuid IS NOT NULL;-- --
+CREATE INDEX idx_user_created ON users ( created );-- --
+CREATE INDEX idx_user_updated ON users ( updated );-- --
+CREATE INDEX idx_user_settings ON users ( setting_id ) 
+	WHERE setting_id IS NOT "";-- --
+CREATE INDEX idx_user_status ON users ( status );-- --
+
+-- User searching
+CREATE VIRTUAL TABLE user_search 
+	USING fts4( username, tokenize=unicode61 );-- --
+
+
+-- Cookie based login tokens
+CREATE TABLE logins(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	user_id INTEGER NOT NULL,
+	lookup TEXT NOT NULL COLLATE NOCASE,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	hash TEXT DEFAULT NULL,
+	
+	CONSTRAINT fk_logins_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_login_user ON logins( user_id );-- --
+CREATE UNIQUE INDEX idx_login_lookup ON logins( lookup );-- --
+CREATE INDEX idx_login_updated ON logins( updated );-- --
+CREATE INDEX idx_login_hash ON logins( hash )
+	WHERE hash IS NOT NULL;-- --
+
+
+-- Secondary identity providers E.G. two-factor
+CREATE TABLE id_providers( 
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	label TEXT NOT NULL COLLATE NOCASE,
+	sort_order INTEGER NOT NULL DEFAULT 0,
+	
+	-- Serialized JSON
+	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	setting_id TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL
+);-- --
+CREATE UNIQUE INDEX idx_provider_label ON id_providers( label );-- --
+CREATE INDEX idx_provider_sort ON id_providers( sort_order ASC );-- --
+CREATE INDEX idx_provider_settings ON id_providers ( setting_id ) 
+	WHERE setting_id IS NOT "";-- --
+
+
+-- User authentication and activity metadata
+CREATE TABLE user_auth(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	user_id INTEGER NOT NULL,
+	provider_id INTEGER DEFAULT NULL,
+	email TEXT DEFAULT NULL COLLATE NOCASE,
+	mobile_pin TEXT DEFAULT NULL COLLATE NOCASE,
+	info TEXT DEFAULT NULL,
+	
+	-- Activity
+	last_ip TEXT DEFAULT NULL COLLATE NOCASE,
+	last_ua TEXT DEFAULT NULL COLLATE NOCASE,
+	last_active DATETIME DEFAULT NULL,
+	last_login DATETIME DEFAULT NULL,
+	last_pass_change DATETIME DEFAULT NULL,
+	last_lockout DATETIME DEFAULT NULL,
+	last_session_id TEXT DEFAULT NULL,
+	
+	-- Auth status,
+	is_approved INTEGER NOT NULL DEFAULT 0,
+	is_locked INTEGER NOT NULL DEFAULT 0,
+	
+	-- Authentication tries
+	failed_attempts INTEGER NOT NULL DEFAULT 0,
+	failed_last_start DATETIME DEFAULT NULL,
+	failed_last_attempt DATETIME DEFAULT NULL,
+	
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	expires DATETIME DEFAULT NULL,
+	
+	CONSTRAINT fk_auth_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE, 
+		
+	CONSTRAINT fk_auth_provider
+		FOREIGN KEY ( provider_id ) 
+		REFERENCES providers ( id )
+		ON DELETE SET NULL
+);-- --
+CREATE UNIQUE INDEX idx_user_email ON user_auth( email );-- --
+CREATE INDEX idx_user_auth_user ON user_auth( user_id );-- --
+CREATE INDEX idx_user_auth_provider ON user_auth( provider_id )
+	WHERE provider_id IS NOT NULL;-- --
+CREATE INDEX idx_user_pin ON user_auth( mobile_pin ) 
+	WHERE mobile_pin IS NOT NULL;-- --
+CREATE INDEX idx_user_ip ON user_auth( last_ip )
+	WHERE last_ip IS NOT NULL;-- --
+CREATE INDEX idx_user_ua ON user_auth( last_ua )
+	WHERE last_ua IS NOT NULL;-- --
+CREATE INDEX idx_user_active ON user_auth( last_active )
+	WHERE last_active IS NOT NULL;-- --
+CREATE INDEX idx_user_login ON user_auth( last_login )
+	WHERE last_login IS NOT NULL;-- --
+CREATE INDEX idx_user_session ON user_auth( last_session_id )
+	WHERE last_session_id IS NOT NULL;-- --
+CREATE INDEX idx_user_auth_approved ON user_auth( is_approved );-- --
+CREATE INDEX idx_user_auth_locked ON user_auth( is_locked );-- --
+CREATE INDEX idx_user_failed_last ON user_auth( failed_last_attempt )
+	WHERE failed_last_attempt IS NOT NULL;-- --
+CREATE INDEX idx_user_auth_created ON user_auth( created );-- --
+CREATE INDEX idx_user_auth_expires ON user_auth( expires )
+	WHERE expires IS NOT NULL;-- --
+
+
+-- User auth last activity
+CREATE VIEW auth_activity AS 
+SELECT user_id, 
+	provider_id,
+	is_approved,
+	is_locked,
+	last_ip,
+	last_ua,
+	last_active,
+	last_login,
+	last_lockout,
+	last_pass_change,
+	last_session_id,
+	failed_attempts,
+	failed_last_start,
+	failed_last_attempt
+	
+	FROM user_auth;-- --
+
+
+-- Auth activity helpers
+CREATE TRIGGER user_last_login INSTEAD OF 
+	UPDATE OF last_login ON auth_activity
+BEGIN 
+	UPDATE user_auth SET 
+		last_ip			= NEW.last_ip,
+		last_ua			= NEW.last_ua,
+		last_session_id		= NEW.last_session_id,
+		last_login		= CURRENT_TIMESTAMP, 
+		last_active		= CURRENT_TIMESTAMP,
+		failed_attempts		= 0
+		WHERE id = OLD.id;
+END;-- --
+
+CREATE TRIGGER user_last_ip INSTEAD OF 
+	UPDATE OF last_ip ON auth_activity
+BEGIN 
+	UPDATE user_auth SET 
+		last_ip			= NEW.last_ip, 
+		last_ua			= NEW.last_ua,
+		last_session_id		= NEW.last_session_id,
+		last_active		= CURRENT_TIMESTAMP 
+		WHERE id = OLD.id;
+END;-- --
+
+CREATE TRIGGER user_last_active INSTEAD OF 
+	UPDATE OF last_active ON auth_activity
+BEGIN 
+	UPDATE user_auth SET last_active = CURRENT_TIMESTAMP
+		WHERE id = OLD.id;
+END;-- --
+
+CREATE TRIGGER user_last_lockout INSTEAD OF 
+	UPDATE OF is_locked ON auth_activity
+	WHEN NEW.is_locked = 1
+BEGIN 
+	UPDATE user_auth SET 
+		is_locked	= 1,
+		last_lockout	= CURRENT_TIMESTAMP 
+		WHERE id = OLD.id;
+END;-- --
+
+CREATE TRIGGER user_failed_last_attempt INSTEAD OF 
+	UPDATE OF failed_last_attempt ON auth_activity
+BEGIN 
+	UPDATE user_auth SET 
+		last_ip			= NEW.last_ip, 
+		last_ua			= NEW.last_ua,
+		last_session_id		= NEW.last_session_id,
+		last_active		= CURRENT_TIMESTAMP,
+		failed_last_attempt	= CURRENT_TIMESTAMP, 
+		failed_attempts		= ( failed_attempts + 1 ) 
+		WHERE id = OLD.id;
+	
+	-- Update current start window if it's been 24 hours since 
+	-- last window
+	UPDATE user_auth SET failed_last_start = CURRENT_TIMESTAMP 
+		WHERE id = OLD.id AND ( 
+		failed_last_start IS NULL OR ( 
+		strftime( '%s', 'now' ) - 
+		strftime( '%s', 'failed_last_start' ) ) > 86400 );
+END;-- --
+
+
+
+-- Login view
+-- Usage:
+-- SELECT * FROM login_view WHERE lookup = :lookup;
+-- SELECT * FROM login_view WHERE name = :username;
+CREATE VIEW login_view AS SELECT 
+	logins.user_id AS id, 
+	users.uuid AS uuid, 
+	logins.lookup AS lookup, 
+	logins.hash AS hash, 
+	logins.updated AS updated, 
+	users.status AS status, 
+	users.username AS name, 
+	users.password AS password, 
+	users.settings AS user_settings, 
+	ua.is_approved AS is_approved, 
+	ua.is_locked AS is_locked, 
+	ua.expires AS expires
+	
+	FROM logins
+	JOIN users ON logins.user_id = users.id
+	LEFT JOIN user_auth ua ON users.id = ua.user_id;-- --
+
+
+-- Login regenerate. Not intended for SELECT
+-- Usage:
+-- UPDATE logout_view SET lookup = '' WHERE user_id = :user_id;
+CREATE VIEW logout_view AS 
+SELECT user_id, lookup FROM logins;-- --
+
+-- Reset the lookup string to force logout a user
+CREATE TRIGGER user_logout INSTEAD OF UPDATE OF lookup ON logout_view
+BEGIN
+	UPDATE logins SET lookup = ( SELECT id FROM rnd ), 
+		updated = CURRENT_TIMESTAMP
+		WHERE user_id = NEW.user_id;
+END;-- --
+
+-- New user, generate UUID, insert user search and create login lookups
+CREATE TRIGGER user_insert AFTER INSERT ON users FOR EACH ROW 
+BEGIN
+	-- Create search data
+	INSERT INTO user_search( docid, username ) 
+		VALUES ( NEW.id, NEW.username );
+	
+	-- New login lookup
+	INSERT INTO logins( user_id, lookup )
+		VALUES( NEW.id, ( SELECT id FROM rnd ) );
+	
+	UPDATE users SET uuid = ( SELECT id FROM uuid )
+		WHERE id = NEW.id;
+END;-- --
+
+-- Update last modified
+CREATE TRIGGER user_update AFTER UPDATE ON users FOR EACH ROW
+BEGIN
+	UPDATE users SET updated = CURRENT_TIMESTAMP 
+		WHERE id = OLD.id;
+	
+	UPDATE user_search 
+		SET username = NEW.username || ' ' || NEW.display
+		WHERE docid = OLD.id;
+END;-- --
+
+-- Delete user search data following user delete
+CREATE TRIGGER user_delete BEFORE DELETE ON users FOR EACH ROW 
+BEGIN
+	DELETE FROM user_search WHERE rowid = OLD.rowid;
+END;-- --
+
+
+
+-- User roles
+CREATE TABLE roles(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	label TEXT NOT NULL COLLATE NOCASE,
+	description TEXT DEFAULT NULL COLLATE NOCASE
+);-- --
+CREATE UNIQUE INDEX idx_role_label ON roles( label ASC );-- --
+
+-- Third party role permission providers
+CREATE TABLE permission_providers(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	label TEXT NOT NULL COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	setting_id TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL
+);-- --
+CREATE UNIQUE INDEX idx_perm_provider_label ON permission_providers( label ASC );-- --
+CREATE INDEX idx_perm_settings ON permission_providers ( setting_id ) 
+	WHERE setting_id IS NOT "";-- --
+
+-- Role permissions
+CREATE TABLE role_privileges(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	role_id INTEGER NOT NULL,
+	permission_id INTEGER DEFAULT NULL,
+	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	setting_id TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL,
+	
+	CONSTRAINT fk_privilege_role 
+		FOREIGN KEY ( role_id ) 
+		REFERENCES roles ( id )
+		ON DELETE CASCADE, 
+	
+	CONSTRAINT fk_privilege_provider
+		FOREIGN KEY ( permission_id ) 
+		REFERENCES permission_providers ( id )
+		ON DELETE RESTRICT
+);-- --
+CREATE INDEX idx_privilege_role ON role_privileges( role_id );-- --
+CREATE INDEX idx_privilege_provider ON role_privileges ( permission_id )
+	WHERE permission_id IS NOT NULL;-- --
+CREATE INDEX idx_privilege_settings ON role_privileges( setting_id );-- --
+
+-- User role relationships
+CREATE TABLE user_roles(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	role_id INTEGER NOT NULL,
+	user_id INTEGER NOT NULL,
+	
+	CONSTRAINT fk_user_roles_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_user_roles_role 
+		FOREIGN KEY ( role_id ) 
+		REFERENCES roles ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_user_role ON 
+	user_roles( role_id, user_id );-- --
+
+-- Role based user permission view
+CREATE VIEW user_permission_view AS 
+SELECT 
+	user_id AS id, 
+	GROUP_CONCAT( DISTINCT roles.label ) AS label,
+	GROUP_CONCAT( 
+		COALESCE( rp.settings, '{}' ), ',' 
+	) AS privilege_settings,
+	GROUP_CONCAT( 
+		COALESCE( pr.settings, '{}' ), ',' 
+	) AS provider_settings
+	
+	FROM user_roles
+	JOIN roles ON user_roles.role_id = roles.id
+	LEFT JOIN role_privileges rp ON roles.id = rp.role_id
+	LEFT JOIN permission_providers pr ON rp.permission_id = pr.id;-- --
+
 
 -- Structured content types
 CREATE TABLE document_types (
