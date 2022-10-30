@@ -120,19 +120,34 @@ CREATE INDEX idx_login_hash ON logins( hash )
 -- Secondary identity providers E.G. two-factor
 CREATE TABLE id_providers( 
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	uuid TEXT DEFAULT NULL COLLATE NOCASE,
 	label TEXT NOT NULL COLLATE NOCASE,
 	sort_order INTEGER NOT NULL DEFAULT 0,
 	
 	-- Serialized JSON
-	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT 
+		'{ 
+			"setting_id" : "",
+			"realm"	: "http://localhost",
+			"scope" : "local"
+		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL, 
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.realm' ), "http://localhost" )
+	) STORED NOT NULL,
+	realm_scope TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.scope' ), "local" )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_provider_label ON id_providers( label );-- --
+CREATE UNIQUE INDEX idx_provider_uuid ON id_providers ( uuid ) 
+	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_provider_sort ON id_providers( sort_order ASC );-- --
 CREATE INDEX idx_provider_settings ON id_providers ( setting_id ) 
 	WHERE setting_id IS NOT "";-- --
+CREATE UNIQUE INDEX idx_provider_realm ON id_providers( realm, realm_scope );-- --
 
 
 -- User authentication and activity metadata
@@ -172,7 +187,7 @@ CREATE TABLE user_auth(
 		
 	CONSTRAINT fk_auth_provider
 		FOREIGN KEY ( provider_id ) 
-		REFERENCES providers ( id )
+		REFERENCES id_providers ( id )
 		ON DELETE SET NULL
 );-- --
 CREATE UNIQUE INDEX idx_user_email ON user_auth( email );-- --
@@ -354,6 +369,12 @@ BEGIN
 	DELETE FROM user_search WHERE rowid = OLD.rowid;
 END;-- --
 
+-- ID Provider creation
+CREATE TRIGGER id_provider_insert AFTER INSERT ON id_providers FOR EACH ROW
+BEGIN
+	UPDATE id_providers SET uuid = ( SELECT id FROM uuid )
+		WHERE id = NEW.id;
+END;-- --
 
 
 -- User roles
@@ -367,24 +388,57 @@ CREATE UNIQUE INDEX idx_role_label ON roles( label ASC );-- --
 -- Third party role permission providers
 CREATE TABLE permission_providers(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	uuid TEXT DEFAULT NULL COLLATE NOCASE,
 	label TEXT NOT NULL COLLATE NOCASE,
-	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT 
+		'{ 
+			"setting_id" : "",
+			"realm"	: "http://localhost",
+			"scope" : "local"
+		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL, 
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.realm' ), "http://localhost" )
+	) STORED NOT NULL,
+	realm_scope TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.scope' ), "local" )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_perm_provider_label ON permission_providers( label ASC );-- --
+CREATE UNIQUE INDEX idx_perm_provider_uuid ON permission_providers ( uuid ) 
+	WHERE uuid IS NOT NULL;-- --
+CREATE UNIQUE INDEX idx_perm_provider_realm ON permission_providers( realm, realm_scope );-- --
 CREATE INDEX idx_perm_settings ON permission_providers ( setting_id ) 
 	WHERE setting_id IS NOT "";-- --
+
+-- Permission provider creation
+CREATE TRIGGER perm_provider_insert AFTER INSERT ON permission_providers FOR EACH ROW
+BEGIN
+	UPDATE permission_providers SET uuid = ( SELECT id FROM uuid )
+		WHERE id = NEW.id;
+END;-- --
 
 -- Role permissions
 CREATE TABLE role_privileges(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	role_id INTEGER NOT NULL,
 	permission_id INTEGER DEFAULT NULL,
-	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT  
+		'{ 
+			"setting_id" : "",
+			"realm"	: "http://localhost",
+			"scope" : "local"
+		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+	) STORED NOT NULL, 
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.realm' ), "http://localhost" )
+	) STORED NOT NULL,
+	realm_scope TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.scope' ), "local" )
 	) STORED NOT NULL,
 	
 	CONSTRAINT fk_privilege_role 
@@ -400,7 +454,9 @@ CREATE TABLE role_privileges(
 CREATE INDEX idx_privilege_role ON role_privileges( role_id );-- --
 CREATE INDEX idx_privilege_provider ON role_privileges ( permission_id )
 	WHERE permission_id IS NOT NULL;-- --
-CREATE INDEX idx_privilege_settings ON role_privileges( setting_id );-- --
+CREATE UNIQUE INDEX idx_privilege_realm ON role_privileges( realm, realm_scope );-- --
+CREATE INDEX idx_privilege_settings ON role_privileges( setting_id ) 
+	WHERE setting_id IS NOT "";-- --
 
 -- User role relationships
 CREATE TABLE user_roles(
@@ -429,9 +485,13 @@ SELECT
 	GROUP_CONCAT( 
 		COALESCE( rp.settings, '{}' ), ',' 
 	) AS privilege_settings,
+	GROUP_CONCAT( rp.realm, ',' ) AS privilege_realms,
+	GROUP_CONCAT( rp.realm_scope, ',' ) AS privilege_scopes,
 	GROUP_CONCAT( 
 		COALESCE( pr.settings, '{}' ), ',' 
-	) AS provider_settings
+	) AS provider_settings,
+	GROUP_CONCAT( pr.realm, ',' ) AS provider_realms,
+	GROUP_CONCAT( pr.realm_scope, ',' ) AS provider_scopes
 	
 	FROM user_roles
 	JOIN roles ON user_roles.role_id = roles.id
@@ -452,6 +512,7 @@ CREATE UNIQUE INDEX idx_doc_label ON document_types ( label );-- --
 -- Main content
 CREATE TABLE documents (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	uuid TEXT DEFAULT NULL COLLATE NOCASE,
 	type_id INTEGER NOT NULL,
 	lang_id INTEGER DEFAULT NULL,
 	abstract TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
@@ -474,6 +535,8 @@ CREATE TABLE documents (
 		REFERENCES languages ( id )
 		ON DELETE RESTRICT
 );-- --
+CREATE UNIQUE INDEX idx_doc_uuid ON documents( uuid )
+	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_doc_type ON documents ( type_id );-- --
 CREATE INDEX idx_doc_lang ON documents ( lang_id )
 	WHERE lang_id IS NOT NULL;-- --
@@ -487,6 +550,9 @@ CREATE INDEX idx_doc_status ON documents ( status );-- --
 -- Update document details
 CREATE TRIGGER document_insert AFTER INSERT ON documents FOR EACH ROW
 BEGIN
+	UPDATE documents SET uuid = ( SELECT id FROM uuid )
+		WHERE id = NEW.id;
+	
 	UPDATE documents SET lang_id = (
 			SELECT COALESCE( id, NULL ) FROM languages 
 				WHERE iso_code = 
@@ -513,6 +579,7 @@ END;-- --
 -- Content segments
 CREATE TABLE pages (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	uuid TEXT DEFAULT NULL COLLATE NOCASE,
 	document_id INTEGER NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
 	status INTEGER NOT NULL DEFAULT 0,
@@ -522,9 +589,17 @@ CREATE TABLE pages (
 		REFERENCES documents ( id )
 		ON DELETE CASCADE
 );-- --
+CREATE UNIQUE INDEX idx_page_uuid ON pages( uuid )
+	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_page_document ON pages ( document_id );-- --
 CREATE INDEX idx_page_sort ON pages ( sort_order );-- --
 CREATE INDEX idx_page_status ON pages ( status );-- --
+
+CREATE TRIGGER page_insert AFTER INSERT ON pages FOR EACH ROW
+BEGIN
+	UPDATE pages SET uuid = ( SELECT id FROM uuid )
+		WHERE id = NEW.id;
+END;-- --
 
 -- Content breakpoints
 CREATE TABLE page_blocks (
