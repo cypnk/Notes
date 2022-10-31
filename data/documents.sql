@@ -427,9 +427,10 @@ CREATE TABLE role_privileges(
 	permission_id INTEGER DEFAULT NULL,
 	settings TEXT NOT NULL DEFAULT  
 		'{ 
-			"setting_id" : "",
-			"realm"	: "http://localhost",
-			"scope" : "local"
+			"setting_id"	: "",
+			"realm"		: "http://localhost",
+			"scope"		: "local",
+			"actions"	: []
 		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
@@ -830,7 +831,7 @@ CREATE VIEW user_block_view AS SELECT
 		
 		FROM page_blocks pb
 		LEFT JOIN user_blocks ub ON pb.id = ub.id 
-		LEFT JOIN users u ON ub.user_id = u.id;
+		LEFT JOIN users u ON ub.user_id = u.id;-- --
 
 CREATE TABLE user_memos (
 	user_id, INTEGER NOT NULL,
