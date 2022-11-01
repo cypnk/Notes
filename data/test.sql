@@ -4,6 +4,25 @@
 INSERT INTO users ( username, user_clean, password ) 
 	VALUES ( 'AzureDiamond', 'AzureDiamond', 'hunter2' );-- --
 
+INSERT INTO roles ( label, description ) 
+	VALUES ( 'admin', 'Global manager' );-- --
+
+INSERT INTO roles ( label, description ) 
+	VALUES ( 'editor', 'Content manager' );-- --
+
+INSERT INTO role_privileges ( role_id, settings ) 
+	VALUES ( 1, json( '{ "scope" : "global", "actions" : [ "*" ] }' ) );-- --
+
+INSERT INTO role_privileges ( role_id, settings ) 
+	VALUES ( 2, json( 
+		'{ "scope" : "local", "actions" : [ 
+			"doccreate", "docedit", "docdelete", 
+			"pagecreate", "pageedit", "pagedelete",
+			"blockcreate", "blockedit", "blockdelete"
+		] }' 
+	) );-- --
+
+
 -- Default language
 INSERT INTO languages (
 	id, iso_code, label, display, is_default
