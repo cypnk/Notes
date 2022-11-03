@@ -24,7 +24,7 @@ abstract class Entity implements Stringable {
 	
 	protected static array $errors		= [];
 	
-	public abstract function save() : bool {}
+	abstract public function save() : bool {}
 	
 	public function __destruct() {
 		// TODO: Save errors to log;
