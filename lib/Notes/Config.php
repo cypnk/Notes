@@ -1,0 +1,233 @@
+<?php declare( strict_types = 1 );
+
+namespace Notes;
+
+class Config extends Entity {
+	
+	const NOTES_STORE	= '';
+	const NOTES_FILES	= '';
+	
+	/**
+	 *  Configuration placeholder replacements
+	 *  @var array
+	 */
+	private readonly array $replacements;
+	
+	/**
+	 *  Configuration application scope
+	 *  @var string
+	 */
+	public readonly string $realm;
+	
+	/**
+	 *  Current client request
+	 *  @var object
+	 */
+	public readonly Request $request;
+	
+	/**
+	 *  Overriden configuration during runtime
+	 *  @var array
+	 */
+	private $options		= [];
+	
+	/**
+	 *  Configuration begins with request and default realm settings
+	 */
+	public function __construct() {
+		$this->replacements	= [
+			'{store}'	=> static::NOTES_STORE,
+			'{files}'	=> static::NOTES_FILES
+		];
+		
+		$this->request	= new \Notes\Request();
+		$this->loadRealm( $request );
+	}
+	
+	public function loadRealm( Request $request ) {
+		if ( isset( $this->realm ) ) {
+			return;
+		}
+		
+		// Build path tree
+		$path	= [ $request->getHost() ];
+		$tree	= 
+		\array_map( function( $v ) use $path {
+			$path[] = $path[count( $path ) - 1] . 
+				\Notes\Util::slashPath( $v );
+		}, explode( '/', $request->getURI() ) );
+		
+		// Get globals
+		$sql	= 'SELECT settings FROM configs WHERE realm = "";';
+		
+		// Get by realm, if any
+		$sql	= 
+		"SELECT settings FROM configs WHERE realm IN ( {$params} )
+			ORDER by realm DESC LIMIT 1;";
+		
+		$this->overrideDefaults( \Notes\Util::decode( $data ) );
+	}
+	
+	/**
+	 *  @brief Brief description
+	 *  
+	 *  @return Return description
+	 *  
+	 *  @details More details
+	 */
+	public function getRequest() {
+		return $this->request;
+	}
+	
+	/**
+	 *  Overriden configuration, if set
+	 * 
+	 *  @return array
+	 */
+	public function getConfig() : array {
+		return $this->options;
+	}
+	
+	public function save() : bool {
+		$db = $this->getData();
+		$settings = \Notes\Util::encode( $this->settings );
+		
+		// If generated, it came from the database
+		if ( isset( $this->realm ) ) {
+			return 
+			$db->setUpdate( 
+				[ 
+					'settings' => $settings 
+				], 
+				'config',
+				$this->id
+			);
+		}
+		
+		$id = 
+		$db->setInsert( 
+			[ 
+				'settings' => $settings 
+			], 
+			'config' 
+		);
+		
+		if ( $id ) {
+			$this->id = $id;
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 *  Override default configuration with new runtime defaults
+	 *  E.G. From database
+	 * 
+	 *  @param array	$options	New configuration
+	 */
+	public function overrideDefaults( array $options ) {
+		$this->options = 
+		\array_merge( $this->options, $options );
+		
+		foreach ( $this->options as $k => $v ) {
+			$this->options[$k] = 
+				$this->placeholders( $v );
+		}
+	}
+	
+	/**
+	 *  Get configuration setting or default value
+	 *  
+	 *  @param string	$name		Configuration setting name
+	 *  @param string	$type		String, integer, or boolean
+	 *  @param string	$filter		Optional parse function
+	 *  @return mixed
+	 */
+	public function setting( 
+		string		$name, 
+		string		$type		= 'string',
+		string		$filter		= ''
+	) {
+		if ( !isset( $this->options[$name] ) ) { 
+			return null;
+		}
+		
+		switch( $type ) {
+			case 'int':
+			case 'integer':
+				return ( int ) $this->options[$name];
+				
+			case 'bool':
+			case 'boolean':
+				return ( bool ) $this->options[$name];
+			
+			case 'json':
+				$json	= $this->options[$name];
+				
+				return 
+				\is_array( $json ) ? 
+					$json : 
+					\Notes\Util::decode( ( string ) $json );
+			
+			case 'list':
+			case 'listlower':
+				$items	= $this->options[$name];
+				$lower	= 
+				( 0 == \strcmp( $type, 'listlower' ) ) ? 
+					true : false;
+				
+				return 
+				\is_array( $items ) ? 
+					\array_map( 'trim', $items ) : 
+					\Notes\Util::trimmedList( 
+						( string ) $items, $lower 
+					);
+				
+			case 'lines':
+				$lines	= $this->options[$name];
+				
+				return 
+				\is_array( $lines ) ? 
+					$lines : 
+					\Notes\Util::lineSettings( 
+						( string ) $lines, 
+						$filter
+					);
+			
+			// Core configuration setting fallback
+			default:
+				return $this->options[$name];
+		}
+	}
+	
+	
+	/**
+	 *  Helper to determine if given hash algo exists or returns default
+	 *  
+	 *  @param string	$token		Configuration setting name
+	 *  @param string	$default	Defined default value
+	 *  @param bool		$hmac		Check hash_hmac_algos() if true
+	 *  @return string
+	 */
+	public function hashAlgo(
+		string	$token, 
+		string	$default, 
+		bool	$hmac		= false 
+	) : string {
+		static $algos	= [];
+		$t		= $token . ( string ) $hmac;
+		if ( isset( $algos[$t] ) ) {
+			return $algos[$t];
+		}
+		
+		$ht		= $this->setting( $token ) ?? $default;
+		
+		$algos[$t]	= 
+			\in_array( $ht, 
+				( $hmac ? \hash_hmac_algos() : \hash_algos() ) 
+			) ? $ht : $default;
+			
+		return $algos[$t];	
+	}
+
+}
