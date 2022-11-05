@@ -17,7 +17,7 @@ class Config extends Entity {
 	 *  Configuration application scope
 	 *  @var string
 	 */
-	public readonly string $realm;
+	public readonly string $_realm;
 	
 	/**
 	 *  Current client request
@@ -44,8 +44,27 @@ class Config extends Entity {
 		$this->loadRealm( $request );
 	}
 	
+	public function __set( $name, $value ) {
+		switch ( $name ) {
+			case 'realm':
+				$this->_realm = 
+				\Notes\Util::cleanUrl( ( string ) $value );
+				return;
+		}
+		parent::__set( $name, $value );
+	}
+	
+	public function __get( $name ) {
+		switch ( $name ) {
+			case 'realm':
+				return $this->_realm ?? '';
+		}
+		
+		return::__get( $name );
+	}
+	
 	public function loadRealm( Request $request ) {
-		if ( isset( $this->realm ) ) {
+		if ( isset( $this->_realm ) ) {
 			return;
 		}
 		
@@ -57,15 +76,31 @@ class Config extends Entity {
 				\Notes\Util::slashPath( $v );
 		}, explode( '/', $request->getURI() ) );
 		
+		$db	= $this->getData();
+		
 		// Get globals
 		$sql	= 'SELECT settings FROM configs WHERE realm = "";';
+		$res	= $db->getResults( $sql );
+		
+		if ( !empty( $res['settings'] ) ) {
+			$this->overrideDefaults( 
+				\Notes\Util::decode( $res['settings'] ) 
+			) ;
+		}
 		
 		// Get by realm, if any
+		$frag	= $db->getInParam( $tree, $params );
 		$sql	= 
-		"SELECT settings FROM configs WHERE realm IN ( {$params} )
-			ORDER by realm DESC LIMIT 1;";
+		"SELECT settings FROM configs WHERE realm {$frag} 
+			ORDER by realm ASC;";
 		
-		$this->overrideDefaults( \Notes\Util::decode( $data ) );
+		$res	= $db->getResults( $sql );
+		$data	= 
+		foreach ( $res as $r ) {
+			$this->overrideDefaults( 
+				\Notes\Util::decode( $r['settings'] ) 
+			);
+		}
 	}
 	
 	/**
@@ -89,27 +124,32 @@ class Config extends Entity {
 	}
 	
 	public function save() : bool {
-		$db = $this->getData();
-		$settings = \Notes\Util::encode( $this->settings );
+		$db		= $this->getData();
+		
+		// Format for saving
+		$settings	= \Notes\Util::encode( $this->settings );
 		
 		// If generated, it came from the database
-		if ( isset( $this->realm ) ) {
+		if ( !empty( $this->realm ) ) {
 			return 
 			$db->setUpdate( 
+				"UPDATE configs SET settings = :settings 
+					WHERE id = :id LIMIT 1;",
 				[ 
-					'settings' => $settings 
-				], 
-				'config',
-				$this->id
+ 					':settings'	=> $settings, 
+					':id'		=> $this->id 
+				],
+				\DATA
 			);
 		}
 		
+		
 		$id = 
 		$db->setInsert( 
-			[ 
-				'settings' => $settings 
-			], 
-			'config' 
+			"INSERT INTO config ( settings ) 
+				VALUES ( :settings );", 
+			[ ':settings' => $settings ], 
+			\DATA
 		);
 		
 		if ( $id ) {
