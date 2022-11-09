@@ -121,3 +121,41 @@ INSERT INTO page_blocks ( page_id, content, sort_order )
 	VALUES ( 1, json( '{ "body": "The second block of text was changed to Spanish", "render" : [], "lang" : "en" }' ), 1 );-- --
 
 
+INSERT INTO operations ( label, pattern, settings ) 
+	VALUES 
+	( 'homepage', '', json( '{ 
+		"event" : "home_request",
+		"scope" : "global",
+		"method" : "get",
+		"realm" : "\/"
+	}' ) ),
+	( 'search content', '', json( '{ 
+		"event" : "search_request",
+		"scope" : "global",
+		"method" : "get",
+		"realm" : "\/search\/{all}"
+	}' ) ),
+	( 'insert document table of contents', '[doc_contents]', json( '{ 
+		"event" : "insert_doc_toc",
+		"scope" : "document",
+		"method" : "text",
+		"realm" : ""
+	}' ) ),
+	( 'insert page table of contents', '[page_contents]', json( '{ 
+		"event" : "insert_page_toc",
+		"scope" : "page",
+		"method" : "text",
+		"realm" : ""
+	}' ) ),
+	( 'insert block table of contents', '[block_contents]', json( '{ 
+		"event" : "insert_block_toc",
+		"scope" : "block",
+		"method" : "text",
+		"realm" : ""
+	}' ) ),
+	( 'sum range in selected block', '=SUM({ranges})', json( '{ 
+		"event" : "block_range_sum",
+		"scope" : "block",
+		"method" : "text",
+		"realm" : ""
+	}' ) );-- --
