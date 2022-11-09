@@ -894,4 +894,31 @@ CREATE TABLE messages(
 CREATE INDEX idx_message_type ON messages ( mtype );-- --
 CREATE INDEX idx_message_created ON messages ( created );-- --
 
+-- Function execution
+CREATE TABLE operations (
+	label TEXT NOT NULL COLLATE NOCASE,
+	pattern TEXT NOT NULL DEFAULT "" COLLATE NOCASE,
+	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.realm' ), "/" )
+	) STORED NOT NULL,
+	
+	-- Pattern match event
+	event TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.event' ), "operation" )
+	) STORED NOT NULL,
+	
+	-- E.G. global, document, page, block, memo, user, role
+	op_scope TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.scope' ), "global" )
+	) STORED NOT NULL,
+	method TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.method' ), "get" )
+	) STORED NOT NULL
+);-- --
+CREATE UNIQUE INDEX idx_operation ON operations ( label, pattern, op_scope );-- --
+CREATE UNIQUE INDEX idx_operation_event ON operations ( event )
+	WHERE event IS NOT "operation";-- --
+CREATE INDEX idx_operation_realm ON configs ( realm ) WHERE realm IS NOT "";-- --
+CREATE INDEX idx_operation_method ON operations ( method );-- --
 
