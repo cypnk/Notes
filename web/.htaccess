@@ -1,0 +1,16 @@
+Options +FollowSymLinks
+RewriteEngine on
+
+# Sensitive directories/files
+RewriteCond %{REQUEST_URI} ^/data [NC]
+RewriteCond %{REQUEST_URI} ^/lib [NC]
+RewriteCond %{REQUEST_URI} ^/web [NC]
+RewriteCond %{REQUEST_URI} ^/app [NC]
+RewriteCond %{REQUEST_URI} ^/readme [NC]
+
+# All files and folders that don't exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Send to /index.php (including any query strings added at the end)
+RewriteRule ^.*$ /index.php [L,QSA]
