@@ -23,6 +23,24 @@ abstract class Provider extends Entity {
 	private readonly $_realm_scope;
 	
 	/**
+	 *  Base provider parameters for saving
+	 *  @var array
+	 */
+	protected array $params;
+	
+	/**
+	 *  Insertion sql string
+	 *  @var string
+	 */
+	protected static string $insert_sql	= '';
+	
+	/**
+	 *  Update sql string
+	 *  @var string
+	 */
+	protected static string $update_sql	= '';
+	
+	/**
 	 *  Core setting list
 	 *  @var array
 	 */
@@ -88,6 +106,24 @@ abstract class Provider extends Entity {
 		}
 		
 		return parent::__get( $name );
+	}
+	
+	public function save() : bool {
+		$db = $this->getData();
+		
+		if ( empty( $this->id ) ) {
+			return 
+			$db->setUpdate( static::$update_sql, $this->params, \DATA );
+		}
+		
+		$db->setInsert(
+			static::$insert_sql, $this->params, \DATA
+		);
+		if ( empty( $id ) ) {
+			return false;
+		}
+		$this->id = $id;
+		return true;
 	}
 }
 
