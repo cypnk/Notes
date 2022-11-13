@@ -4,9 +4,6 @@ namespace Notes;
 
 class Config extends Entity {
 	
-	const NOTES_STORE	= '';
-	const NOTES_FILES	= '';
-	
 	/**
 	 *  Configuration placeholder replacements
 	 *  @var array
@@ -34,13 +31,19 @@ class Config extends Entity {
 	/**
 	 *  Configuration begins with request and default realm settings
 	 */
-	public function __construct() {
+	public function __construct( Controller $ctrl ) {
 		$this->replacements	= [
-			'{store}'	=> static::NOTES_STORE,
-			'{files}'	=> static::NOTES_FILES
+			'{store}'	=> \WRITABLE,
+			'{files}'	=> \NOTES_FILES,
+			'{temp}'	=> \NOTES_TEMP,
+			'{data_db}'	=> \DATA,
+			'{cache_db}'	=> \CACHE,
+			'{session_db}'	=> \SESSIONS,
+			'{notice_log}'	=> \NOTICES,
+			'{error_log}'	=> \ERRORS,
 		];
 		
-		$this->request	= new \Notes\Request();
+		$this->request	= new \Notes\Request( $ctrl );
 		$this->loadRealm( $request );
 	}
 	
