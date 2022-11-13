@@ -850,6 +850,73 @@ CREATE TABLE user_memos (
 );-- --
 CREATE UNIQUE INDEX idx_user_memo ON user_memos ( user_id, memo_id );-- --
 
+
+-- Content hierarchies
+CREATE TABLE document_tree (
+	parent_id INTEGER NOT NULL,
+	child_id INTEGER NOT NULL,
+	
+	CONSTRAINT fk_parent_document 
+		FOREIGN KEY ( parent_id ) 
+		REFERENCES documents ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_child_document 
+		FOREIGN KEY ( child_id ) 
+		REFERENCES documents ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_document_tree on document_tree ( parent_id, child_id );-- --
+
+CREATE TABLE page_tree (
+	parent_id INTEGER NOT NULL,
+	child_id INTEGER NOT NULL,
+	
+	CONSTRAINT fk_parent_page 
+		FOREIGN KEY ( parent_id ) 
+		REFERENCES pages ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_child_page 
+		FOREIGN KEY ( child_id ) 
+		REFERENCES pages ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_page_tree on page_tree ( parent_id, child_id );-- --
+
+CREATE TABLE block_tree (
+	parent_id INTEGER NOT NULL,
+	child_id INTEGER NOT NULL,
+	
+	CONSTRAINT fk_parent_block 
+		FOREIGN KEY ( parent_id ) 
+		REFERENCES page_blocks ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_child_block 
+		FOREIGN KEY ( child_id ) 
+		REFERENCES page_blocks ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_page_block_tree on block_tree ( parent_id, child_id );-- --
+
+CREATE TABLE memo_tree (
+	parent_id INTEGER NOT NULL,
+	child_id INTEGER NOT NULL,
+	
+	CONSTRAINT fk_parent_memo 
+		FOREIGN KEY ( parent_id ) 
+		REFERENCES memos ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_child_memo 
+		FOREIGN KEY ( child_id ) 
+		REFERENCES memos ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_page_memo_tree on memo_tree ( parent_id, child_id );-- --
+
+
 -- Copied data
 CREATE TABLE clipboard (
 	user_id INTEGER NOT NULL,
