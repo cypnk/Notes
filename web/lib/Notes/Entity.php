@@ -109,7 +109,7 @@ abstract class Entity implements Stringable {
 		return null;
 	}
 	
-	public function __toString() : string {
+	public function __toString() {
 		return 
 		\Notes\Util::encode( 
 			\array_merge( [ 
@@ -119,6 +119,26 @@ abstract class Entity implements Stringable {
 				"setting_id"	=> $this->setting_id
 			], $this->_settings );
 		);
+	}
+	
+	public function __isset( $name ) {
+		switch ( $name ) {
+			case 'id':
+				return isset( $this->_id );
+			
+			case 'uuid':
+				return isset( $this->_uuid );
+				
+			case 'uuid':
+				return isset( $this->_uuid );
+				
+			case 'created':
+				return isset( $this->_created );
+				
+			case 'updated':
+				return isset( $this->_updated );
+		}
+		return false;
 	}
 	
 	public function setting( string $name, $default ) {
