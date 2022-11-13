@@ -78,6 +78,11 @@ class Document extends Content {
 			
 		}
 		
+		if ( empty( $this->type_id ) ) {
+			$this->error( 'Attempted save without setting document type' );
+			return false;
+		}
+		
 		$id = 
 		$db->setInsert(
 			"INSERT INTO documents 
@@ -89,8 +94,7 @@ class Document extends Content {
 				':so'		=> $this->sort_order ?? 0,
 				':summary'	=> $this->summary ?? '',
 				':settings'	=> 
-					\Notes\Util::encode( $this->settings ),
-				':id'	=> $this->id
+					\Notes\Util::encode( $this->settings )
 			],
 			\DATA
 		);
