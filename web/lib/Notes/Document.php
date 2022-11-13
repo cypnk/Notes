@@ -51,8 +51,15 @@ class Document extends Content {
 	}
 	
 	public function save() : bool {
+		$ds	= isset( $this->id ) ? true : false;
+		
+		if ( !$ds && empty( $this->type_id ) ) {
+			$this->error( 'Attempted save without setting document type' );
+			return false;
+		}
+		
 		$db	= $this->getData();
-		if ( isset( $this->id ) ) {
+		if ( $ds ) {
 			// Save loaded pages first
 			foreach ( $p as $this->pages ) {
 				$p->save();
@@ -77,11 +84,6 @@ class Document extends Content {
 				\DATA
 			);
 			
-		}
-		
-		if ( empty( $this->type_id ) ) {
-			$this->error( 'Attempted save without setting document type' );
-			return false;
 		}
 		
 		$id = 
