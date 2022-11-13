@@ -27,7 +27,9 @@ abstract class Entity implements Stringable {
 	abstract public function save() : bool {}
 	
 	public function __destruct() {
-		// TODO: Save errors to log;
+		foreach ( $this->errors as $e ) {
+			\messages( 'error', $e );
+		}
 	}
 	
 	public static function setData( Data $_data ) {
