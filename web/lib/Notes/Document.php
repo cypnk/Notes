@@ -71,7 +71,8 @@ class Document extends Content {
 					':summary'	=> $this->summary ?? '',
 					':settings'	=> 
 					\Notes\Util::encode( $this->settings ),
-					':id'	=> $this->id
+					':status'	=> $this->status ?? 0,
+					':id'		=> $this->id
 				],
 				\DATA
 			);
@@ -86,15 +87,16 @@ class Document extends Content {
 		$id = 
 		$db->setInsert(
 			"INSERT INTO documents 
-			( type_id, lang_id, sort_order, summary, settings )
-				VALUES ( :type, :lang, :so, :summary, :settings );",
+			( type_id, lang_id, sort_order, summary, settings, status )
+				VALUES ( :type, :lang, :so, :summary, :settings, :status );",
 			[
 				':type'		=> $this->type_id,
 				':lang'		=> $this->lang_id ?? null,
 				':so'		=> $this->sort_order ?? 0,
 				':summary'	=> $this->summary ?? '',
 				':settings'	=> 
-					\Notes\Util::encode( $this->settings )
+					\Notes\Util::encode( $this->settings ),
+				':status'	=> $this->status ?? 0,
 			],
 			\DATA
 		);
