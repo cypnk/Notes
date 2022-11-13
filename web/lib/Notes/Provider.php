@@ -44,7 +44,7 @@ abstract class Provider extends Entity {
 	 *  Core setting list
 	 *  @var array
 	 */
-	protected array $settings_base	= [
+	protected static array $settings_base	= [
 		'setting_id'	=> '',
 		'realm'		=> 'http://localhost',
 		'scope'		=> 'local'
@@ -73,7 +73,7 @@ abstract class Provider extends Entity {
 				// Configure settings format
 				$this->_settings		= 
 				\array_merge( 
-					$this->settings_base, 
+					static::settings_base, 
 					static::formatSettings( $value )
 				);
 				
@@ -109,13 +109,28 @@ abstract class Provider extends Entity {
 	}
 	
 	public function save() : bool {
-		$db = $this->getData();
+		$ps = isset( $this->id ) ? true : false;
 		
-		if ( empty( $this->id ) ) {
+		if ( !$ps && empty( $this->label ) ) {
+			$this->error( 
+				'Attempted to save provider without setting label' 
+			);
+			return false;
+		}
+		
+		$this->params	= [
+			':so'	=> $this->sort_order,
+			':settings'	=> 
+				\Notes\Util::encode( $this->settings )
+		];
+		
+		$db		= $this->getData();
+		if ( $ps ) {
 			return 
 			$db->setUpdate( static::$update_sql, $this->params, \DATA );
 		}
 		
+		$this->params[':label'] = $this->label;
 		$db->setInsert(
 			static::$insert_sql, $this->params, \DATA
 		);
