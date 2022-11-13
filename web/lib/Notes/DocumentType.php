@@ -33,7 +33,7 @@ class DocumentType extends Content {
 			\DATA
 		);
 		
-		if ( empty( $id ) )) {
+		if ( empty( $id ) ) {
 			return false;
 		}
 		$this->id = $id;
