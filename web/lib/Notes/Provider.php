@@ -118,11 +118,13 @@ abstract class Provider extends Entity {
 			return false;
 		}
 		
-		$this->params	= [
+		$this->params	??= [];
+		$this->params	= 
+		\array_merge( $this->params, [
 			':so'	=> $this->sort_order,
 			':settings'	=> 
 				\Notes\Util::encode( $this->settings )
-		];
+		] );
 		
 		$db		= $this->getData();
 		if ( $ps ) {
