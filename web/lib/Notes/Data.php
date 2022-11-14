@@ -24,11 +24,23 @@ class Data {
 	 */
 	private array $errors	= [];
 	
+	/**
+	 *  Event controller
+	 *  @var object
+	 */
+	protected readonly Controller $ctrl;
+	
+	public function __construct( Controller $ctrl ) {
+		$this->ctrl = $ctrl;
+	}
+	
 	public function __destruct() {
 		$this->statement( null, null );
 		$this->getDb( '', 'closeAll' );
 		
-		// TODO: Log errors
+		foreach ( $errors as $e ) {
+			\messages( 'error', \get_called_class() . ' ' . $e );
+		}
 	}
 	
 	/**
