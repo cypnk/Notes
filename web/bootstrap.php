@@ -43,6 +43,9 @@ define( 'NOTES_FILES',	\WRITABLE . 'uploads/' );
 // Temporary data directory
 define( 'NOTES_TEMP',	\WRITABLE . 'temp/' );
 
+// Print spool, outbox etc...
+define( 'NOTES_JOBS',	\WRITABLE . 'jobs/' );
+
 
 
 /**
