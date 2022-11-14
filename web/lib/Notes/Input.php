@@ -9,7 +9,7 @@ class Input {
 		'<p>' . 
 		'	<label for="{name}" class="f6 b db mb2">{label} <span class="normal black-60">{special}</span></label>' . 
 		'	<input class="input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2" type="text" id="{id}" aria-describedby="{id}-desc">' . 
-		'	<small id="{id}-desc" class="f6 lh-copy black-70 db mb2">{description}</small>'
+		'	<small id="{id}-desc" class="f6 lh-copy black-70 db mb2">{description}</small>' . 
 		'</p>', 
 		
 		'textarea'	=> 
@@ -23,7 +23,7 @@ class Input {
 		'<p>' . 
 		'	<label for="{name}" class="f6 b db mb2">{label} <span class="normal black-60">{special}</span></label>' . 
 		'	<input class="input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2" type="email" id="{id}" aria-describedby="{id}-desc">' . 
-		'	<small id="{id}-desc" class="f6 lh-copy black-70 db mb2">{description}</small>'
+		'	<small id="{id}-desc" class="f6 lh-copy black-70 db mb2">{description}</small>' . 
 		'</p>', 
 		
 		'password'	=>
