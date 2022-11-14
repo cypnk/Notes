@@ -48,7 +48,7 @@ class Config extends Entity {
 		];
 		
 		$this->request	= new \Notes\Request( $ctrl );
-		$this->loadRealm( $request );
+		$this->loadRealm( $this->request );
 	}
 	
 	public function __set( $name, $value ) {
