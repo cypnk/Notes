@@ -11,14 +11,17 @@ DATE=`date +%Y-%m-%d-%H-%M-%S`
 IF=$BD/notes
 OF=$BD/notes.sha1
 
+# Data directory
+DT=../data
+
 # Document storage
-DB=../data/documents.db
-SQ=../data/documents.sql
+DB=$DT/documents.db
+SQ=$DT/documents.sql
 
 # Backup of document storage
 BK=data-backup-$DATE.sql
 
-# Make bin direcory
+# Make bin directory
 mkdir -p $BD
 
 # Make and clean
@@ -33,13 +36,18 @@ echo 'Build complete'
 echo ''
 if [ -f $DB ]; then
 	sqlite3 $DB .dump > $BK
-	echo 'Database backed up'
+	echo 'Document database backed up'
 else
 	sqlite3 $DB < $SQ
-	echo 'Database created'
+	echo 'Document database created'
 fi
 echo ''
 cat $OF
+
+# Permissions
+chmod -R 0755 $DT
+echo 'Permissions set'
+echo ''
 
 exit
 
