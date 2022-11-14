@@ -777,6 +777,97 @@ class Util {
 			static::bland( static::title( $ext ), true ), '' 
 		);
 	}
+	
+	
+	/**
+	 *  Generators
+	 */
+	
+	/**
+	 *  Generate a random string ID based on given random bytes
+	 *  
+	 *  @param int		$bytes		Size of random bytes
+	 *  @return string
+	 */
+	public static function genId( int $bytes = 16 ) : string {
+		return 
+		\bin2hex( \random_bytes( 
+			static::intRange( $bytes, 1, 16 ) 
+		) );
+	}
+	
+	/**
+	 *  Generate a system time based sqeuential random ID
+	 *  
+	 *  Note: Downgrading from PHP 7.3 to 7.2 may cause IDs to appear out 
+	 *  of sync
+	 *  
+	 *  @return string
+	 */
+	public static function genSeqId() : string {
+		return 
+		\base_convert( 
+			( string ) \hrtime( true ), 10, 16 
+		) . static::genId();
+	}
+	
+	/**
+	 *  Generate an alphanumeric string with 32 bytes of random data
+	 *  
+	 *  @return string
+	 */
+	public static function genAlphaNum() : string {
+		return 
+		\preg_replace( 
+			'/[^[:alnum:]]/u', 
+			'', 
+			\base64_encode( \random_bytes( 32 ) ) 
+		);
+	}
+	
+	/**
+	 *  Generate a fixed length string in ASCII space, no special chars
+	 *  This is primarily a plugin helper
+	 *  
+	 *  @param int	$size	Code size between 1 and 24, inclusive
+	 *  @return string
+	 */
+	public static function genCodeKey( int $size = 24 ) : string {
+		$size	= static::intRange( $size, 1, 24 );
+		$code	= '';
+		while ( static::strsize( $code ) < $size ) {
+			$code .= static::genAlphaNum();
+		}
+		
+		return static::truncate( $code, 0, $size );
+	}
+	
+	/**
+	 *  Timezone offset list generator
+	 *  
+	 *  @return array
+	 */
+	public static function timezoneOffsets() : array {
+		static $offsets;
+		
+		if ( isset( $offsets ) ) {
+			return $offsets;
+		}
+		
+		$zones		= 
+		\DateTimeZone::listIdentifiers( \DateTimeZone::ALL );
+		
+		$offsets	= [];
+		foreach ( $zones as $tz ) {
+			$t		= new \DateTimeZone( $tz );
+			$offsets[$t]	= 
+			$tz->getOffset( new \DateTime );
+		}
+		
+		\asort( $offsets );
+		
+		return $offsets;
+	}
 }
 
 
