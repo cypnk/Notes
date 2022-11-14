@@ -28,7 +28,7 @@ abstract class Entity implements Stringable {
 	
 	public function __destruct() {
 		foreach ( $this->errors as $e ) {
-			\messages( 'error', $e );
+			\messages( 'error', $e[0] . ': ' . $e[1] );
 		}
 	}
 	
