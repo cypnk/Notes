@@ -33,9 +33,13 @@ class Config extends Entity {
 	 */
 	public function __construct( Controller $ctrl ) {
 		$this->replacements	= [
+			'{path}'	=> \PATH,
+			'{notes_lib}'	=> \NOTES_LIB,
+			'{modules_lib}'	=> \NOTES_MOD,
 			'{store}'	=> \WRITABLE,
 			'{files}'	=> \NOTES_FILES,
 			'{temp}'	=> \NOTES_TEMP,
+			'{jobs}'	=> \NOTES_JOBS,
 			'{data_db}'	=> \DATA,
 			'{cache_db}'	=> \CACHE,
 			'{session_db}'	=> \SESSIONS,
@@ -85,9 +89,9 @@ class Config extends Entity {
 		$sql	= 'SELECT settings FROM configs WHERE realm = "";';
 		$res	= $db->getResults( $sql );
 		
-		if ( !empty( $res['settings'] ) ) {
+		foreach ( $res as $r ) {
 			$this->overrideDefaults( 
-				\Notes\Util::decode( $res['settings'] ) 
+				\Notes\Util::decode( $r['settings'] ) 
 			) ;
 		}
 		
@@ -163,6 +167,30 @@ class Config extends Entity {
 	}
 	
 	/**
+	 *  Replace relative paths and other placeholder values
+	 *  
+	 *  @param mixed	$settings	Raw configuration
+	 *  @return mixed
+	 */
+	public function placeholders( $settings ) {
+		// Replace if string
+		if ( \is_string( $settings ) ) {
+			return 
+			\strtr( $settings, $this->replacements );
+		
+		// Keep going if an array
+		} elseif ( \is_array( $settings ) ) {
+			foreach ( $settings as $k => $v ) {
+				$settings[$k] = 
+					$this->placeholders( $v );
+			}
+		}
+		
+		// Everything else as-is
+		return $settings;
+	}
+	
+	/**
 	 *  Override default configuration with new runtime defaults
 	 *  E.G. From database
 	 * 
@@ -172,6 +200,7 @@ class Config extends Entity {
 		$this->options = 
 		\array_merge( $this->options, $options );
 		
+		// Change static placeholders
 		foreach ( $this->options as $k => $v ) {
 			$this->options[$k] = 
 				$this->placeholders( $v );
