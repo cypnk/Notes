@@ -21,9 +21,6 @@ SQ=$DT/documents.sql
 # Backup of document storage
 BK=data-backup-$DATE.sql
 
-# Make bin directory
-mkdir -p $BD
-
 # Make and clean
 make && make clean
 
