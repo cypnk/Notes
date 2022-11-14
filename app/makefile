@@ -48,15 +48,15 @@ CXXFLAGS	?= $(INC_FLAGS) -MMD -MP -Wall -Wextra -Wconversion \
 
 
 $(BIN_DIR)/$(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS) `--cflags --libs` \
-	-l -ldl
-	
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS) `sdl2-config --cflags --libs` \
+	-l SDL2 -l SDL2_ttf -ldl
+
 
 # Assembly
 $(BUILD_DIR)/%.s.o: $.s
 	$(MKDIR_P) $(dir $@)
 	$(AS) $(ASFLAGS) -c $< -o $@
-	
+
 # C source
 $(BUILD_DIR)/%.c.o: %.c
 	$(MKDIR_P) $(dir $@)
