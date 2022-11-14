@@ -10,9 +10,12 @@ class Controller {
 	
 	protected readonly Data $data;
 	
+	protected readonly SHandler $session;
+	
 	public function __construct() {
 		$this->config	= new Config( $this );
 		$this->data	= new Data( $this );
+		$this->session	= new SHandler( $this );
 		
 		Entity::setData( $this->data );
 	}
