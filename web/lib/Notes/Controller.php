@@ -6,6 +6,31 @@ class Controller {
 	
 	protected array	$events		= [];
 	
+	protected readonly Config $config;
+	
+	protected readonly Data $data;
+	
+	public function __construct() {
+		$this->config	= new Config( $this );
+		$this->data	= new Data( $this );
+		
+		Entity::setData( $this->data );
+	}
+	
+	/**
+	 *  Current configuration return helper
+	 */
+	public function getConfig() {
+		return $this->config;
+	}
+	
+	/**
+	 *  Current data handler return helper
+	 */
+	public function getData() {
+		return $this->data;
+	}
+	
 	/**
 	 *  Add to list of running events
 	 *  
