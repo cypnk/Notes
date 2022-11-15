@@ -50,7 +50,7 @@ server "www.example.com" {
 	location "/*.sh*"		{ block }
 	
 	# Prevent access to sensitive folders, if they're also in the web root
-	location "/cache/*"		{ block }
+	location "/data/*"		{ block }
 	location "/lib/*"		{ block }
 	
 	# Let index.php handle all other requests
