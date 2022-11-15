@@ -1,0 +1,41 @@
+server "www.example.com" {
+	alias "example.com"
+  
+	# listening on external addresses
+	listen on egress port 80
+	
+	# Uncomment the following, if you're only hosting on Tor
+	#listen on lo port 80
+	
+	# Default directory
+	directory index "index.html"
+  
+	# Change this to your web root, if it's different
+	root "/htdocs"
+  
+	# Prevent access to special files
+	location "/*.hta*"		{ block }
+	location "/*.htp*"              { block }
+	location "/*.md*"		{ block }
+	location "/*.conf*"		{ block }
+	location "/*.db*"		{ block }
+	location "/*.sql*"		{ block }
+	location "/*.json*"		{ block }
+	location "/*.sh*"		{ block }
+	
+	# Prevent access to sensitive folders
+	location "/data/*"		{ block }
+	location "/lib/*"		{ block }
+	
+	# Let index.php handle all other requests
+	location "/*" {
+		directory index "index.php"
+		
+		# Change this to your web root, if it's different
+		root { "/htdocs/index.php" }
+		
+		# Enable FastCGI handling of PHP
+		fastcgi socket "/run/php-fpm.sock"
+	}
+}
+
