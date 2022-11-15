@@ -32,7 +32,6 @@ INSERT INTO configs ( settings )
 		"temp" : "{temp}",
 		"jobs" : "{jobs}",
 		"mail_from" : "domain@localhost",
-		"max_url_size" : 512,
 		"date_nice" : "l, F j, Y",
 		"timezone" : "UTC",
 		"folder_limit" : 15,
@@ -46,15 +45,20 @@ INSERT INTO configs ( settings )
 			"documents"	: "",
 			"archives"	: ""
 		},
+		"language" : "en-US",
 		"stream_chunk_limit" : 50000,
 		"stream_chunk_size" : 4096,
 		"token_bytes" : 8,
-		"max_log_size" : 5000000,
 		"nonce_hash" : "tiger160,4",
+		"max_url_size" : 512,
+		"max_log_size" : 5000000,
+		"max_search_words" : 10,
+		"max_page" : 500, 
+		"max_block" : 1500, 
 		"frame_whitelist" : []
 	}' ) ),
 	
-	 -- Web realm specific (testing on localhost)
+	-- Web realm specific (testing on localhost)
 	( json( '{
 		"realm" : "http:\/\/localhost",
 		"files" : "{files}localhost\/",
@@ -74,6 +78,7 @@ INSERT INTO configs ( settings )
 			"documents"	: "doc, docx, ppt, pptx, pdf, epub",
 			"archives"	: "zip, rar, gz, tar"
 		},
+		"max_url_size" : 1024,
 		"max_search_words" : 20,
 		"frame_whitelist" : [
 			"https:\/\/www.youtube.com", 
@@ -83,7 +88,112 @@ INSERT INTO configs ( settings )
 			"https:\/\/lbry.tv",
 			"https:\/\/odysee.com",
 			"https:\/\/utreon.com"
-		]
+		], 
+		"security_policy" : {
+			"content-security-policy": {
+				"default-src"			: "''none''",
+				"img-src"			: "*",
+				"base-uri"			: "''self''",
+				"style-src"			: "''self''",
+				"script-src"			: "''self''",
+				"font-src"			: "''self''",
+				"form-action"			: "''self''",
+				"frame-ancestors"		: "''self''",
+				"frame-src"			: "*",
+				"media-src"			: "''self''",
+				"connect-src"			: "''self''",
+				"worker-src"			: "''self''",
+				"child-src"			: "''self''",
+				"require-trusted-types-for"	: "''script''"
+			},
+			"permissions-policy": {
+				"accelerometer"			: [ "none" ],
+				"camera"			: [ "none" ],
+				"fullscreen"			: [ "self" ],
+				"geolocation"			: [ "none" ],
+				"gyroscope"			: [ "none" ],
+				"interest-cohort"		: [],
+				"payment"			: [ "none" ],
+				"usb"				: [ "none" ],
+				"microphone"			: [ "none" ],
+				"magnetometer"			: [ "none" ]
+			}, 
+			"common-policy": [
+				"X-XSS-Protection: 1; mode=block",
+				"X-Content-Type-Options: nosniff",
+				"X-Frame-Options: SAMEORIGIN",
+				"Referrer-Policy: no-referrer, strict-origin-when-cross-origin"
+			]
+		}, 
+		"tag_white" : {
+			"p"		: [ "style", "class", "align", 
+						"data-pullquote", "data-video", 
+						"data-media" ],
+			
+			"div"		: [ "style", "class", "align" ],
+			"span"		: [ "style", "class" ],
+			"br"		: [ "style", "class" ],
+			"hr"		: [ "style", "class" ],
+			
+			"h1"		: [ "style", "class" ],
+			"h2"		: [ "style", "class" ],
+			"h3"		: [ "style", "class" ],
+			"h4"		: [ "style", "class" ],
+			"h5"		: [ "style", "class" ],
+			"h6"		: [ "style", "class" ],
+			
+			"strong"	: [ "style", "class" ],
+			"em"		: [ "style", "class" ],
+			"u"	 	: [ "style", "class" ],
+			"strike"	: [ "style", "class" ],
+			"del"		: [ "style", "class", "cite" ],
+			
+			"ol"		: [ "style", "class" ],
+			"ul"		: [ "style", "class" ],
+			"li"		: [ "style", "class" ],
+			
+			"code"		: [ "style", "class" ],
+			"pre"		: [ "style", "class" ],
+			
+			"sup"		: [ "style", "class" ],
+			"sub"		: [ "style", "class" ],
+			
+			"a"		: [ "style", "class", "rel", 
+						"title", "href" ],
+			"img"		: [ "style", "class", "src", "height", "width", 
+						"alt", "longdesc", "title", "hspace", 
+						"vspace", "srcset", "sizes",
+						"data-srcset", "data-src", 
+						"data-sizes" ],
+			"figure"	: [ "style", "class" ],
+			"figcaption"	: [ "style", "class" ],
+			"picture"	: [ "style", "class" ],
+			"table"		: [ "style", "class", "cellspacing", 
+							"border-collapse", 
+							"cellpadding" ],
+			
+			"thead"		: [ "style", "class" ],
+			"tbody"		: [ "style", "class" ],
+			"tfoot"		: [ "style", "class" ],
+			"tr"		: [ "style", "class" ],
+			"td"		: [ "style", "class", "colspan", 
+						"rowspan" ],
+			"th"		: [ "style", "class", "scope", 
+						"colspan", "rowspan" ],
+			
+			"caption"	: [ "style", "class" ],
+			"col"		: [ "style", "class" ],
+			"colgroup"	: [ "style", "class" ],
+			
+			"summary"	: [ "style", "class" ],
+			"details"	: [ "style", "class" ],
+			
+			"q"		: [ "style", "class", "cite" ],
+			"cite"		: [ "style", "class" ],
+			"abbr"		: [ "style", "class" ],
+			"blockquote"	: [ "style", "class", "cite" ],
+			"body"		: []
+		}
 	}' ) );-- --
 
 
