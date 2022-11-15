@@ -22,6 +22,70 @@ INSERT INTO role_privileges ( role_id, settings )
 		] }' 
 	) );-- --
 
+INSERT INTO configs ( settings )
+	VALUES
+	-- Global (default)
+	( json( '{
+		"path" : "{path}",
+		"store" : "{store}",
+		"files" : "{files}",
+		"temp" : "{temp}",
+		"jobs" : "{jobs}",
+		"mail_from" : "domain@localhost",
+		"max_url_size" : 512,
+		"date_nice" : "l, F j, Y",
+		"timezone" : "UTC",
+		"folder_limit" : 15,
+		"allow_upload" : 0,
+		"ext_whitelist" : {
+			"text"		: "txt",
+			"images"	: "jpg, jpeg, gif, png", 
+			"fonts"		: "",
+			"audio"		: "",
+			"video"		: "",
+			"documents"	: "",
+			"archives"	: ""
+		},
+		"stream_chunk_limit" : 50000,
+		"stream_chunk_size" : 4096,
+		"token_bytes" : 8,
+		"max_log_size" : 5000000,
+		"nonce_hash" : "tiger160,4",
+		"frame_whitelist" : []
+	}' ) ),
+	
+	 -- Web realm specific (testing on localhost)
+	( json( '{
+		"realm" : "http:\/\/localhost",
+		"files" : "{files}localhost\/",
+		"temp" : "{temp}localhost\/",
+		"jobs" : "{jobs}localhost\/",
+		"cookie_path" : "\/",
+		"cache_ttl" : 7200,
+		"mail_from" : "admin@localhost",
+		"timezone" : "America\/New_York",
+		"allow_upload" : 1,
+		"ext_whitelist" : {
+			"text"		: "css, js, txt, html, vtt",
+			"images"	: "ico, jpg, jpeg, gif, bmp, png, tif, tiff, svg, webp", 
+			"fonts"		: "ttf, otf, woff, woff2",
+			"audio"		: "ogg, oga, mpa, mp3, m4a, wav, wma, flac",
+			"video"		: "avi, mp4, mkv, mov, ogg, ogv",
+			"documents"	: "doc, docx, ppt, pptx, pdf, epub",
+			"archives"	: "zip, rar, gz, tar"
+		},
+		"max_search_words" : 20,
+		"frame_whitelist" : [
+			"https:\/\/www.youtube.com", 
+			"https:\/\/player.vimeo.com",
+			"https:\/\/archive.org",
+			"https:\/\/peertube.mastodon.host",
+			"https:\/\/lbry.tv",
+			"https:\/\/odysee.com",
+			"https:\/\/utreon.com"
+		]
+	}' ) );-- --
+
 
 -- Default language
 INSERT INTO languages (
@@ -90,7 +154,7 @@ INSERT INTO languages (
 
 
 INSERT INTO document_types( content ) VALUES ( json( '{ "label" : "document" }' ) );
-INSERT INTO documents ( abstract, type_id, settings ) 
+INSERT INTO documents ( summary, type_id, settings ) 
 	VALUES ( 
 		'Test document1', 
 		1, 
