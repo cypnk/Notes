@@ -49,6 +49,14 @@ class Config extends Entity {
 		
 		$this->request	= new \Notes\Request( $ctrl );
 		$this->loadRealm( $this->request );
+		
+		$realm		= $this->setting( 'realm', '' );
+		
+		// No realm specified, default to web
+		if ( empty( $realm ) ) {
+			$realm = $this->request->website();
+		}
+		$this->realm	= $realm;
 	}
 	
 	public function __set( $name, $value ) {
@@ -68,6 +76,19 @@ class Config extends Entity {
 		}
 		
 		return::__get( $name );
+	}
+	
+	public function realmName() : string {
+		static $name;
+		if ( isset( $name ) ) {
+			return $name;
+		}
+		
+		$name = 
+		\Notes\Util::normal(
+			\Notes\Util::bland( $this->realm, true )
+		);
+		return $name;
 	}
 	
 	public function loadRealm( Request $request ) {
