@@ -1,0 +1,67 @@
+# Redirect all non-TLS requests to TLS enabled site
+server "www.example.com" {
+	alias "example.com"
+	
+	# listening on external addresses on port 80
+	listen on egress port 80
+	block return 301 "https://example.com$REQUEST_URI"
+}
+
+server "www.example.com" {
+	alias "example.com"
+  
+	# listening on external addresses on TLS port
+	listen on egress tls port 443
+	
+	# Default directory
+	directory index "index.html"
+	
+	# Logging for access and application errors
+	log access "/example.com/access.log"
+	log error "/example.com/error.log"
+  
+	# Change this to your web root, if it's different
+	root "/htdocs"
+	
+	# Create your certificates first
+	hsts max-age 31536000
+	hsts subdomains
+	tls {
+		certificate "/etc/ssl/example.com.pem"
+		key "/etc/ssl/private/example.com.key"
+	}
+	
+	# This is specific to acme-client
+	location "/.well-known/acme-challenge/*" {
+		root "/acme"
+		request strip 2
+	}
+	
+	# Rest is the same as before 
+	
+	# Prevent access to special files
+	location "/*.hta*"		{ block }
+	location "/*.htp*"              { block }
+	location "/*.md*"		{ block }
+	location "/*.conf*"		{ block }
+	location "/*.db*"		{ block }
+	location "/*.sql*"		{ block }
+	location "/*.json*"		{ block }
+	location "/*.sh*"		{ block }
+	
+	# Prevent access to sensitive folders, if they're also in the web root
+	location "/cache/*"		{ block }
+	location "/lib/*"		{ block }
+	
+	# Let index.php handle all other requests
+	location "/*" {
+		directory index "index.php"
+		
+		# Change this to your web root, if it's different
+		root { "/htdocs/index.php" }
+		
+		# Enable FastCGI handling of PHP
+		fastcgi socket "/run/php-fpm.sock"
+	}
+}
+
