@@ -851,6 +851,96 @@ CREATE TABLE user_memos (
 CREATE UNIQUE INDEX idx_user_memo ON user_memos ( user_id, memo_id );-- --
 
 
+-- Bookmarks/dog ears
+CREATE TABLE user_marks (
+	user_id INTEGER NOT NULL,
+	content TEXT NOT NULL DEFAULT '{ "label" : "read" }' COLLATE NOCASE, 
+	label TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.label' ), "read" )
+	) STORED NOT NULL,
+	document_id INTEGER GENERATED ALWAYS AS ( 
+		CAST( COALESCE( json_extract( content, '$.document_id' ), NULL ) AS INTEGER )
+	) STORED,
+	page_id INTEGER GENERATED ALWAYS AS ( 
+		CAST( COALESCE( json_extract( content, '$.page_id' ), NULL ) AS INTEGER )
+	) STORED, 
+	block_id INTEGER GENERATED ALWAYS AS ( 
+		CAST( COALESCE( json_extract( content, '$.block_id' ), NULL ) AS INTEGER )
+	) STORED, 
+	memo_id INTEGER GENERATED ALWAYS AS ( 
+		CAST( COALESCE( json_extract( content, '$.memo_id' ), NULL ) AS INTEGER )
+	) STORED, 
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	expires DATETIME DEFAULT NULL,
+	status INTEGER NOT NULL DEFAULT 0,
+	
+	CONSTRAINT fk_mark_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_mark_document 
+		FOREIGN KEY ( document_id ) 
+		REFERENCES documents ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_mark_page 
+		FOREIGN KEY ( page_id ) 
+		REFERENCES pages ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_mark_block 
+		FOREIGN KEY ( block_id ) 
+		REFERENCES page_blocks ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_mark_memo 
+		FOREIGN KEY ( memo_id ) 
+		REFERENCES memos ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_mark_label ON user_marks ( label );-- --
+CREATE INDEX idx_mark_doc ON user_marks ( document_id )
+	WHERE document_id IS NOT NULL;-- --
+CREATE INDEX idx_mark_page ON user_marks ( page_id )
+	WHERE page_id IS NOT NULL;-- --
+CREATE INDEX idx_mark_block ON user_marks ( block_id )
+	WHERE block_id IS NOT NULL;-- --
+CREATE UNIQUE INDEX idx_mark_memo ON user_marks ( memo_id )
+	WHERE memo_id IS NOT NULL;-- --
+CREATE UNIQUE INDEX idx_mark_full ON user_marks ( document_id, page_id, block_id )
+	WHERE document_id IS NOT NULL AND page_id IS NOT NULL AND block_id IS NOT NULL;-- --
+CREATE INDEX idx_mark_created ON user_marks ( created );-- --
+CREATE INDEX idx_mark_expires ON user_marks ( expires )
+	WHERE expires IS NOT NULL;-- --
+CREATE INDEX idx_mark_status ON user_marks ( status );-- --
+
+-- Mark self clean
+CREATE TRIGGER user_mark_insert AFTER INSERT ON user_marks FOR EACH ROW 
+BEGIN
+	DELETE FROM user_marks WHERE 
+		document_id IS NULL AND 
+		page_id IS NULL AND 
+		block_id IS NULL AND 
+		memo_id IS NULL;
+	
+	DELETE FROM user_marks WHERE expires IS NOT NULL AND 
+		strftime( '%s', expires ) < strftime( '%s','now' );
+END;-- --
+
+CREATE TRIGGER user_mark_update AFTER UPDATE ON user_marks FOR EACH ROW 
+BEGIN
+	DELETE FROM user_marks WHERE 
+		document_id IS NULL AND 
+		page_id IS NULL AND 
+		block_id IS NULL AND 
+		memo_id IS NULL;
+	
+	DELETE FROM user_marks WHERE expires IS NOT NULL AND 
+		strftime( '%s', expires ) < strftime( '%s','now' );
+END;-- --
+
+
 -- Content hierarchies
 CREATE TABLE document_tree (
 	parent_id INTEGER NOT NULL,
@@ -866,7 +956,7 @@ CREATE TABLE document_tree (
 		REFERENCES documents ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE UNIQUE INDEX idx_document_tree on document_tree ( parent_id, child_id );-- --
+CREATE UNIQUE INDEX idx_document_tree ON document_tree ( parent_id, child_id );-- --
 
 CREATE TABLE page_tree (
 	parent_id INTEGER NOT NULL,
@@ -882,7 +972,7 @@ CREATE TABLE page_tree (
 		REFERENCES pages ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE UNIQUE INDEX idx_page_tree on page_tree ( parent_id, child_id );-- --
+CREATE UNIQUE INDEX idx_page_tree ON page_tree ( parent_id, child_id );-- --
 
 CREATE TABLE block_tree (
 	parent_id INTEGER NOT NULL,
@@ -898,7 +988,7 @@ CREATE TABLE block_tree (
 		REFERENCES page_blocks ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE UNIQUE INDEX idx_page_block_tree on block_tree ( parent_id, child_id );-- --
+CREATE UNIQUE INDEX idx_page_block_tree ON block_tree ( parent_id, child_id );-- --
 
 CREATE TABLE memo_tree (
 	parent_id INTEGER NOT NULL,
@@ -914,7 +1004,124 @@ CREATE TABLE memo_tree (
 		REFERENCES memos ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE UNIQUE INDEX idx_page_memo_tree on memo_tree ( parent_id, child_id );-- --
+CREATE UNIQUE INDEX idx_page_memo_tree ON memo_tree ( parent_id, child_id );-- --
+
+
+-- Uploaded media
+CREATE TABLE resources (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	content TEXT NOT NULL DEFAULT '{ "src" : "" }' COLLATE NOCASE, 
+	src TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.src' ), "" )
+	) STORED NOT NULL,
+	mime_type TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.mime_type' ), "" )
+	) STORED NOT NULL,
+	thumbnail TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.thumbnail' ), "" )
+	) STORED NOT NULL,
+	file_size INTEGER GENERATED ALWAYS AS (
+		CAST( COALESCE( json_extract( content, '$.file_size' ), 0 ) AS INTEGER )
+	) STORED NOT NULL,
+	
+	-- hash_file( 'sha256', src ) 
+	file_hash TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.file_hash' ), "" )
+	) STORED NOT NULL,
+	
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	status INTEGER NOT NULL DEFAULT 0
+);-- --
+CREATE UNIQUE INDEX idx_resource_src ON resources ( src )
+	WHERE src IS NOT "";-- --
+CREATE INDEX idx_resource_mime ON resources ( mime_type )
+	WHERE mime_type IS NOT "";-- --
+CREATE UNIQUE INDEX idx_resource_hash ON resources ( signature )
+	WHERE signature IS NOT "";-- --
+CREATE INDEX idx_resource_created ON resources ( created );-- --
+CREATE INDEX idx_resource_status ON resources ( status );-- --
+
+CREATE TRIGGER resource_insert AFTER INSERT ON resources FOR EACH ROW 
+BEGIN
+	-- Clean empty files
+	DELETE FROM resources WHERE src IS "";
+END;-- --
+
+CREATE TABLE resource_captions (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE, 
+	
+	-- Description, subtitles etc...
+	label TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.label' ), "description" )
+	) STORED NOT NULL,
+	body TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.body' ), "" )
+	) STORED NOT NULL,
+	
+	resource_id INTEGER NOT NULL,
+	lang_id INTEGER DEFAULT NULL,
+	
+	CONSTRAINT fk_caption_resource 
+		FOREIGN KEY ( resource_id ) 
+		REFERENCES resources ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_caption_lang 
+		FOREIGN KEY ( lang_id ) 
+		REFERENCES languages ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_resource_label ON resource_captions ( label );-- --
+CREATE INDEX idx_resource_caption ON resource_captions ( resource_id );-- --
+CREATE INDEX idx_resource_lang ON resource_captions ( lang_id )
+	WHERE lang_id IS NOT NULL;-- --
+
+CREATE TRIGGER resource_caption_insert AFTER INSERT ON resource_captions FOR EACH ROW
+BEGIN 
+	UPDATE resource_captions SET lang_id = (
+			SELECT COALESCE( id, NULL ) FROM languages 
+				WHERE iso_code = 
+					json_extract( NEW.content, '$.lang' )
+			LIMIT 1
+		) WHERE id = NEW.id AND 
+			json_extract( NEW.content, '$.lang' ) IS NOT "";
+);-- --
+
+CREATE TRIGGER resource_caption_update AFTER UPDATE ON resource_captions FOR EACH ROW
+BEGIN 
+	UPDATE resource_captions SET lang_id = (
+			SELECT COALESCE( id, NULL ) FROM languages 
+				WHERE iso_code = 
+					json_extract( NEW.content, '$.lang' )
+			LIMIT 1
+		) WHERE id = NEW.id AND 
+			json_extract( NEW.content, '$.lang' ) IS NOT "";
+);-- --
+
+CREATE TABLE resource_users (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	content TEXT NOT NULL DEFAULT '{ "label" : "" }' COLLATE NOCASE, 
+	
+	-- Uploader, Onwer, Editor etc...
+	label TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( content, '$.label' ), "owner" )
+	) STORED NOT NULL,
+	user_id INTEGER NOT NULL,
+	resource_id INTEGER NOT NULL,
+	
+	CONSTRAINT fk_resource_user 
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_user_resource 
+		FOREIGN KEY ( resource_id ) 
+		REFERENCES resources ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE UNIQUE INDEX idx_resource_user ON resource_users ( user_id, resource_id );-- --
+CREATE INDEX idx_resource_user_label ON resource_users ( label );-- --
 
 
 -- Copied data
