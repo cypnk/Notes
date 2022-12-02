@@ -12,7 +12,7 @@ abstract class Content extends Entity {
 	
 	public int $parent_id;
 	
-	protected array $_authorsihp	= [];
+	protected array $_authorship	= [];
 	
 	protected array $_content	= [];
 	
