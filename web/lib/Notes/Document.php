@@ -59,47 +59,45 @@ class Document extends Content {
 		}
 		
 		$db	= $this->getData();
+		$params	= [
+			':lang'		=> $this->lang_id ?? null,
+			':so'		=> $this->sort_order ?? 0,
+			':summary'	=> $this->summary ?? '',
+			':settings'	=> 
+				\Notes\Util::encode( $this->settings ),
+			':status'	=> $this->status ?? 0
+		];
+		
 		if ( $ds ) {
 			// Save loaded pages first
 			foreach ( $p as $this->pages ) {
 				$p->save();
 			}
 			
+			$params[':id']		= $this->id;
 			return 
 			$db->setUpdate(
-				"UPDATE documents SET lang_id = :lang,
+				"UPDATE documents SET 
+					lang_id = :lang, 
 					sort_order = :so, 
-					summary = :summary,
+					summary = :summary, 
 					settings = :settings, 
-					status = :status WHERE id = :id"
-				[
-					':lang'		=> $this->lang_id ?? null,
-					':so'		=> $this->sort_order ?? 0,
-					':summary'	=> $this->summary ?? '',
-					':settings'	=> 
-					\Notes\Util::encode( $this->settings ),
-					':status'	=> $this->status ?? 0,
-					':id'		=> $this->id
-				],
+					status = :status 
+						WHERE id = :id",
+				$params,
 				\DATA
 			);
 			
 		}
 		
+		$params[':type']		= $this->type_id;
+		
 		$id = 
 		$db->setInsert(
 			"INSERT INTO documents 
-			( type_id, lang_id, sort_order, summary, settings, status )
-				VALUES ( :type, :lang, :so, :summary, :settings, :status );",
-			[
-				':type'		=> $this->type_id,
-				':lang'		=> $this->lang_id ?? null,
-				':so'		=> $this->sort_order ?? 0,
-				':summary'	=> $this->summary ?? '',
-				':settings'	=> 
-					\Notes\Util::encode( $this->settings ),
-				':status'	=> $this->status ?? 0,
-			],
+			( lang_id, sort_order, summary, settings, status, type_id )
+				VALUES ( :lang, :so, :summary, :settings, :status, :type );",
+			$params,
 			\DATA
 		);
 		if ( empty( $id ) ) {
