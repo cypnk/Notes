@@ -4,32 +4,36 @@ namespace Notes;
 
 abstract class Content extends Entity {
 	
-	public readonly string $body;
+	public string $body;
 	
 	public int $sort_order;
 	
-	public int $lang_id;
+	protected int $_lang_id;
 	
-	public int $parent_id;
+	protected int $_parent_id;
 	
 	protected array $_authorship	= [];
 	
 	protected array $_content	= [];
 	
-	protected string $_content_str;
-	
-	protected array	$params		= [];
-	
 	public abstract function __construct( ) {}
 	
 	public function setBody( string $_body ) {
-		$this->_content['body'] = $body;
+		$this->_content['body'] = $_body;
 	}
 	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
+			case 'parent_id':
+				$this->_parent_id = ( int ) $value;
+				return;
+				
+			case 'lang_id':
+				$this->_lang_id = ( int ) $value;
+				return;
+				
 			case 'authorship':
-				$this->authorship = 
+				$this->_authorship = 
 					static::formatSettings( $value );
 				return;
 				
@@ -47,14 +51,43 @@ abstract class Content extends Entity {
 	
 	public function __get( $name ) {
 		switch( $name ) {
+			case 'parent_id':
+				return $this->_parent_id ?? 0;
+				
+			case 'lang_id':
+				return $this->_lang_id ?? 0;
+				
 			case 'content':
-				return $this->_content ?? [];
+				return $this->_content;
+			
+			case 'authorship':
+				return $this->_authorship;
+			
+			case 'content_str':
+				return \Notes\Util::encode( $this->_content );
 			
 			case 'body':
 				return $this->_content['body'] ?? '';
 		}
 		
 		return parent::__get( $name );
+	}
+	
+	public function __toString() {
+		return 
+		\Notes\Util::encode( 
+			\array_merge( [ 
+				"id"		=> $this->id, 
+				"created"	=> $this->created,
+				"updated"	=> $this->updated,
+				"setting_id"	=> $this->setting_id,
+				"lang_id"	=> $this->lang_id ?? 0,
+				"parent_id"	=> $this->parent_id ?? 0,
+				"sort_order"	=> $this->sort_order ?? 0,
+				"content"	=> $this->_content,
+				"authorship"	=> $this->_authorship
+			], $this->_settings );
+		);
 	}
 }
 
