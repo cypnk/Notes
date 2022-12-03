@@ -23,15 +23,18 @@ class Page extends Content {
 		$this->document_id = $id;
 	}
 	
-	public function addBlock( int $id ) {
+	public function addBlock( int $id, ?int $sort_order = null ) {
 		$block = new Block( $id );
+		if ( null != $sort_order ) {
+			$block->sort_order = $sort_order;
+		}
 		
 		$this->blocks[] = $block;
 		return $block;
 	}
 	
 	public function loadBlocks( int $start, int $finish ) {
-		$start	= \Util::intRange( $start, 1, \PHP_INT_MAX - 1 );
+		$start	= \Util::intRange( $start, 1, \PHP_INT_MAX - 3 );
 		$finish	= \Util::intRange( $finish, $start, \PHP_INT_MAX - 2 );
 		
 		// TODO: Load page blocks in given range
@@ -54,7 +57,7 @@ class Page extends Content {
 		
 		if ( $ps ) {
 			// Save loaded blocks first
-			foreach ( $b as $this->blocks ) {
+			foreach ( $this->blocks as $b ) {
 				$b->save();
 			}
 			
