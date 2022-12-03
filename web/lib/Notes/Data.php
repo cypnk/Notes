@@ -224,9 +224,37 @@ class Data {
 			case 'column':
 				return $ok ? $stm->fetchColumn() : '';
 			
-			// Success status
+			// Multi-mode
 			default:
-				return $ok ? true : false;
+				$rt = explode( '|', $rtype, 2 );
+				
+				// Success status only
+				if ( 2 !== count( $rt ) ) {
+					return $ok ? true : false;
+				}
+				
+				// Unable to return classes?
+				if ( !\class_exists( $rt[1] ) ) {
+					return null;
+				}
+				
+				// Select class type return
+				switch ( $rt[0] ) {
+					case 'controllable':
+						return $ok ? 
+						$stm->fetchAll( 
+							\PDO::FETCH_CLASS, 
+							$rt[1], 
+							[ $this->ctrl ] 
+						) : [];
+						
+					default:
+						return $ok ? 
+						$stm->fetchAll( 
+							\PDO::FETCH_CLASS, $rt[1] 
+						) : [];
+				}
+			}
 		}
 	}
 	
@@ -259,7 +287,6 @@ class Data {
 			return null;
 		}
 		
-		$stm	= null;
 		return $res;
 	}
 	
@@ -344,18 +371,26 @@ class Data {
 	 *  @param string	$sql	Database SQL query
 	 *  @param array	$params	Query parameters
 	 *  @param string	$dsn	Database string
+	 *  @param string	$rtype	Optional return type
 	 *  @return array		Query results
 	 */
 	public function getResults(
 		string		$sql, 
 		array		$params		= [],
-		string		$dsn		= ''
+		string		$dsn		= '',
+		?string		$rtype		= null
 	) : array {
 		if ( empty( $dsn ) ) {
 			return [];
 		}
 		
-		$res = $this->dataExec( $sql, $params, 'results', $dsn );
+		$res = 
+		$this->dataExec( 
+			$sql, 
+			$params, 
+			( empty( $rtype ) ? 'results' : $rtype ), 
+			$dsn 
+		);
 		
 		return 
 		empty( $res ) ? [] : ( \is_array( $res ) ? $res : [] );
