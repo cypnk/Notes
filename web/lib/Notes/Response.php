@@ -24,12 +24,6 @@ class Response extends Message {
 	 */
 	protected array $headers;
 	
-	public function __destruct() {
-		/**
-		 *  TODO: Log errors
-		 */
-	}	
-	
 	/**
 	 *  Quoted security policy attribute helper
 	 *   
@@ -171,10 +165,6 @@ class Response extends Message {
 		}
 		
 		return '';
-	}
-	
-	public function __construct( \Notes\Config $config ) {
-		parent::__construct( $config );
 	}
 	
 	/**
@@ -499,7 +489,7 @@ class Response extends Message {
 	 */
 	public function sendFileFinish( $path, bool $nosend = false ) {
 		// Prepare content length and etag headers
-		$tags	= genEtag( $path );
+		$tags	= $this->genEtag( $path );
 		$fsize	= $tags['fsize'];
 		$etag	= $tags['etag'];
 		$stream = false;
@@ -685,7 +675,7 @@ class Response extends Message {
 			// TODO: Schedule 'saveCache' with full URI
 		}
 		
-		// TODO: Trigger 'contentsend' hook and schedule 'ob_end_flush'
+		// TODO: Trigger 'contentsend' event and schedule 'ob_end_flush'
 		
 		// Check gzip prerequisites
 		if ( $code != 304 && \extension_loaded( 'zlib' ) ) {
@@ -741,7 +731,7 @@ class Response extends Message {
 				break;
 		}
 	
-		// TODO Error file sending hook
+		// TODO: Trigger error file sending event
 		if ( $this->sendFile( $path, false, false, $code ) ) {
 			return true;
 		}
