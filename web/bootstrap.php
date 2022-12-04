@@ -37,6 +37,12 @@ define( 'NOTICES',	\WRITABLE . 'notices.log' );
 // Maximum log file size before rolling over (in bytes)
 define( 'MAX_LOG_SIZE',		5000000 );
 
+// Sender email used to notify of notices/errors
+define( 'MAIL_FROM',		'domain@localhost' );
+
+// Destination email for notices/errors
+define( 'MAIL_RECEIVE',		'domain@localhost' );
+
 
 // Static files
 
@@ -129,6 +135,36 @@ function logToFile( string $msg, string $dest ) {
 }
 
 /**
+ * Send email to authorized recipient
+ */
+function logToMail( string $msg, int $i, int $c ) {
+	static $format;
+	static $host;
+	
+	if ( !isset( $format ) ) {
+		$format = 
+		'From: ' . \MAIL_FROM . "\r\n" .  
+		"MIME-Version: 1.0\r\n" . 
+		"Content-Type: text/plain; charset=UTF-8\r\n" . 
+		"Content-Transfer-Encoding: base64\r\n" . 
+		"X-Mailer: Notes\r\n";
+	}
+	
+	if ( !isset( $host ) ) {
+		$h = \gethostname();
+		$host = ( false === $h ) ? 
+			'' : "\r\nX-Notes-Host: {$h}";
+	}
+	
+	\error_log( 
+		\base64_encode( $msg ), 1, \MAIL_RECEIVE, 
+		$format  . 
+			"X-Notes-Batch: {$i} of {$c}\r\n" . 
+			'X-Notes-Idx: ' . hrtime( true ) . $host
+	);
+}
+
+/**
  *  Internal error logger
  */
 \register_shutdown_function( function() {
@@ -150,6 +186,15 @@ function logToFile( string $msg, string $dest ) {
 			case 'notices':
 				foreach( $v as $m ) {
 					logToFile( $m, \NOTICES );
+				}
+				break;
+			
+			case 'mail':
+				$i = 1;
+				$c = count( $v );
+				foreach( $v as $m ) {
+					logToMail( $m, $i, $c );
+					$i++;
 				}
 				break;
 		}
