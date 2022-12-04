@@ -38,7 +38,13 @@ class Message {
 	 *  Error storage
 	 *  @var array
 	 */
-	protected array $errors	= [];
+	protected array $errors		= [];
+	
+	/**
+	 *  Notification storage
+	 *  @var array
+	 */
+	protected array $notices	= [];
 	
 	public function __construct( Controller $ctrl ) {
 		$this->ctrl	= $ctrl;
@@ -48,6 +54,10 @@ class Message {
 	public function __destruct() {
 		foreach ( $this->errors as $e ) {
 			\messages( 'error', \get_called_class() . ' ' . $e );
+		}
+		
+		foreach ( $this->notices as $m ) {
+			\messages( 'notice', \get_called_class() . ' ' . $m );
 		}
 	}	
 	
