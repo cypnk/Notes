@@ -38,7 +38,7 @@ class Data {
 		$this->statement( null, null );
 		$this->getDb( '', 'closeAll' );
 		
-		foreach ( $errors as $e ) {
+		foreach ( $this->errors as $e ) {
 			\messages( 'error', \get_called_class() . ' ' . $e );
 		}
 	}
