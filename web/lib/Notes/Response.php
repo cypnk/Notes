@@ -271,7 +271,7 @@ class Response extends Message {
 		if ( !\headers_sent() ) {
 			$this->httpCode( 205 );
 		}
-		$this->errors[] = 'Client disconnected :' . $msg );
+		$this->notices[] = 'Client disconnected :' . $msg );
 		die();
 	}
 	
