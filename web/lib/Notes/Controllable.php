@@ -22,6 +22,12 @@ abstract class Controllable {
 	protected array $params	= [];
 	
 	/**
+	 *  Error storage
+	 *  @var array
+	 */
+	protected array $errors	= [];
+	
+	/**
 	 *  Create new runnable with controller
 	 *  
 	 *  @param \PubCabin\Controller	$ctrl	Event controller
@@ -30,6 +36,12 @@ abstract class Controllable {
 		\PubCabin\Controller	$ctrl 
 	) {
 		$this->controller	= $ctrl;
+	}
+	
+	public function __destruct() {
+		foreach ( $this->errors as $e ) {
+			\messages( 'error', \get_called_class() . ' ' . $e );
+		}
 	}
 	
 	/**
