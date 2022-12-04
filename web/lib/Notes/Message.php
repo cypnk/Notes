@@ -34,10 +34,22 @@ class Message {
 	 */
 	protected readonly object $ctrl;
 	
+	/**
+	 *  Error storage
+	 *  @var array
+	 */
+	protected array $errors	= [];
+	
 	public function __construct( Controller $ctrl ) {
 		$this->ctrl	= $ctrl;
 		$this->config	= $ctrl->getConfig();
 	}
+	
+	public function __destruct() {
+		foreach ( $this->errors as $e ) {
+			\messages( 'error', \get_called_class() . ' ' . $e );
+		}
+	}	
 	
 	/**
 	 *  Get or guess current server protocol
