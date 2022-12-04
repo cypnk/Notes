@@ -34,6 +34,9 @@ define( 'ERRORS',	\WRITABLE . 'errors.log' );
 // Notification log file
 define( 'NOTICES',	\WRITABLE . 'notices.log' );
 
+// Maximum log file size before rolling over (in bytes)
+define( 'MAX_LOG_SIZE',		5000000 );
+
 
 // Static files
 
@@ -86,9 +89,37 @@ function messages( string $type, string $message, bool $ret = false ) {
 }
 
 /**
+ *  Check log file size and rollover, if needed
+ *  
+ *  @param string	$file	Log file name
+ */
+function logRollover( string $file ) {
+	// Nothing to rollover
+	if ( !\file_exists( $file ) ) {
+		return;
+	}
+	
+	$fs	= \filesize( $file );
+	
+	// Empty file
+	if ( false === $fs ) {
+		return;
+	}
+	
+	if ( $fs > \MAX_LOG_SIZE ) {
+		$f = \rtrim( \dirname( $file ), '/\\' ) . 
+			\DIRECTORY_SEPARATOR . 
+			\basename( $file ) . '.' . 
+			\gmdate( 'Ymd\THis' ) . '.log';
+		\rename( $file, $f );
+	}
+}
+
+/**
  *  Write messages to given error file
  */
 function logToFile( string $msg, string $dest ) {
+	logRollover( $dest );
 	\error_log( 
 		\gmdate( 'D, d M Y H:i:s T', time() ) . "\n" . 
 			$msg . "\n\n\n\n", 
