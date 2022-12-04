@@ -213,19 +213,22 @@ class Data {
 		
 		switch ( $rtype ) {
 			// Query with array return
-			case 'results':
+			case 'results': {
 				return $ok ? $stm->fetchAll() : [];
+			}
 			
 			// Insert with ID return
-			case 'insert':
+			case 'insert': {
 				return $ok ? $db->lastInsertId() : 0;
+			}
 			
 			// Single column value
-			case 'column':
+			case 'column': {
 				return $ok ? $stm->fetchColumn() : '';
+			}
 			
 			// Multi-mode
-			default:
+			default: {
 				$rt = explode( '|', $rtype, 2 );
 				
 				// Success status only
@@ -240,19 +243,39 @@ class Data {
 				
 				// Select class type return
 				switch ( $rt[0] ) {
-					case 'controllable':
+					// Events etc...
+					case 'named controllable': {
+						if ( !$ok ) {
+							return [];
+						}
+						
+						$n = explode( '|', $rt[1], 2 );
+						if ( 2 !== count( $n ) ) {
+							return [];
+						}
+						
+						$stm->fetchAll( 
+							\PDO::FETCH_CLASS, 
+							$n[1], 
+							[ $this->ctrl, $n[0] ] 
+						)
+					}
+					
+					case 'controllable': {
 						return $ok ? 
 						$stm->fetchAll( 
 							\PDO::FETCH_CLASS, 
 							$rt[1], 
 							[ $this->ctrl ] 
 						) : [];
+					}
 						
-					default:
+					default: {
 						return $ok ? 
 						$stm->fetchAll( 
 							\PDO::FETCH_CLASS, $rt[1] 
 						) : [];
+					}
 				}
 			}
 		}
