@@ -1,0 +1,33 @@
+# Server listening on all IP addresses on port 80
+<VirtualHost *:80>
+	# A site named example.com
+	ServerName example.com
+	
+	DirectoryIndex index.php index.html
+	
+	# Change this and Directory below to your web root, if it's different
+	DocumentRoot "/htdocs"
+	
+	# Sensitive files
+	<FilesMatch ".+\.(hta|htp|md|conf|db|sql|json|sh)(/)?$">
+		Require all denied
+	</FilesMatch>
+
+	Options +FollowSymLinks
+	RewriteEngine on
+	RewriteOptions inherit
+	
+	# Sensitive directories
+	RewriteCond %{REQUEST_URI} ^/data [NC]
+	RewriteCond %{REQUEST_URI} ^/lib [NC]
+	RewriteCond %{REQUEST_URI} ^/web [NC]
+	RewriteCond %{REQUEST_URI} ^/app [NC]
+	RewriteCond %{REQUEST_URI} ^/readme [NC]
+	
+	# All files and folders that don't exist
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	
+	# Send to /index.php (including any query strings added at the end)
+	RewriteRule ^.*$ /index.php [L,QSA]
+</VirtualHost>
