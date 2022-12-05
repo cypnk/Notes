@@ -5,7 +5,7 @@
 	
 	DirectoryIndex index.php index.html
 	
-	# Change this and Directory below to your web root, if it's different
+	# Change this to your web root, if it's different
 	DocumentRoot "/htdocs"
 	
 	# Sensitive files
