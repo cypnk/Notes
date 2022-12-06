@@ -28,6 +28,41 @@ CREATE TABLE configs (
 CREATE UNIQUE INDEX idx_config_realm ON configs ( realm ) 
 	WHERE realm IS NOT "";-- --
 
+
+-- Permanent events
+CREATE TABLE events (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	name TEXT NOT NULL COLLATE NOCASE,
+	
+	-- Execution parameters
+	params TEXT NOT NULL DEFAULT '{}' COLLATE NOCASE,
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( params, '$.realm' ), "" )
+	) STORED NOT NULL,
+	sort_order INTEGER NOT NULL DEFAULT 0
+);-- --
+CREATE UNIQUE INDEX idx_event_name ON events ( name );-- --
+CREATE INDEX idx_event_realm ON events ( realm ) 
+	WHERE realm IS NOT "";-- --
+CREATE INDEX idx_event_sort ON events ( sort_order );-- --
+
+-- Standard event formatting
+CREATE TRIGGER event_insert_format AFTER INSERT ON events FOR EACH ROW
+BEGIN
+	UPDATE events SET label = REPLACE( LOWER( TRIM( NEW.name ) ), ' ', '_' )
+		WHERE id = NEW.id;
+END;-- --
+
+CREATE TRIGGER event_update_format AFTER UPDATE ON events FOR EACH ROW
+BEGIN
+	UPDATE events SET label = REPLACE( LOWER( TRIM( NEW.name ) ), ' ', '_' )
+		WHERE id = NEW.id;
+END;-- --
+
+CREATE VIEW event_view AS 
+SELECT name, realm, params, sort_order FROM events;-- --
+
+
 -- Localization
 CREATE TABLE languages (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
