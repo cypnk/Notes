@@ -36,6 +36,7 @@ class Config extends Entity {
 			'{path}'	=> \PATH,
 			'{notes_lib}'	=> \NOTES_LIB,
 			'{modules_lib}'	=> \NOTES_MOD,
+			'{public}'	=> \NOTES_PUBLIC,
 			'{store}'	=> \WRITABLE,
 			'{files}'	=> \NOTES_FILES,
 			'{temp}'	=> \NOTES_TEMP,
