@@ -1,6 +1,49 @@
 
 -- SQL Syntax and behavior test DO NOT USE IN PRODUCTION
 
+INSERT INTO events ( label, settings )
+	VALUES 
+	-- Single-user params
+	( 'app_start', json( 
+		'{
+			"environment" : "Linux\/Manjaro",
+			"write" : "ltr",
+			"language" : "en-US",
+			"autosave" : 1,
+			"font" : "NotoSansMono-Regular.ttf",
+			"window" : "1024x800"
+		}'
+	) ),
+	
+	-- Web/multi-user params
+	( 'web_start', json(
+		'{
+			"realm" : "http:\/\/localhost",
+			"routes" [
+				[ "get", "",					"home" ],
+				[ "get", "page:page",				"homepaginate" ],
+				[ "get", "feed",				"feed" ],
+				
+				[ "get", ":year",				"archive" ],
+				[ "get", ":year\/page:page",			"archive" ],
+				[ "get", ":year\/:month",			"archive" ],
+				[ "get", ":year\/:month\/page:page",		"archive" ],
+				[ "get", ":year\/:month\/:day",			"archive" ],
+				
+				[ "get", "tags\/:tag",				"tagview" ],
+				[ "get", "tags\/:tag\/page:page",		"tagpaginate" ],
+				
+				[ "get", "\\\\?nonce=:nonce&token=:token&meta=&find=:find", "search" ],
+				[ "get", "\\\\?nonce=:nonce&token=:token&meta=&find=:find\/page:page", "searchpaginate" ],
+				
+				[ "get", "login",				"loginview" ],
+				[ "post", "login",				"loginsent" ],
+				[ "get", "register",				"registerview" ],
+				[ "post", "register",				"registersent" ]
+			]
+		}'
+	) );-- --
+
 INSERT INTO users ( username, user_clean, password ) 
 	VALUES ( 'AzureDiamond', 'AzureDiamond', 'hunter2' );-- --
 
