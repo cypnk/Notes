@@ -11,6 +11,7 @@ Web version software requirements:
 
 Required in this folder:
 * [/lib](https://github.com/cypnk/Notes/tree/main/web/lib) Main code folder
+* [/public](https://github.com/cypnk/Notes/tree/main/web/public) Content served to visitors as-is (includes basic stylehsheet and [Tachyons CSS](https://tachyons.io/))
 * [/bootstrap.php](https://github.com/cypnk/Notes/blob/main/web/bootstrap.php) Class loader and base configuration
 * [/index.php](https://github.com/cypnk/Notes/blob/main/web/index.php) Web root index file
 
