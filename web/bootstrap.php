@@ -13,6 +13,9 @@ define( 'NOTES_LIB',	\PATH . 'lib/Notes/' );
 // Notes extension modules
 define( 'NOTES_MOD',	\PATH . 'lib/NotesModules/' );
 
+// Static files served to public
+define( 'NOTES_PUBLIC',	\PATH . 'public/' );
+
 
 // Storage directory. Must be writable (chmod -R 0755 on *nix)
 // This configuration implies storage is outside the web root (recommended)
