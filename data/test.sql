@@ -107,6 +107,7 @@ INSERT INTO configs ( settings )
 		"files" : "{files}localhost\/",
 		"temp" : "{temp}localhost\/",
 		"jobs" : "{jobs}localhost\/",
+		"stylesheets": [ "tachyons.min.css", "\/localhost\/style.css" ],
 		"cookie_path" : "\/",
 		"cache_ttl" : 7200,
 		"mail_from" : "admin@localhost",
@@ -236,7 +237,49 @@ INSERT INTO configs ( settings )
 			"abbr"		: [ "style", "class" ],
 			"blockquote"	: [ "style", "class", "cite" ],
 			"body"		: []
-		}
+		}, 
+		"classes" : {
+			"body_classes"			: "",
+			
+			"heading_classes"		: "",
+			"heading_wrap_classes"		: "content", 
+			"heading_h_classes"		: "",
+			"heading_a_classes"		: "",
+			
+			"form_classes"			: "pa4 black-80 measure",
+			"legend_classes"		: "mb2 f4 measure",
+			"fieldset_classes"		: "",
+			
+			"label_classes"			: "f6 b db mb2"",
+			"special_classes"		: "normal black-60",
+			"input_classes"			: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
+			"desc_classes"			: "f6 lh-copy black-70 db mb2",
+			
+			"text_label_classes"		: "f6 b db mb2",
+			"text_special_classes"		: "normal black-60",
+			"text_desc_classes"		: "f6 lh-copy black-70 db mb2",
+			"text_input_classes"		: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
+			
+			"password_label_classes"	: "f6 b db mb2",
+			"password_text_classes"		: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
+			"password_desc_classes"		: "f6 lh-copy black-70 db mb2",
+			
+			"email_label_classes"		: "f6 b db mb2",
+			"email_input_classes"		: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
+			"email_desc_classes"		: "f6 lh-copy black-70 db mb2",
+			
+			"multiline_label_classes"	: "f6 b db mb2",
+			"multiline_input_classes"	: "db border-box black-80 w-100 ba b--black-50 pa2 mb2",
+			"multiline_desc_classes"	: "f6 lh-copy black-70 db mb2",
+			
+			"search_form_classes"		: "mw7 center pa4 br2-ns ba b--black-10",
+			"search_form_wrap_classes"	: "pa4-l",
+			"search_fieldset_classes"	: "cf bn ma0 pa0",
+			"search_legend_classes"		: pa0 f5 f4-ns mb3 black-80",
+			"search_label_classes"		: "clip",
+			"search_input_classes"		: "input-reset bn fl black-80 bg-white pa3 lh-solid w-100 w-75-m w-80-l br2-ns br--left-ns",
+			"search_button_classes"		: "button-reset fl pv3 tc bn bg-animate bg-black-70 hover-bg-black white pointer w-100 w-25-m w-20-l br2-ns br--right-ns"
+	       }
 	}' ) );-- --
 
 
