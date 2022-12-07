@@ -395,23 +395,123 @@ INSERT INTO history ( content, user_id ) VALUES ( json( '{ "label":"insert" }' )
 UPDATE document_types SET content = json( '{ "label" : "historical", "lang" : "en" }' ) WHERE id = 1;-- --
 
 INSERT INTO pages ( document_id, sort_order ) VALUES ( 1, 0 );-- --
-INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "Test content heading", "render" : [ "heading" ], "lang" : "en" }' ), 0 );-- --
 
-INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "This is a line of test content", "render" : [], "lang" : "en" }' ), 1 );-- --
-
-INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "මෙම පාඨය සිංහල භාෂාවෙන් ඇත", "render" : [], "lang" : "si" }' ), 1 );-- --
+INSERT INTO block_types( content, view_template, create_template, edit_template, delete_template ) 
+	VALUES (
+	json( '{ 
+		"label"			: "textarea", 
+		"id"			: "block-text", 
+		"name"			: "block-text", 
+		"rows"			: 10,
+		"cols"			: 60,
+		"required"		: "required",
+		"value"			: "",
+		"extra"			: " data-feature=\"autoheight, droppable\"",
+		
+		"create_template"	: {
+			"input_before"		: "{event:input_before}",
+			"input_multiline_before": "{event:input_multiline_before}",
+			"label_before"		: "{event:label_before}",
+			"label"			: "{lang:forms:page_block:create_label}",
+			"label_after"		: "{event:label_after}",
+			"input_field_before"	: "{event:input_before}",
+			"special_before"	: "{event:special_before}",
+		     	"special"		: "{lang:forms:page_block:create_special}",
+		     	"special_after"		: "{event:special_after}",
+		     	"input_before"		: "{event:input_before}",
+		     	"input_field_before"	: "{event:input_field_before}",
+		     	"input_field_after"	: "{event:input_field_after}",
+		     	"desc_before"		: "{event:desc_before}",
+		     	"desc"			: "{lang:forms:page_block:create_desc}",
+		     	"desc_after"		: "{event:desc_after}",
+		     	"input_multiline_after"	: "{event:input_multiline_after}",
+		     	"input_after"		: "{event:input_after}"
+		},
+		"edit_template"		: {
+			"input_before"		: "{event:input_before}",
+			"input_multiline_before": "{event:input_multiline_before}",
+			"label_before"		: "{event:label_before}",
+			"label"			: "{lang:forms:page_block:edit_label}",
+			"label_after"		: "{event:label_after}",
+			"input_field_before"	: "{event:input_before}",
+			"special_before"	: "{event:special_before}",
+		     	"special"		: "{lang:forms:page_block:edit_special}",
+		     	"special_after"		: "{event:special_after}",
+		     	"input_before"		: "{event:input_before}",
+		     	"input_field_before"	: "{event:input_field_before}",
+		     	"input_field_after"	: "{event:input_field_after}",
+		     	"desc_before"		: "{event:desc_before}",
+		     	"desc"			: "{lang:forms:page_block:edit_desc}",
+		     	"desc_after"		: "{event:desc_after}",
+		     	"input_multiline_after"	: "{event:input_multiline_after}",
+		     	"input_after"		: "{event:input_after}"
+		},
+		"delete_template"	: {
+			"input_before"		: "{event:input_before}",
+			"input_warn_before"	: "{event:input_warn_before}",
+			"value"			: "{lang:forms:page_block:delete_warn}",
+			"input_warn_after"	: "{event:input_warn_after}",
+			"input_after"		: "{event:input_after}",
+		},
+	     	
+		"before_block"		: "{event:before_block}",
+		"before_full_block"	: "{event:before_full_block}", 
+		"before_block_body"	: "{event:before_block_body}", 
+		"after_block_body"	: "{event:after_block_body}", 
+		"after_full_block"	: "{event:after_full_block}", 
+		"after_block"		: "{event:after_block}"
+	}' ), 
+	'{before_block}
+<article class="{block_classes}">{before_full_block}
+	{before_block_body}
+	<div class="{block_body_wrap_classes}">
+		<div class="{block_body_content_classes}">{value}</div>
+	</div>{after_block_body}
+	</div>{after_full_block}
+</article>{after_block}', 
+	'{input_before}{input_multiline_before}
+{label_before}<label for="{id}" class="{label_classes}">{label}
+	{special_before}<span class="{special_classes}"
+	>{special}</span>{special_after}</label>{label_after} 
+{input_field_before}<textarea id="{id}" name="{name}" rows="{rows} cols="{cols}" 
+	placeholder="{placeholder}" aria-describedby="{id}-desc"
+	 class="{input_classes}" {required}{extra}></textarea>{input_field_after}
+{desc_before}<small id="{id}-desc" class="{desc_classes}" 
+	{desc_extra}>{desc}</small>{desc_after}{input_after}
+{input_multiline_after}{input_after}',
 	
-INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "The above text is in Sinhalese", "render" : [], "lang" : "en" }' ), 1 );-- --
+	'{input_before}{input_multiline_before}
+{label_before}<label for="{id}" class="{label_classes}">{label}
+	{special_before}<span class="{special_classes}"
+	>{special}</span>{special_after}</label>{label_after} 
+{input_field_before}<textarea id="{id}" name="{name}" rows="{rows} cols="{cols}" 
+	placeholder="{placeholder}" aria-describedby="{id}-desc"
+		class="{input_classes}" {required}{extra}>{value}</textarea>{input_field_after}
+{desc_before}<small id="{id}-desc" class="{desc_classes}" 
+	{desc_extra}>{desc}</small>{desc_after}{input_after}
+{input_multiline_after}{input_after}', 
+	'{input_before}{input_warn_before}<input type="submit" id="{id}", 
+	name="{name}" value="{value}" class="{warn_classes}" 
+	{extra}>{input_warn_after}{input_after}'
+);
+
+INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
+	VALUES ( 1, 1, json( '{ "body": "Test content heading", "render" : [ "heading" ], "lang" : "en" }' ), 0 );-- --
+
+INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
+	VALUES ( 1, 1, json( '{ "body": "This is a line of test content", "render" : [], "lang" : "en" }' ), 1 );-- --
+
+INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
+	VALUES ( 1, 1, json( '{ "body": "මෙම පාඨය සිංහල භාෂාවෙන් ඇත", "render" : [], "lang" : "si" }' ), 1 );-- --
+	
+INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
+	VALUES ( 1, 1, json( '{ "body": "The above text is in Sinhalese", "render" : [], "lang" : "en" }' ), 1 );-- --
 
 UPDATE page_blocks SET content = json( '{ "body": "Este texto fue cambiado a Español", "render" : [], "lang" : "es" }' ) 
 	WHERE id = 2;
 
-INSERT INTO page_blocks ( page_id, content, sort_order ) 
-	VALUES ( 1, json( '{ "body": "The second block of text was changed to Spanish", "render" : [], "lang" : "en" }' ), 1 );-- --
+INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
+	VALUES ( 1, 1, json( '{ "body": "The second block of text was changed to Spanish", "render" : [], "lang" : "en" }' ), 1 );-- --
 
 
 INSERT INTO operations ( label, pattern, settings ) 
