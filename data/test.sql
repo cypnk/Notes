@@ -246,6 +246,13 @@ INSERT INTO configs ( settings )
 			"heading_h_classes"		: "",
 			"heading_a_classes"		: "",
 			
+			"code_wrap_classes"		: "measure overflow-auto",
+			"code_classes"			: "code",
+			
+			"center_classes"		: "tc",
+			"left_classes"			: "tl",
+			"right_classes"			: "tr",
+			
 			"form_classes"			: "pa4 black-80 measure",
 			"legend_classes"		: "mb2 f4 measure",
 			"fieldset_classes"		: "",
@@ -261,25 +268,51 @@ INSERT INTO configs ( settings )
 			"text_input_classes"		: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
 			
 			"password_label_classes"	: "f6 b db mb2",
+			"password_special_classes"	: "normal black-60",
 			"password_text_classes"		: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
 			"password_desc_classes"		: "f6 lh-copy black-70 db mb2",
 			
 			"email_label_classes"		: "f6 b db mb2",
+			"email_special_classes"		: "normal black-60",
 			"email_input_classes"		: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
 			"email_desc_classes"		: "f6 lh-copy black-70 db mb2",
 			
 			"multiline_label_classes"	: "f6 b db mb2",
+			"multiline_special_classes"	: "normal black-60",
 			"multiline_input_classes"	: "db border-box black-80 w-100 ba b--black-50 pa2 mb2",
 			"multiline_desc_classes"	: "f6 lh-copy black-70 db mb2",
 			
 			"search_form_classes"		: "mw7 center pa4 br2-ns ba b--black-10",
 			"search_form_wrap_classes"	: "pa4-l",
 			"search_fieldset_classes"	: "cf bn ma0 pa0",
-			"search_legend_classes"		: pa0 f5 f4-ns mb3 black-80",
+			"search_legend_classes"		: "pa0 f5 f4-ns mb3 black-80",
 			"search_label_classes"		: "clip",
+			"search_special_classes"	: "normal black-60",
 			"search_input_classes"		: "input-reset bn fl black-80 bg-white pa3 lh-solid w-100 w-75-m w-80-l br2-ns br--left-ns",
-			"search_button_classes"		: "button-reset fl pv3 tc bn bg-animate bg-black-70 hover-bg-black white pointer w-100 w-25-m w-20-l br2-ns br--right-ns"
-	       }
+			"search_button_classes"		: "button-reset fl pv3 tc bn bg-animate bg-black-70 hover-bg-black white pointer w-100 w-25-m w-20-l br2-ns br--right-ns",
+			
+			"check_label_classes"		: "pa0 ma0 lh-copy b f6 pointer",
+			"radio_label_classes"		: "pa0 ma0 lh-copy b f6 pointer",
+			
+			"submit_classes"		: "f6 input-reset pointer dim pa2 mb2 dib white bg-dark-gray",
+			"alt_classes"			: "f6 input-reset pointer dim pa2 mb2 dib white bg-navy",
+			"warn_classes"			: "f6 input-reset pointer dim pa2 mb2 dib white bg-light-red",
+			"action_classes"		: "f6 input-reset pointer dim pa2 mb2 dib white bg-green",
+			
+			"table_wrap_classes"		: "collapse overflow-auto",
+			"table_classes"			: "f6 w-100 mw8 center table",
+			"table_header_classes"		: "lh-copy bg-white table-header",
+			"table_body_classes"		: "lh-copy table-body",
+			"table_footer_classes"		: "lh-copy table-footer",
+			"table_row_classes"		: "stripe-dark table-row",
+			"table_row_odd_classes"		: "table-row-odd",
+			"table_row_even_classes"	: "table-row-even",
+			"table_th_classes"		: "fw6 tl pa2 table-th",
+			"table_td_classes"		: "pa2 table-td",
+	       		"table_td_center_classes"	: "tc",
+	       		"table_td_left_classes"		: "tl",
+	       		"table_td_right_classes"	: "tr"
+		}
 	}' ) );-- --
 
 
