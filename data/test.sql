@@ -451,15 +451,16 @@ INSERT INTO block_types( content, view_template, create_template, edit_template,
 			"input_warn_before"	: "{event:input_warn_before}",
 			"value"			: "{lang:forms:page_block:delete_warn}",
 			"input_warn_after"	: "{event:input_warn_after}",
-			"input_after"		: "{event:input_after}",
+			"input_after"		: "{event:input_after}"
 		},
-	     	
-		"before_block"		: "{event:before_block}",
-		"before_full_block"	: "{event:before_full_block}", 
-		"before_block_body"	: "{event:before_block_body}", 
-		"after_block_body"	: "{event:after_block_body}", 
-		"after_full_block"	: "{event:after_full_block}", 
-		"after_block"		: "{event:after_block}"
+		"view_template"		: {
+			"before_block"		: "{event:before_block}",
+			"before_full_block"	: "{event:before_full_block}", 
+			"before_block_body"	: "{event:before_block_body}", 
+			"after_block_body"	: "{event:after_block_body}", 
+			"after_full_block"	: "{event:after_full_block}", 
+			"after_block"		: "{event:after_block}"
+	     }
 	}' ), 
 	'{before_block}
 <article class="{block_classes}">{before_full_block}
