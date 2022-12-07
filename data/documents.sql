@@ -637,6 +637,20 @@ BEGIN
 		WHERE id = NEW.id;
 END;-- --
 
+-- Content types
+CREATE TABLE block_types (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	content TEXT NOT NULL DEFAULT '{ "label" : "text" }' COLLATE NOCASE, 
+	label TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.label' ), "text" )
+	) STORED NOT NULL,
+	view_template TEXT NOT NULL COLLATE NOCASE, 
+	create_template TEXT NOT NULL COLLATE NOCASE, 
+	edit_template TEXT NOT NULL COLLATE NOCASE, 
+	delete_template TEXT NOT NULL COLLATE NOCASE
+);-- --
+CREATE UNIQUE INDEX idx_block_type_label ON block_types ( label );-- --
+
 -- Content breakpoints
 CREATE TABLE page_blocks (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -645,10 +659,17 @@ CREATE TABLE page_blocks (
 	body TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( content, '$.body' ), "" )
 	) STORED NOT NULL, 
+	
+	type_id INTEGER NOT NULL,
 	page_id INTEGER NOT NULL,
 	lang_id INTEGER DEFAULT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0,
 	status INTEGER NOT NULL DEFAULT 0,
+	
+	CONSTRAINT fk_block_type 
+		FOREIGN KEY ( type_id ) 
+		REFERENCES block_types ( id )
+		ON DELETE CASCADE,
 	
 	CONSTRAINT fk_block_page 
 		FOREIGN KEY ( page_id ) 
@@ -660,6 +681,7 @@ CREATE TABLE page_blocks (
 		REFERENCES languages ( id )
 		ON DELETE RESTRICT
 );-- --
+CREATE INDEX idx_block_type ON page_blocks ( type_id );-- --
 CREATE INDEX idx_block_page ON page_blocks ( page_id );-- --
 CREATE INDEX idx_block_lang ON page_blocks ( lang_id )
 	WHERE lang_id IS NOT NULL;-- --
