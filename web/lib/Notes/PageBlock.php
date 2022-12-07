@@ -4,12 +4,23 @@ namespace Notes;
 
 class PageBlock extends Content {
 	
+	public readonly int $type_id;
+	
 	public readonly int $page_id;
 	
 	public function __construct( ?int = $id ) {
 		if ( !empty( $id ) ) {
 			$this->setPage( $id );
 		}
+	}
+	
+	public function setType( int $id ) {
+		if ( isset( $this->type_id ) ) {
+			$this->error( 'Attempted type change' );
+			return;
+		}
+		
+		$this->type_id = $id;
 	}
 	
 	public function setPage( int $id ) {
