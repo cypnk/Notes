@@ -71,10 +71,21 @@ class PageBlock extends Content {
 	
 	public function save() : bool {
 		$pb = isset( $this->id ) ? true : false;
-		
-		if ( !$ps && empty( $this->page_id ) ) {
-			$this->error( 'Attempted save without setting page' );
-			return false;
+		$ns = false;
+		if ( !$ps ) {
+			if ( empty( $this->page_id ) ) {
+				$this->error( 'Attempted save without setting page' );
+				$ns = true;
+			}
+			
+			if ( empty( $this->type_id ) ) {
+				$this->error( 'Attempted save without setting type' );
+				$ns = true;
+			}
+			
+			if ( $ns ) {
+				return false;
+			}
 		}
 		
 		// Default empty body
@@ -104,12 +115,13 @@ class PageBlock extends Content {
 		
 		// Set page
 		$params[':page_id']	= $this->page_id;
+		$params[':type_id']	= $this->type_id;
 		
 		$id	= 
 		$db->setInsert(
 			"INESRT INTO page_blocks 
-				( content, sort_order, lang_id, status, page_id ) 
-			VALUES ( :content, :so, :lang, :status, :page_id );",
+				( content, sort_order, lang_id, status, page_id, type_id ) 
+			VALUES ( :content, :so, :lang, :status, :page_id, :type_id );",
 			$params,
 			\DATA
 		);
