@@ -103,7 +103,7 @@ class UserMark extends Content {
 		$params	= [
 			':content'	=> 
 				static::formatSettings( $this->_content ),
-			':expires'	=> $this->expire ?? null,
+			':expires'	=> $this->expires ?? null,
 			':status'	=> $this->status ?? 0
 		];
 		
