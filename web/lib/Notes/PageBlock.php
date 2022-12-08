@@ -112,12 +112,12 @@ class PageBlock extends Content {
 		$pb = isset( $this->id ) ? true : false;
 		$ns = false;
 		if ( !$ps ) {
-			if ( empty( $this->_page_id ) ) {
+			if ( empty( $this->_content['page_id'] ) ) {
 				$this->error( 'Attempted save without setting page' );
 				$ns = true;
 			}
 			
-			if ( empty( $this->_type_id ) ) {
+			if ( empty( $this->_content['type_id'] ) ) {
 				$this->error( 'Attempted save without setting type' );
 				$ns = true;
 			}
