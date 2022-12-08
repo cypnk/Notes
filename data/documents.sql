@@ -914,10 +914,10 @@ CREATE TABLE user_marks (
 	content TEXT NOT NULL DEFAULT '{ "label" : "read" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( content, '$.label' ), "read" )
-	) STORED NOT NULL,
+	) STORED NOT NULL, 
 	document_id INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( content, '$.document_id' ), NULL ) AS INTEGER )
-	) STORED,
+	) STORED, 
 	page_id INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( content, '$.page_id' ), NULL ) AS INTEGER )
 	) STORED, 
@@ -1093,8 +1093,8 @@ CREATE UNIQUE INDEX idx_resource_src ON resources ( src )
 	WHERE src IS NOT "";-- --
 CREATE INDEX idx_resource_mime ON resources ( mime_type )
 	WHERE mime_type IS NOT "";-- --
-CREATE UNIQUE INDEX idx_resource_hash ON resources ( signature )
-	WHERE signature IS NOT "";-- --
+CREATE UNIQUE INDEX idx_resource_hash ON resources ( file_hash )
+	WHERE file_hash IS NOT "";-- --
 CREATE INDEX idx_resource_created ON resources ( created );-- --
 CREATE INDEX idx_resource_status ON resources ( status );-- --
 
@@ -1106,7 +1106,9 @@ END;-- --
 
 CREATE TABLE resource_captions (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE, 
+	resource_id INTEGER NOT NULL,
+	lang_id INTEGER DEFAULT NULL,
+	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE,
 	
 	-- Description, subtitles etc...
 	label TEXT GENERATED ALWAYS AS (
@@ -1115,9 +1117,6 @@ CREATE TABLE resource_captions (
 	body TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( content, '$.body' ), "" )
 	) STORED NOT NULL,
-	
-	resource_id INTEGER NOT NULL,
-	lang_id INTEGER DEFAULT NULL,
 	
 	CONSTRAINT fk_caption_resource 
 		FOREIGN KEY ( resource_id ) 
