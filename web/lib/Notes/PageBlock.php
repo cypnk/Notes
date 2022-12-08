@@ -4,9 +4,11 @@ namespace Notes;
 
 class PageBlock extends Content {
 	
-	public readonly int $type_id;
+	protected readonly int $_type_id;
 	
-	public readonly int $page_id;
+	protected readonly int $_page_id;
+	
+	public readonly BlockType $type;
 	
 	public function __construct( ?int = $id ) {
 		if ( !empty( $id ) ) {
@@ -14,13 +16,45 @@ class PageBlock extends Content {
 		}
 	}
 	
-	public function setType( int $id ) {
-		if ( isset( $this->type_id ) ) {
+	public function __set( $name, $value ) {
+		switch ( $name ) {
+			case 'type_id':
+				if ( isset( $this->_type_id ) ) {
+					$this->error( 'Attempted type change' );
+					return;
+				}
+				$this->_type_id = ( int ) $value;
+				return;
+			
+			case 'page_id':
+				if ( isset( $this->_page_id ) ) {
+					$this->error( 'Attempted type change' );
+					return;
+				}
+				$this->_page_id = ( int ) $value;
+				return;
+		}
+		
+		parent::__set( $name, $value );
+	}
+	
+	public function __get( $name ) {
+		switch ( $name ) {
+			case 'type_id':
+				return $this->_type_id ?? 0;
+		}
+		
+		return parent::__get( $name );
+	}
+	
+	public function setType( BlockType $bt ) {
+		if ( isset( $this->type ) || isset( $this->_type_id ) ) {
 			$this->error( 'Attempted type change' );
 			return;
 		}
 		
-		$this->type_id = $id;
+		$this->_type_id	= $bt->id;
+		$this->type	= $bt;
 	}
 	
 	public function setPage( int $id ) {
@@ -69,16 +103,21 @@ class PageBlock extends Content {
 		return true;
 	}
 	
+	public function render( string $name, array $params ) : string {
+		// TODO: Format substitutions for events and other placeholders
+		return '';
+	}
+	
 	public function save() : bool {
 		$pb = isset( $this->id ) ? true : false;
 		$ns = false;
 		if ( !$ps ) {
-			if ( empty( $this->page_id ) ) {
+			if ( empty( $this->_page_id ) ) {
 				$this->error( 'Attempted save without setting page' );
 				$ns = true;
 			}
 			
-			if ( empty( $this->type_id ) ) {
+			if ( empty( $this->_type_id ) ) {
 				$this->error( 'Attempted save without setting type' );
 				$ns = true;
 			}
@@ -93,7 +132,7 @@ class PageBlock extends Content {
 		
 		$params	= [
 			':content'	=> 
-				static::formatSettings( $this->_content )
+				static::formatSettings( $this->_content ),
 			':so'		=> $this->sort_order,
 			':lang'		=> $this->lang_id ?? null,
 			':status'	=> $this->status ?? 0
@@ -114,8 +153,8 @@ class PageBlock extends Content {
 		}
 		
 		// Set page
-		$params[':page_id']	= $this->page_id;
-		$params[':type_id']	= $this->type_id;
+		$params[':page_id']	= $this->_page_id;
+		$params[':type_id']	= $this->_type_id;
 		
 		$id	= 
 		$db->setInsert(
