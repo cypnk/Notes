@@ -6,25 +6,22 @@ class UserMark extends Content {
 	
 	public int $user_id;
 	
-	private readonly string $_label;
+	protected readonly string $_label;
 	
-	private readonly int $_document_id;
+	protected readonly int $_document_id;
 	
-	private readonly int $_page_id;
+	protected readonly int $_page_id;
 	
-	private readonly int $_block_id;
+	protected readonly int $_block_id;
 	
-	private readonly int $_memo_id;
+	protected readonly int $_memo_id;
 	
 	public string $expires;
 	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
 			case 'label':
-				$this->_label = 
-				\Notes\Util::unifySpaces( 
-					( string ) $value 
-				);
+				$this->_label = ( string ) $value;
 				return;
 				
 			case 'document_id':
@@ -80,6 +77,11 @@ class UserMark extends Content {
 			return false;
 		}
 		
+		$this->_content['label'] = 
+		\Notes\Util::unifySpaces( 
+			trim( $this->_content['label'] ?? '' ) 
+		);
+		
 		if ( empty( $this->_content['label'] ) ){
 			$this->error( 'Attempted save without label' );
 			return false;
@@ -97,7 +99,7 @@ class UserMark extends Content {
 		
 		if ( !empty( $this->expires ) ) {
 			$this->expires = 
-				\Notes\Util::tstring( $this->expires );
+				\Notes\Util::utc( $this->expires );
 		}
 		
 		$params	= [
