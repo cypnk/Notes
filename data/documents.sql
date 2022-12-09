@@ -49,13 +49,13 @@ CREATE INDEX idx_event_sort ON events ( sort_order );-- --
 -- Standard event formatting
 CREATE TRIGGER event_insert_format AFTER INSERT ON events FOR EACH ROW
 BEGIN
-	UPDATE events SET label = REPLACE( LOWER( TRIM( NEW.name ) ), ' ', '_' )
+	UPDATE events SET name = REPLACE( LOWER( TRIM( NEW.name ) ), ' ', '_' )
 		WHERE id = NEW.id;
 END;-- --
 
 CREATE TRIGGER event_update_format AFTER UPDATE ON events FOR EACH ROW
 BEGIN
-	UPDATE events SET label = REPLACE( LOWER( TRIM( NEW.name ) ), ' ', '_' )
+	UPDATE events SET name = REPLACE( LOWER( TRIM( NEW.name ) ), ' ', '_' )
 		WHERE id = NEW.id;
 END;-- --
 
@@ -1122,11 +1122,11 @@ CREATE TABLE resource_captions (
 		FOREIGN KEY ( resource_id ) 
 		REFERENCES resources ( id )
 		ON DELETE CASCADE,
-	
+		
 	CONSTRAINT fk_caption_lang 
 		FOREIGN KEY ( lang_id ) 
 		REFERENCES languages ( id )
-		ON DELETE CASCADE
+		ON DELETE RESTRICT
 );-- --
 CREATE INDEX idx_resource_label ON resource_captions ( label );-- --
 CREATE INDEX idx_resource_caption ON resource_captions ( resource_id );-- --
@@ -1134,7 +1134,8 @@ CREATE INDEX idx_resource_lang ON resource_captions ( lang_id )
 	WHERE lang_id IS NOT NULL;-- --
 
 CREATE TRIGGER resource_caption_insert AFTER INSERT ON resource_captions FOR EACH ROW
-BEGIN 
+WHEN NEW.body IS NOT ""
+BEGIN
 	UPDATE resource_captions SET lang_id = (
 			SELECT COALESCE( id, NULL ) FROM languages 
 				WHERE iso_code = 
@@ -1142,9 +1143,10 @@ BEGIN
 			LIMIT 1
 		) WHERE id = NEW.id AND 
 			json_extract( NEW.content, '$.lang' ) IS NOT "";
-);-- --
+END;-- --
 
 CREATE TRIGGER resource_caption_update AFTER UPDATE ON resource_captions FOR EACH ROW
+WHEN NEW.body IS NOT ""
 BEGIN 
 	UPDATE resource_captions SET lang_id = (
 			SELECT COALESCE( id, NULL ) FROM languages 
@@ -1153,7 +1155,7 @@ BEGIN
 			LIMIT 1
 		) WHERE id = NEW.id AND 
 			json_extract( NEW.content, '$.lang' ) IS NOT "";
-);-- --
+END;-- --
 
 CREATE TABLE resource_users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
