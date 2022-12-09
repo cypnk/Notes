@@ -122,6 +122,7 @@ class UserMark extends Content {
 			':status'	=> $this->status ?? 0
 		];
 		
+		$db	= $this->getData();
 		if ( $um ) {
 			$params[':id']	= $this->id;
 			
