@@ -5,7 +5,10 @@
  */
 
 // Prevent direct calls
-if ( 0 == \strcasecmp( \basename( $_SERVER['PHP_SELF'] ), 'bootstrap.php' ) ) { 
+if ( 0 == \strcmp(
+	\basename( \strtolower( $_SERVER['SCRIPT_NAME'] ), '.php' ), 
+	'bootstrap' 
+) ) { 
 	\ob_end_clean();
 	die();
 };
