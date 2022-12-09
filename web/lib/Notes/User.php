@@ -6,22 +6,34 @@ class User extends Entity {
 	
 	const MAX_USER		= 180;
 	
-	public readonly string $username;
+	protected readonly string $_username;
 	
-	public readonly string $password;
+	protected readonly string $_password;
 	
-	public readonly string $user_clean;
+	protected readonly string $_user_clean;
+	
+	protected string $_bio;
+	
+	protected string $_display;
 	
 	public string $check_password;
 	
-	protected string $_password;
-	
-	public function __construct() {
-		
-	}
+	protected string $_new_password;
 	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
+			case 'display':
+				$this->_display = 
+				\Notes\Util::title( ( string ) $value );
+				return;
+				
+			case 'bio':
+				$this->_bio = 
+				\Notes\Util::entities(
+					\Notes\Util::pacify( ( string ) $value )
+				);
+				return;
+				
 			case 'new_password':
 				if ( 
 					!\is_string( $value )	&& 
@@ -30,19 +42,28 @@ class User extends Entity {
 					return;
 				}
 				
-				$this->_password	= 
+				$this->_new_password	= 
 					static::hashPassword( ( string ) $value );
 				return;
-			
-			case 'username':
-				$this->username		= 
-				\Notes\Util::title( 
-					( string ) $value, 
-					static::MAX_USER 
-				);
 				
-				$this->user_clean	= 
-				\Notes\Util::slugify( $this->username );
+			case 'password':
+				if ( isset( $this->_password ) ) {
+					$this->error( 'Attempted direct password change' );
+					return;
+				}
+				$this->_password = ( string ) $value;
+				return;
+				
+			case 'username':
+				if ( isset( $this->_username ) ) {
+					$this->error( 'Attempted username change' );
+					return;
+				}
+				$this->_username		= 
+				static::maxUsername( ( string ) $value );
+				
+				$this->_user_clean	= 
+				static::cleanUsername( $this->_username );
 				return;
 		}
 		
@@ -51,15 +72,30 @@ class User extends Entity {
 	
 	public function __get( $name ) {
 		switch ( $name ) {
+			case 'username':
+				return $this->_username ?? '';
+			
+			case 'display':
+				return $this->_display ?? '';
+			
+			case 'bio':
+				return $this->_bio ?? '';
+			
+			case 'user_clean':
+				return $this->_user_clean ?? '';
+			
+			case 'password':
+				return $this->_password ?? '';
+				
 			case 'pass_validity':
-				if ( !isset( $this->password ) ) {
+				if ( !isset( $this->_password ) ) {
 					return false;
 				}
 				
 				return 
 				static::verifyPassword(
 					$this->check_password ?? '',
-					$this->password
+					$this->_password
 				);
 		}
 		
@@ -130,13 +166,87 @@ class User extends Entity {
 		\password_needs_rehash( $stored, \PASSWORD_DEFAULT );
 	}
 	
+	/**
+	 *  Process username
+	 */
+	public static function maxUsername( string $name ) {
+		return \Notes\Util::title( $name, static::MAX_USER );
+	}
+	
+	/**
+	 *  Helper to turn full username to index-friendly term
+	 *  
+	 *  @param string	$name		Entered username 
+	 *  @return string
+	 */
+	public static function cleanUsername( string $name ) {
+		return 
+		\Notes\Util::unifySpaces( \Notes\Util::lowercase( 
+			\Notes\Util::bland(
+				\Notes\Util::normal( $name ), true 
+			) 
+		) );
+	}
+	
 	public function save() : bool {
-		// TODO: Edit
-		if ( isset( $this->id ) ) {
-			return true;
+		$us	= isset( $this->id ) ? true : false;
+		
+		// Unsaved user and no username?
+		if ( !$us && empty( $this->_username ) ) {
+			$this->error( 'Attempted user save without username' );
+			return false;
 		}
 		
-		// TODO: Create
+		// Unsaved user and no password?
+		if ( !$us && empty( $this->_password ) ) {
+			$this->error( 'Attempted user save without password' );
+			return false;
+		}
+		
+		$params	= [
+			':status'	=> $this->status,
+			':bio'		=> $this->bio ?? '',
+			':settings'	=> 
+				static::formatSettings( $this->settings )
+		];
+		
+		if ( $us ) {
+			$sql = 
+			"UPDATE users SET status = :status, 
+				bio = :bio, settings = :settings";
+				
+			// Changing password too?
+			if ( isset( $this->_new_password ) ) {
+				$params[':pass'] = $this->_new_password;
+				$sql .= ', password = :pass';
+			}
+			
+			$params[':id'] = $this->id;
+			$sql .= ' WHERE id = :id;';
+			
+			return $db->setUpdate( $sql, $params, \DATA );
+		}
+		
+		// Set new password
+		$this->new_password	= $this->_password;
+		
+		$params[':name']	= $this->_username;
+		$params[':clean']	= $this->_user_clean;
+		$params[':pass']	= $this->_new_password;
+		
+		$id	= 
+		$db->setInsert(
+			"INESRT INTO users
+				( status, bio, settings, username, user_clean, password ) 
+			VALUES ( :status, :bio, :settings, :name, :clean, :pass );",
+			$params,
+			\DATA
+		);
+		
+		if ( empty( $id ) ) {
+			return false;
+		}
+		$this->id = $id;
 		return true;
 	}
 }
