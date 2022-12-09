@@ -4,6 +4,18 @@
  *  @brief	Notes loader and environment constants
  */
 
+// Prevent direct calls
+if ( 0 == \strcasecmp( \basename( $_SERVER['PHP_SELF'] ), 'bootstrap.php' ) ) { 
+	\ob_end_clean();
+	die();
+};
+
+
+
+/**
+ *  Begin configuration
+ */
+
 // Path to this file's directory
 define( 'PATH',	\realpath( \dirname( __FILE__ ) ) . '/' );
 
