@@ -68,6 +68,20 @@ class UserMark extends Content {
 		return parent::__get( $name );
 	}
 	
+	public function move( string $mode, int $idx ) {
+		switch ( $mode ) {
+			case 'document':
+			case 'page':
+			case 'block':
+			case 'memo':
+				$this->_content[$mode . '_id'] = $idx;
+		}
+	}
+	
+	public function setLabel( string $label ) {
+		$this->_content['label'] = 
+		\Notes\Util::unifySpaces( trim( $label ) );
+	}
 	
 	public function save() : bool {
 		$um = isset( $this->id ) ? true : false;
@@ -77,9 +91,8 @@ class UserMark extends Content {
 			return false;
 		}
 		
-		$this->_content['label'] = 
-		\Notes\Util::unifySpaces( 
-			trim( $this->_content['label'] ?? '' ) 
+		$this->setLabel( 
+			( string ) ( $this->_content['label'] ?? '' ) 
 		);
 		
 		if ( empty( $this->_content['label'] ) ){
