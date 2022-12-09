@@ -10,6 +10,8 @@ class PageBlock extends Content {
 	
 	public readonly BlockType $type;
 	
+	public array $marks = [];
+	
 	public function __construct( ?int = $id ) {
 		if ( !empty( $id ) ) {
 			$this->setPage( $id );
@@ -137,6 +139,8 @@ class PageBlock extends Content {
 			':lang'		=> $this->lang_id ?? null,
 			':status'	=> $this->status ?? 0
 		];
+		
+		$db = $this->getData();
 		
 		if ( $pb ) {
 			$params[':id']	= $this->id;
