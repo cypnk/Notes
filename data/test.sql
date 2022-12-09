@@ -1,7 +1,7 @@
 
 -- SQL Syntax and behavior test DO NOT USE IN PRODUCTION
 
-INSERT INTO events ( label, settings )
+INSERT INTO events ( name, params )
 	VALUES 
 	-- Single-user params
 	( 'app_start', json( 
@@ -19,7 +19,7 @@ INSERT INTO events ( label, settings )
 	( 'web_start', json(
 		'{
 			"realm" : "http:\/\/localhost",
-			"routes" [
+			"routes" : [
 				[ "get", "",					"home" ],
 				[ "get", "page:page",				"homepaginate" ],
 				[ "get", "feed",				"feed" ],
@@ -108,7 +108,7 @@ INSERT INTO configs ( settings )
 		"temp" : "{temp}localhost\/",
 		"jobs" : "{jobs}localhost\/",
 		"stylesheets": [ "\/css\/tachyons.min.css", "\/localhost\/style.css" ],
-		"scripts: [ "\/js\/squire.js" ], 
+		"scripts": [ "\/js\/squire.js" ], 
 		"cookie_path" : "\/",
 		"cache_ttl" : 7200,
 		"mail_from" : "admin@localhost",
@@ -258,7 +258,7 @@ INSERT INTO configs ( settings )
 			"legend_classes"		: "mb2 f4 measure",
 			"fieldset_classes"		: "",
 			
-			"label_classes"			: "f6 b db mb2"",
+			"label_classes"			: "f6 b db mb2",
 			"special_classes"		: "normal black-60",
 			"input_classes"			: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
 			"desc_classes"			: "f6 lh-copy black-70 db mb2",
@@ -495,7 +495,12 @@ INSERT INTO block_types( content, view_template, create_template, edit_template,
 	'{input_before}{input_warn_before}<input type="submit" id="{id}", 
 	name="{name}" value="{value}" class="{warn_classes}" 
 	{extra}>{input_warn_after}{input_after}'
-);
+	),
+	(json( '{ 
+		"label"			: "app-multiline", 
+		"id"			: "block-text", 
+		"name"			: "block-text"
+	}' ), '', '', '', '' );-- --
 
 INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
 	VALUES ( 1, 1, json( '{ "body": "Test content heading", "render" : [ "heading" ], "lang" : "en" }' ), 0 );-- --
