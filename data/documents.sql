@@ -794,6 +794,7 @@ END;-- --
 
 
 CREATE TABLE memo_blocks (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	memo_id INTEGER NOT NULL,
 	block_id INTEGER NOT NULL,
 	begin_range INTEGER NOT NULL DEFAULT 0,
@@ -910,10 +911,16 @@ CREATE UNIQUE INDEX idx_user_memo ON user_memos ( user_id, memo_id );-- --
 
 -- Bookmarks/dog ears
 CREATE TABLE user_marks (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	user_id INTEGER NOT NULL,
 	content TEXT NOT NULL DEFAULT '{ "label" : "read" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( content, '$.label' ), "read" )
+	) STORED NOT NULL,
+	
+	-- Text, highlight range {start,end}, flag, number, etc...
+	format TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.format' ), "text" )
 	) STORED NOT NULL, 
 	document_id INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( content, '$.document_id' ), NULL ) AS INTEGER )
@@ -956,7 +963,10 @@ CREATE TABLE user_marks (
 		REFERENCES memos ( id )
 		ON DELETE CASCADE
 );-- --
+CREATE INDEX idx_mark_user ON user_marks ( user_id );-- --
 CREATE INDEX idx_mark_label ON user_marks ( label );-- --
+CREATE INDEX idx_mark_format ON user_marks ( format )
+	WHERE format IS NOT "";-- --
 CREATE INDEX idx_mark_doc ON user_marks ( document_id )
 	WHERE document_id IS NOT NULL;-- --
 CREATE INDEX idx_mark_page ON user_marks ( page_id )
