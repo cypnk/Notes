@@ -4,9 +4,13 @@ namespace Notes;
 
 class UserMark extends Content {
 	
-	public int $user_id;
+	const FORMAT_SIZE	= 100;
+	
+	protected readonly int $_user_id;
 	
 	protected readonly string $_label;
+	
+	protected readonly string $_format;
 	
 	protected readonly int $_document_id;
 	
@@ -24,6 +28,10 @@ class UserMark extends Content {
 				$this->_label = ( string ) $value;
 				return;
 				
+			case 'format':
+				$this->_format = ( string ) $value;
+				return;
+				
 			case 'document_id':
 				$this->_document_id = ( int ) $value;
 				return;
@@ -39,6 +47,10 @@ class UserMark extends Content {
 			case 'memo_id':
 				$this->_memo_id = ( int ) $value;
 				return;
+				
+			case 'user_id':
+				$this->_user_id = ( int ) $value;
+				return;
 		}
 		
 		parent::__set( $name, $value );
@@ -50,7 +62,12 @@ class UserMark extends Content {
 				return $this->_user_id ?? 0;
 				
 			case 'label':
-				return $this->_label ?? '';
+				return 
+				$this->_content['label'] ?? $this->_label ?? '';
+				
+			case 'format':
+				return 
+				$this->_content['format'] ?? $this->_format ?? '';
 				
 			case 'document_id':
 				return $this->_document_id ?? 0;
@@ -83,10 +100,15 @@ class UserMark extends Content {
 		\Notes\Util::unifySpaces( trim( $label ) );
 	}
 	
+	public function setFormat( string $format ) {
+		$this->_content['format'] = 
+		\Notes\Util::labelName( $format, static::FORMAT_SIZE );
+	}
+	
 	public function save() : bool {
 		$um = isset( $this->id ) ? true : false;
 		
-		if ( !$um && empty( $this->user_id ) ) {
+		if ( !$um && empty( $this->_user_id ) ) {
 			$this->error( 'Attempted save without user' );
 			return false;
 		}
@@ -99,6 +121,10 @@ class UserMark extends Content {
 			$this->error( 'Attempted save without label' );
 			return false;
 		}
+		
+		$this->setFormat( 
+			( string ) ( $this->_content['format'] ?? '' ) 
+		);
 		
 		if (
 			empty( $this->_content['document_id'] )	&& 
