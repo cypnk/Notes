@@ -4,6 +4,9 @@ namespace Notes;
 
 class User extends Entity {
 	
+	/**
+	 *  Maximum username length
+	 */
 	const MAX_USER		= 180;
 	
 	protected readonly string $_username;
@@ -51,7 +54,7 @@ class User extends Entity {
 					$this->error( 'Attempted direct password change' );
 					return;
 				}
-				$this->_password = ( string ) $value;
+				$this->_password	= ( string ) $value;
 				return;
 				
 			case 'username':
@@ -59,7 +62,7 @@ class User extends Entity {
 					$this->error( 'Attempted username change' );
 					return;
 				}
-				$this->_username		= 
+				$this->_username	= 
 				static::maxUsername( ( string ) $value );
 				
 				$this->_user_clean	= 
@@ -169,8 +172,22 @@ class User extends Entity {
 	/**
 	 *  Process username
 	 */
-	public static function maxUsername( string $name ) {
-		return \Notes\Util::title( $name, static::MAX_USER );
+	public static function maxUsername( string $name ) : string {
+		static $max_user;
+		if ( !isset( $max_user ) ) {
+			$max_user =
+			static::$data
+				->getController()
+				->getConfig()
+				->setting( 
+					'max_user', 
+					static::MAX_USER, 
+					'int' 
+				);
+		}
+		
+		return 
+		\Notes\Util::title( $name, $max_user );
 	}
 	
 	/**
@@ -210,6 +227,7 @@ class User extends Entity {
 				static::formatSettings( $this->settings )
 		];
 		
+		$db	= $this->getData();
 		if ( $us ) {
 			$sql = 
 			"UPDATE users SET status = :status, 
