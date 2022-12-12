@@ -35,6 +35,13 @@ class Controller {
 	}
 	
 	/**
+	 *  Current session handler return helper
+	 */
+	public function getSession() {
+		return $this->session;
+	}
+	
+	/**
 	 *  Add to list of running events
 	 *  
 	 *  @param string	$name		New event name
