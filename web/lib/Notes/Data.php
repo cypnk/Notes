@@ -43,6 +43,10 @@ class Data {
 		}
 	}
 	
+	public function getController() {
+		return $this->ctrl;
+	}
+	
 	/**
 	 *  Create database tables based on DSN
 	 *  
