@@ -15,6 +15,10 @@ class User extends Entity {
 	
 	public int $user_id;
 	
+	public string $mobile_pin;
+	
+	public string $info;
+	
 	public string $auth;
 	
 	public string $hash;
@@ -42,7 +46,6 @@ class User extends Entity {
 	public string $failed_last_attempt;
 	
 	public string $expires;
-	
 	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
