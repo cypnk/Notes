@@ -409,15 +409,54 @@ class Response extends Message {
 				
 			case 'vtt':
 				return 'text/vtt';
+			
+			case 'xsl':
+				return 'application/xslt+xml';
+			
+			case 'atom':
+				return 'application/atom+xml';
+				
+			case 'xml':
+			case 'rss':
+			case 'feed':
+				return 'application/xml';
 		}
 		
-		// Detect others
-		$mime = \mime_content_type( $path );
-		if ( false === $mime ) {
+		// Intercept potential mime warning as error
+		set_error_handler( function( 
+			$eno, $emsg, $efile, $eline 
+		) {
+			throw new \ErrorException( 
+				$emsg, 0, $eno, $efile, $eline 
+			);
+		}, E_WARNING );
+		
+		// Detect other mime types
+		try { 
+			$mime = \mime_content_type( $path );
+			
+		} catch( \Exception $e ) {
+			$str = 
+			'Unable to detect mime of {path} ' . 
+			'Message: {msg} File: {file} Line: {line}';
+			
+			\messages( 
+				'error', 
+				\strtr( $str, [
+					'{path}'	=> $path,
+					'{msg}'		=> $e->getMessage(),
+					'{file}'	=> $e->getFile(),
+					'{line}'	=> $e->getLine()
+				] )
+			);
 			return 'application/octet-stream';
 		}
 		
-		return \strtolower( $mime );
+		restore_error_handler();
+		
+		return ( false === $mime ) ? 
+			'application/octet-stream' : 
+			\strtolower( $mime );
 	}
 	
 	/**
