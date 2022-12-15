@@ -425,32 +425,20 @@ class Response extends Message {
 		// Intercept potential mime warning as error
 		set_error_handler( function( 
 			$eno, $emsg, $efile, $eline 
-		) {
-			throw new \ErrorException( 
-				$emsg, 0, $eno, $efile, $eline 
+		) use ( $path ) {
+			$str	= 
+			'Unable to detect mime of ' . $path . ' ' .  
+				'Message: {msg} File: {file} Line: {line}';
+				
+			logException( 
+				new \ErrorException( 
+					$emsg, 0, $eno, $efile, $eline 
+				), $str 
 			);
 		}, E_WARNING );
 		
 		// Detect other mime types
-		try { 
-			$mime = \mime_content_type( $path );
-			
-		} catch( \Exception $e ) {
-			$str = 
-			'Unable to detect mime of {path} ' . 
-			'Message: {msg} File: {file} Line: {line}';
-			
-			\messages( 
-				'error', 
-				\strtr( $str, [
-					'{path}'	=> $path,
-					'{msg}'		=> $e->getMessage(),
-					'{file}'	=> $e->getFile(),
-					'{line}'	=> $e->getLine()
-				] )
-			);
-			return 'application/octet-stream';
-		}
+		$mime = \mime_content_type( $path );
 		
 		restore_error_handler();
 		
