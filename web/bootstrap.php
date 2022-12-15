@@ -113,6 +113,25 @@ function messages( string $type, string $message, bool $ret = false ) {
 }
 
 /**
+ *  Exception recording helper
+ *  
+ *  @param Exception	$e	Thrown error
+ *  @param string	$msg	Optional override of default error format
+ */
+function logException( \Exception $e, ?string $msg = null ) {
+	$msg ??= 'Error: {msg} File: {file} Line: {line}';
+	
+	\messages( 
+		'error', 
+		\strtr( $msg, [
+			'{msg}'		=> $e->getMessage(),
+			'{file}'	=> $e->getFile(),
+			'{line}'	=> $e->getLine()
+		] )
+	);
+}
+
+/**
  *  Check log file size and rollover, if needed
  *  
  *  @param string	$file	Log file name
