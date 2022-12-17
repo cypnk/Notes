@@ -22,15 +22,7 @@ abstract class Entity implements Stringable extends Controllable {
 	
 	protected static Data $data;
 	
-	protected static array $errors		= [];
-	
 	abstract public function save() : bool {}
-	
-	public function __destruct() {
-		foreach ( $this->errors as $e ) {
-			\messages( 'error', $e[0] . ': ' . $e[1] );
-		}
-	}
 	
 	public static function setData( Data $_data ) {
 		static::$data = $_data;
@@ -41,9 +33,8 @@ abstract class Entity implements Stringable extends Controllable {
 	}
 	
 	protected function error( string $msg ) {
-		static::$errors[] = [ 
-			\get_called_class(), $msg 
-		];
+		$this->errors[] = 
+			\get_called_class() . ' ' . $msg;
 	}
 	
 	public function __set( $name, $value ) {
