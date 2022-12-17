@@ -19,8 +19,8 @@ class Controller {
 	public function __construct( ?array $_params = null ) {
 		if ( empty( $_params ) ) {
 			// Default parameters
-			$this->params['Config']		= new Config( $this );
 			$this->params['Data']		= new Data( $this );
+			$this->params['Config']		= new Config( $this );
 			$this->params['SHandler']	= new SHandler( $this );
 		} else {
 			$this->addParams( $_params );	
