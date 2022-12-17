@@ -20,16 +20,10 @@ abstract class Entity implements Stringable extends Controllable {
 	
 	protected array $_settings		= [];
 	
-	protected static Data $data;
-	
 	abstract public function save() : bool {}
 	
-	public static function setData( Data $_data ) {
-		static::$data = $_data;
-	}
-	
 	protected function getData() {
-		return static::$data ?? null;
+		return $this->controller->getParam( 'Data' ) ?? null;
 	}
 	
 	protected function error( string $msg ) {
