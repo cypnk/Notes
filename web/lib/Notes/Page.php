@@ -8,12 +8,6 @@ class Page extends Content {
 	
 	protected array $blocks		= [];
 	
-	public function __construct( ?int = $id ) {
-		if ( !empty( $id ) ) {
-			$this->setDocument( $id );
-		}
-	}
-	
 	public function setDocument( int $id ) {
 		if ( isset( $this->document_id ) ) {
 			$this->error( 'Attempted document change' );
