@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class Data {
+class Data extends Controllable {
 	
 	const DATA_TIMEOUT	= 10;
 	
@@ -18,29 +18,11 @@ class Data {
 	 */
 	private array $stmcache	= [];
 	
-	/**
-	 *  Error storage
-	 *  @var array
-	 */
-	private array $errors	= [];
-	
-	/**
-	 *  Event controller
-	 *  @var object
-	 */
-	protected readonly Controller $ctrl;
-	
-	public function __construct( Controller $ctrl ) {
-		$this->ctrl = $ctrl;
-	}
-	
 	public function __destruct() {
 		$this->statement( null, null );
 		$this->getDb( '', 'closeAll' );
 		
-		foreach ( $this->errors as $e ) {
-			\messages( 'error', \get_called_class() . ' ' . $e );
-		}
+		parent::__destruct();
 	}
 	
 	public function getController() {
