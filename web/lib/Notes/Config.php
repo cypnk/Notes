@@ -32,6 +32,8 @@ class Config extends Entity {
 	 *  Configuration begins with request and default realm settings
 	 */
 	public function __construct( Controller $ctrl ) {
+		parent::__construct( $ctrl );
+		
 		$this->replacements	= [
 			'{path}'	=> \PATH,
 			'{notes_lib}'	=> \NOTES_LIB,
