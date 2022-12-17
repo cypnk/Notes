@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-abstract class Entity implements Stringable {
+abstract class Entity implements Stringable extends Controllable {
 	
 	private readonly int $_id;
 	
