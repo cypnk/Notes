@@ -61,4 +61,13 @@ abstract class Controllable {
 	public function getName() : string {
 		return $this->name ?? '';
 	}
+	
+	/**
+	 *  Event parameters
+	 *  
+	 *  @return array
+	 */
+	public function getParams() : array {
+		return $this->params;
+	}
 }
