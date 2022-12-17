@@ -28,6 +28,12 @@ abstract class Controllable {
 	protected array $errors	= [];
 	
 	/**
+	 *  Notification storage
+	 *  @var array
+	 */
+	protected array $notices	= [];
+	
+	/**
 	 *  Create new runnable with controller
 	 *  
 	 *  @param \PubCabin\Controller	$ctrl	Event controller
@@ -41,6 +47,10 @@ abstract class Controllable {
 	public function __destruct() {
 		foreach ( $this->errors as $e ) {
 			\messages( 'error', \get_called_class() . ' ' . $e );
+		}
+		
+		foreach ( $this->notices as $m ) {
+			\messages( 'notice', \get_called_class() . ' ' . $m );
 		}
 	}
 	
