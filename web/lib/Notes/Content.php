@@ -16,8 +16,6 @@ abstract class Content extends Entity {
 	
 	protected array $_content	= [];
 	
-	public abstract function __construct( ) {}
-	
 	public function setBody( string $_body ) {
 		$this->_content['body'] = $_body;
 	}
