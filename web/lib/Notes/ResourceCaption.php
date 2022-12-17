@@ -79,6 +79,7 @@ class ResourceCaption extends Content {
 			':lang'		=> $this->lang_id ?? null
 		];
 		
+		$db	= $this->getData();
 		if ( $rc ) {
 			$params[':id']	= $this->id;
 			
