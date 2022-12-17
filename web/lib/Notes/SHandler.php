@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class SHandler {
+class SHandler extends Controllable {
 	
 	/**
 	 *  Session settings
@@ -46,13 +46,12 @@ class SHandler {
 	 */
 	const COOKIE_PREFIXED	= 1;
 	
-	protected readonly Controller $controller;
-	
 	public function __construct( Controller $ctrl ) {
-		$this->controller = $ctrl;
+		parent::__construct( $ctrl );
 		
 		if ( \headers_sent() ) {
-			\messages( 'error', 'Session handler created after headers sent' );
+			$this->errors[] = 
+			'Session handler created after headers sent';
 			return;
 		}
 		
@@ -104,7 +103,7 @@ class SHandler {
 		}
 		
 		// Something went wrong with the database
-		\messages( 'error', 'Error writing to session ID to database' );
+		$this->errors[] = 'Error writing to session ID to database';
 		die();
 	}
 	
