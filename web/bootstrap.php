@@ -263,11 +263,20 @@ function logToMail( string $msg, int $i, int $c ) {
 		
 		if ( \is_readable( $file ) ) {
 			require $file;
-		} else {
-			messages( 'error', 'Unable to read file: ' . $file );
+			break;
 		}
-		break;
+		
+		messages( 'error', 'Unable to read file: ' . $file );
+		die();
 	}
 } );
+
+// Start controller
+$controller	= 
+new \Notes\Controller( [
+	'\\Notes\\Data',
+	'\\Notes\\Config',
+	'\\Notes\\SHandler'
+] );
 
 
