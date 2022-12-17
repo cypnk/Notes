@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class Event implements \SplSubject extends Controllable  {
+class Event implements \SplSubject extends NamedControllable  {
 	
 	/**
 	 *  Registered handlers
@@ -16,21 +16,6 @@ class Event implements \SplSubject extends Controllable  {
 	 *  @var array
 	 */
 	protected array $output	= [];
-	
-	
-	/**
-	 *  Create new event with controller and unique name
-	 *  
-	 *  @param \PubCabin\Controller	$ctrl	Event controller
-	 *  @param string		$name	Current event's name
-	 */
-	public function __construct( 
-		\PubCabin\Controller	$ctrl, 
-		string			$name 
-	) {
-		$this->name		= $name;
-		parent::__construct( $ctrl );
-	}
 	
 	/**
 	 *  Add a handler to this event
