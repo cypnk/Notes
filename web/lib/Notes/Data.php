@@ -25,10 +25,6 @@ class Data extends Controllable {
 		parent::__destruct();
 	}
 	
-	public function getController() {
-		return $this->ctrl;
-	}
-	
 	/**
 	 *  Create database tables based on DSN
 	 *  
@@ -243,7 +239,7 @@ class Data extends Controllable {
 						$stm->fetchAll( 
 							\PDO::FETCH_CLASS, 
 							$n[1], 
-							[ $this->ctrl, $n[0] ] 
+							[ $this->controller, $n[0] ] 
 						)
 					}
 					
@@ -252,7 +248,7 @@ class Data extends Controllable {
 						$stm->fetchAll( 
 							\PDO::FETCH_CLASS, 
 							$rt[1], 
-							[ $this->ctrl ] 
+							[ $this->controller ] 
 						) : [];
 					}
 						
