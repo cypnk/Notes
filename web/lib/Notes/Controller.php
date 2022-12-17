@@ -4,41 +4,100 @@ namespace Notes;
 
 class Controller {
 	
+	/**
+	 *  Loaded events
+	 *  @var array
+	 */
 	protected array	$events		= [];
 	
-	protected readonly Config $config;
+	/**
+	 *  Shared parameters
+	 *  @var array
+	 */
+	protected array $params;
 	
-	protected readonly Data $data;
-	
-	protected readonly SHandler $session;
-	
-	public function __construct() {
-		$this->config	= new Config( $this );
-		$this->data	= new Data( $this );
-		$this->session	= new SHandler( $this );
+	public function __construct( ?array $_params = null ) {
+		if ( empty( $_params ) ) {
+			// Default parameters
+			$this->params['Config']		= new Config( $this );
+			$this->params['Data']		= new Data( $this );
+			$this->params['Session']	= new SHandler( $this );
+		} else {
+			$this->addParams( $_params );	
+		}
 		
-		Entity::setData( $this->data );
+		if ( isset( $this->params['Data'] ) ) {
+			Entity::setData( $this->params['Data'] );
+		}
+	}
+	
+	/**
+	 *  Added shared parameters by class name
+	 *  
+	 *  @param array	$_params	Loading parameters
+	 */
+	public function addParams( array $_params ) {
+		foreach ( $_params as $p ) {
+			// Only handle strings
+			if ( !\is_string( $p ) ) {
+				continue;
+			}
+			
+			$k = \strrchr( \rtrim( $p, '\\' ), '\\' );
+			// Not a class
+			if ( false === $k ) { 
+				continue; 
+			}
+			
+			$k = \substr( $k, 1 );
+			if ( \array_key_exists( $k, $this->params ) ) {
+				continue;
+			}
+			
+			$this->params[$k]	= match( true ) {
+				// Type controllable
+				\is_subclass_of( 
+					'\\Notes\\Controllable', $p 
+				)			=> new $p( $this ),
+				
+				// Other type of class
+				\class_exists( $p )	=> new $p(),
+				
+				// Something else
+				default			=> $p
+			}
+		}
+	}
+	
+	/**
+	 *  Current init parameter return helper
+	 *  
+	 *  @param string	$name		Property label
+	 *  @return mixed
+	 */
+	public function getParam( string $name ) {
+		return $this->params[$name] ?? null;
 	}
 	
 	/**
 	 *  Current configuration return helper
 	 */
 	public function getConfig() {
-		return $this->config;
+		return $this->params['Config'] ?? null;
 	}
 	
 	/**
 	 *  Current data handler return helper
 	 */
 	public function getData() {
-		return $this->data;
+		return $this->params['Data'] ?? null;
 	}
 	
 	/**
 	 *  Current session handler return helper
 	 */
 	public function getSession() {
-		return $this->session;
+		return $this->params['Session'] ?? null;
 	}
 	
 	/**
