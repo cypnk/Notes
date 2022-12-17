@@ -28,38 +28,10 @@ class Message {
 	 */
 	protected readonly object $config;
 	
-	/**
-	 *  Main event controller
-	 *  @var \PubCabin\Controller
-	 */
-	protected readonly object $ctrl;
-	
-	/**
-	 *  Error storage
-	 *  @var array
-	 */
-	protected array $errors		= [];
-	
-	/**
-	 *  Notification storage
-	 *  @var array
-	 */
-	protected array $notices	= [];
-	
 	public function __construct( Controller $ctrl ) {
-		$this->ctrl	= $ctrl;
+		parent::__construct( $ctrl );
 		$this->config	= $ctrl->getConfig();
 	}
-	
-	public function __destruct() {
-		foreach ( $this->errors as $e ) {
-			\messages( 'error', \get_called_class() . ' ' . $e );
-		}
-		
-		foreach ( $this->notices as $m ) {
-			\messages( 'notice', \get_called_class() . ' ' . $m );
-		}
-	}	
 	
 	/**
 	 *  Get or guess current server protocol
