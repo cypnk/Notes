@@ -12,12 +12,6 @@ class PageBlock extends Content {
 	
 	public array $marks = [];
 	
-	public function __construct( ?int = $id ) {
-		if ( !empty( $id ) ) {
-			$this->setPage( $id );
-		}
-	}
-	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
 			case 'type_id':
