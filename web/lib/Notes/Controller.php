@@ -21,13 +21,9 @@ class Controller {
 			// Default parameters
 			$this->params['Config']		= new Config( $this );
 			$this->params['Data']		= new Data( $this );
-			$this->params['Session']	= new SHandler( $this );
+			$this->params['SHandler']	= new SHandler( $this );
 		} else {
 			$this->addParams( $_params );	
-		}
-		
-		if ( isset( $this->params['Data'] ) ) {
-			Entity::setData( $this->params['Data'] );
 		}
 	}
 	
@@ -97,7 +93,7 @@ class Controller {
 	 *  Current session handler return helper
 	 */
 	public function getSession() {
-		return $this->params['Session'] ?? null;
+		return $this->params['SHandler'] ?? null;
 	}
 	
 	/**
