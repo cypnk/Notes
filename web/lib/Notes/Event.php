@@ -98,17 +98,8 @@ class Event implements \SplSubject extends NamedControllable  {
 			$this->output = 
 			\array_merge( 
 				$this->output, 
-				$h[1]->data( $this->name ) ?? []
+				$h[1]->getOutput( $this->name )
 			);
 		}
-	}
-	
-	/**
-	 *  Event parameters
-	 *  
-	 *  @return array
-	 */
-	public function data() : array {
-		return $this->params;
 	}
 }
