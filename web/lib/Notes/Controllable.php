@@ -19,13 +19,13 @@ abstract class Controllable {
 	/**
 	 *  Event parameters on execution
 	 */
-	protected array $params	= [];
+	protected array $params		= [];
 	
 	/**
 	 *  Error storage
 	 *  @var array
 	 */
-	protected array $errors	= [];
+	protected array $errors		= [];
 	
 	/**
 	 *  Notification storage
@@ -56,10 +56,20 @@ abstract class Controllable {
 	
 	/**
 	 *  Current controllable's name (read-only)
+	 *  
 	 *  @return string
 	 */
 	public function getName() : string {
 		return $this->name ?? '';
+	}
+	
+	/** 
+	 *  Currently set event controller
+	 *  
+	 *  @return \Notes\Controller
+	 */
+	public function getController() {
+		return $this->controller;
 	}
 	
 	/**
@@ -69,5 +79,23 @@ abstract class Controllable {
 	 */
 	public function getParams() : array {
 		return $this->params;
+	}
+	
+	/**
+	 *  Get running errors
+	 *  
+	 *  @return array
+	 */
+	public function getErrors() : array {
+		return $this->errors;
+	}
+	
+	/**
+	 *  Get running notices
+	 *  
+	 *  @return array
+	 */
+	public function getNotices() : array {
+		return $this->notices;
 	}
 }
