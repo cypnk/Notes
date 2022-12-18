@@ -120,38 +120,5 @@ abstract class Entity implements Stringable extends Controllable {
 	public function setting( string $name, $default ) {
 		return $this->_settings[$name] ?? $default;
 	}
-	
-	/**
-	 *  Helper to detect and parse a 'settings' data type
-	 *  
-	 *  @param string	$name		Setting name
-	 *  @return array
-	 */
-	public static function formatSettings( $value ) : array {
-		// Nothing to format?
-		if ( \is_array( $value ) ) {
-			return $value;
-		}
-		
-		// Can be decoded?
-		if ( 
-			!\is_string( $value )	|| 
-			\is_numeric( $value )
-		) {
-			return [];
-		}
-		$t	= \trim( $value );
-		if ( empty( $t ) ) {
-			return [];
-		}
-		if ( 
-			\str_starts_with( $t, '{' ) && 
-			\str_ends_with( $t, '}' )
-		) {
-			return \Notes\Util::decode( ( string ) $t );
-		}
-		
-		return [];
-	}
 }
 
