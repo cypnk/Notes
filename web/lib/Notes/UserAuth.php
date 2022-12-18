@@ -79,11 +79,11 @@ class User extends Entity {
 	 *  @param int		$id		User's id
 	 *  @return mixed
 	 */
-	public static function findUserById( int $id ) {
+	public function findUserById( int $id ) {
 		$sql		= 
 		"SELECT * FROM login_view WHERE id = :id LIMIT 1;";
 		$res	= 
-		static::$data->getResults( 
+		$this->getData()->getResults( 
 			$sql, [ ':id' => $id ], \DATA, 
 			'class|\\Notes\\User'
 		);
@@ -99,12 +99,12 @@ class User extends Entity {
 	 *  @param string	$username	User's login name as entered
 	 *  @return mixed
 	 */
-	public static function findUserByUsername( string $username ) {
+	public function findUserByUsername( string $username ) {
 		$sql	= 
 		"SELECT * FROM login_pass WHERE username = :user LIMIT 1;";
 		
 		$data	= 
-		static::$data->getResults( 
+		$this->getData()->getResults( 
 			$sql, [ ':user' => $username ], \DATA,
 			'class|\\Notes\\User'
 		);
@@ -119,17 +119,14 @@ class User extends Entity {
 	 *  Update the last activity IP of the given user
 	 *  Most of these actions use triggers in the database
 	 *  
-	 *  @param int			$id	User unique identifier
 	 *  @param string		$mode	Activity type
 	 *  @return bool
 	 */
-	public static function updateUserActivity(
-		int	$id, 
-		string	$mode	= ''
-	) : bool {
+	public function updateUserActivity( string $mode = '' ) : bool {
 		$now	= \Notes\Util::utc();
 		
-		$ctrl	= static::$data->getController();
+		$ctrl	= $this->getController();
+		$data	= $this->getData();
 		$config = $ctrl->getConfig();
 		$req	= $config->getRequest();
 		
@@ -149,7 +146,7 @@ class User extends Entity {
 					':ip'	=> $req->getIP(), 
 					':ua'	=> $req->getUA(), 
 					':sess'	=> \session_id(), 
-					':id'	=> $id
+					':id'	=> $this->user_id
 				];
 				break;
 				
@@ -167,7 +164,7 @@ class User extends Entity {
 					':ua'		=> $req->getUA(),
 					':login'	=> $now,
 					':sess'		=> \session_id(),
-					':id'		=> $id
+					':id'		=> $this->user_id
 				];
 				break;
 			
@@ -188,7 +185,7 @@ class User extends Entity {
 					':active'	=> $now,
 					':change'	=> $now,
 					':sess'		=> \session_id(),
-					':id'		=> $id
+					':id'		=> $this->user_id
 				];
 				break;
 			
@@ -206,7 +203,7 @@ class User extends Entity {
 					':ua'		=> $req->getUA(),
 					':sess'		=> \session_id(),
 					':fdate'	=> $now,
-					':id'		=> $id
+					':id'		=> $this->user_id
 				];
 				break;
 			
@@ -214,28 +211,28 @@ class User extends Entity {
 				$sql	= 
 				"UPDATE auth_activity SET 
 					is_locked = 1 WHERE id = :id;";
-				$params	= [ ':id' => $id ];
+				$params	= [ ':id' => $this->user_id ];
 				break;
 				
 			case 'unlock':
 				$sql	= 
 				"UPDATE user_auth SET 
 					is_locked = 0 WHERE id = :id;";
-				$params	= [ ':id' => $id ];
+				$params	= [ ':id' => $this->user_id ];
 				break;
 			
 			case 'approve':
 				$sql	= 
 				"UPDATE user_auth SET 
 					is_approved = 1 WHERE id = :id;";
-				$params	= [ ':id' => $id ];
+				$params	= [ ':id' => $this->user_id ];
 				break;
 				
 			case 'unapprove':
 				$sql	= 
 				"UPDATE user_auth SET 
 					is_approved = 0 WHERE id = :id;";
-				$params	= [ ':id' => $id ];
+				$params	= [ ':id' => $this->user_id ];
 				break;
 				
 			default:
@@ -250,14 +247,14 @@ class User extends Entity {
 				);
 				
 				return 
-				static::$data->setInsert( 
+				$data->setInsert( 
 					"REPLACE INTO user_auth ( 
 						user_id, last_ip, last_ua, 
 						last_session_id, 
 						is_approved
 					) VALUES( :id, :ip, :ua, :sess, :ap );", 
 					[
-						':id'	=> $id, 
+						':id'	=> $this->user_id, 
 						':ip'	=> $req->getIP(), 
 						':ua'	=> $req->getUA(),
 						':sess'	=> \session_id(),
@@ -268,24 +265,23 @@ class User extends Entity {
 		}
 		
 		return 
-		static::$data->setUpdate( $sql, $params, \DATA );
+		$data->setUpdate( $sql, $params, \DATA );
 	}
 	
 	/**
 	 *  Reset cookie lookup token and return new lookup
-	 * 
-	 *  @param int		$id		Logged in user's ID
+	 *  
 	 *  @return string
 	 */
-	public static function resetLookup( int $id ) : string {
-		$db	= static::$data->getDb( \DATA );
+	public function resetLookup() : string {
+		$db	= $this->getData()->getDb( \DATA );
 		$stm	= 
 		$db->prepare( 
 			"UPDATE logout_view SET lookup = '' 
 				WHERE user_id = :id;" 
 		);
 		
-		if ( $stm->execute( [ ':id' => $id ] ) ) {
+		if ( $stm->execute( [ ':id' => $this->user_id ] ) ) {
 			$stm->closeCursor();
 			
 			// SQLite should have generated a new random lookup
@@ -295,7 +291,7 @@ class User extends Entity {
 					user_id = :id;"
 			);
 			
-			if ( $rst->execute( [ ':id' => $id ] ) ) {
+			if ( $rst->execute( [ ':id' => $this->user_id ] ) ) {
 				$col = $rst->fetchColumn();
 				$rst->closeCursor();
 				return $col;
@@ -303,29 +299,6 @@ class User extends Entity {
 		}
 		$stm->closeCursor();
 		return '';
-	}
-	
-	/**
-	 *  Set a new password for the user
-	 *  
-	 *  @param int		$id		User ID to change password
-	 *  @param string	$param		Raw password as entered
-	 *  @return bool
-	 */
-	public static function savePassword( 
-		int	$id,
-		string	$password 
-	) : bool {
-		return
-		static::$data->setUpdate( 
-			"UPDATE users SET password = :password 
-			WHERE id = :id", 
-			[ 
-				':password'	=> 
-					static::hashPassword( $password ), 
-				':id'		=> $id 
-			], \DATA 
-		);
 	}
 	
 	public function save() : bool {
