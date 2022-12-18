@@ -5,7 +5,13 @@ namespace Notes;
 abstract class Controllable {
 	
 	/**
-	 *  Current event name
+	 *  Read-only unique identifier
+	 *  @var int
+	 */
+	private readonly int $_id;
+	
+	/**
+	 *  Read-only current controllable name
 	 *  @var string
 	 */
 	protected readonly string $name;
@@ -17,9 +23,10 @@ abstract class Controllable {
 	protected readonly object $controller;
 	
 	/**
-	 *  Event parameters on execution
+	 *  Controllable parameters on execution
+	 *  @var array
 	 */
-	protected array $params		= [];
+	protected array $_params	= [];
 	
 	/**
 	 *  Error storage
@@ -34,7 +41,7 @@ abstract class Controllable {
 	protected array $notices	= [];
 	
 	/**
-	 *  Create new runnable with controller
+	 *  Create new controllable with controller
 	 *  
 	 *  @param \PubCabin\Controller	$ctrl	Event controller
 	 */
@@ -52,6 +59,39 @@ abstract class Controllable {
 		foreach ( $this->notices as $m ) {
 			\messages( 'notice', \get_called_class() . ' ' . $m );
 		}
+	}
+	
+	public function __set( $name, $value ) {
+		switch ( $name ) {
+			case 'id':
+				$this->_id = ( int ) $value;
+				break;
+			
+			case 'params':
+				$this->_params = 
+				static::formatSettings( $value );
+		}
+	}
+	
+	public function __get( $name ) {
+		switch ( $name ) {
+			case 'id':
+				return $this->_id ?? 0;
+			
+			case 'params':
+				return $this->_params;
+		}
+		return null;
+	}
+	
+	/**
+	 *  Append error to running collection
+	 *  
+	 *  @param string	$msg	Detailed error message
+	 */
+	protected function error( string $msg ) {
+		$this->errors[] = 
+			\get_called_class() . ' ' . $msg;
 	}
 	
 	/**
@@ -98,4 +138,47 @@ abstract class Controllable {
 	public function getNotices() : array {
 		return $this->notices;
 	}
+	
+	/**
+	 *  Get current database handler
+	 *  
+	 *  @return mixed
+	 */
+	protected function getData() {
+		return $this->controller->getParam( 'Data' ) ?? null;
+	}
+	
+	/**
+	 *  Helper to detect and parse a 'settings' data type
+	 *  
+	 *  @param string	$name		Setting name
+	 *  @return array
+	 */
+	public static function formatSettings( $value ) : array {
+		// Nothing to format?
+		if ( \is_array( $value ) ) {
+			return $value;
+		}
+		
+		// Can be decoded?
+		if ( 
+			!\is_string( $value )	|| 
+			\is_numeric( $value )
+		) {
+			return [];
+		}
+		$t	= \trim( $value );
+		if ( empty( $t ) ) {
+			return [];
+		}
+		if ( 
+			\str_starts_with( $t, '{' ) && 
+			\str_ends_with( $t, '}' )
+		) {
+			return \Notes\Util::decode( ( string ) $t );
+		}
+		
+		return [];
+	}
+	
 }
