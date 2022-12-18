@@ -22,11 +22,6 @@ abstract class Entity implements Stringable extends Controllable {
 	
 	abstract public function save() : bool {}
 	
-	protected function error( string $msg ) {
-		$this->errors[] = 
-			\get_called_class() . ' ' . $msg;
-	}
-	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
 			case 'id':
