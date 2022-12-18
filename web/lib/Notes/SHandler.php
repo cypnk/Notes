@@ -70,6 +70,7 @@ class SHandler extends Controllable {
 		if ( \session_status() === \PHP_SESSION_ACTIVE ) {
 			\session_write_close();
 		}
+		parent::__destruct();
 	}
 	
 	/**
