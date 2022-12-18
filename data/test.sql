@@ -44,6 +44,36 @@ INSERT INTO events ( name, params )
 		}'
 	) );-- --
 
+
+INSERT INTO handlers ( params ) 
+	VALUES 
+	
+	-- Application start event
+	( json( '{
+		"event"		: "app_start",
+		"payload"	: "Environment",
+		"priority"	: 9999
+	}') ), 
+	( json( '{
+		"event"		: "app_start",
+		"payload"	: "SDLWindowAdjust",
+		"priority"	: 9990
+	}') ), 
+	
+	-- Web request
+	( json( '{
+		"event"		: "web_start",
+		"payload"	: "\\\\NotesModules\\\\Handlers\\\\WebInterface",
+		"priority"	: 9999
+	}') ),
+	( json( '{
+		"event"		: "web_start",
+		"payload"	: "\\\\NotesModules\\\\Handlers\\\\Membership",
+		"priority"	: 9990
+	}') );-- --
+
+
+
 INSERT INTO users ( username, user_clean, password ) 
 	VALUES ( 'AzureDiamond', 'AzureDiamond', 'hunter2' );-- --
 
