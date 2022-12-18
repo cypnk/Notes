@@ -22,11 +22,15 @@ class Handler implements \SplObserver extends Controllable {
 	 */
 	protected array $output	= [];
 	
-	
-	public function __construct( Controller $ctrl, ?int $priority = null ) {
-		if ( null != $priority ) {
-			$this->priority = $priority;
-		}
+	/**
+	 *  Create handler with given controller and optional start priority
+	 *  
+	 *  @param \Notes\Controller	$ctrl	Main event controller
+	 *  @param int			$_pri	Optional execution priority
+	 */
+	public function __construct( Controller	$ctrl, ?int $_pri = null ) {
+		$this->priority( $_pri ?? 0 );
+		
 		parent::__construct( $ctrl );
 	}
 	
@@ -34,7 +38,7 @@ class Handler implements \SplObserver extends Controllable {
 		return $this->priority ?? 0;
 	}
 	
-	public function setPriority( int $p ) : bool {
+	public function setPriority( int $p = 0 ) : bool {
 		if ( $this->fixed_priority ) {
 			return false;
 		}
