@@ -34,6 +34,7 @@ class Config extends Entity {
 	public function __construct( Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
+		$this->request	= new \Notes\Request( $ctrl );
 		$this->replacements	= [
 			'{path}'	=> \PATH,
 			'{notes_lib}'	=> \NOTES_LIB,
@@ -48,11 +49,14 @@ class Config extends Entity {
 			'{session_db}'	=> \SESSIONS,
 			'{notice_log}'	=> \NOTICES,
 			'{error_log}'	=> \ERRORS,
+			'{max_log}'	=> \MAX_LOG_SIZE,
+			'{mail_from}'	=> \MAIL_FROM,
+			'{mail_receive}'	=> \MAIL_RECEIVE,
+			'{host}'	=> $this->request->getHost(),
+			'{method}'	=> $this->request->getMethod()
 		];
 		
-		$this->request	= new \Notes\Request( $ctrl );
 		$this->loadRealm( $this->request );
-		
 		$realm		= $this->setting( 'realm', '' );
 		
 		// No realm specified, default to web
