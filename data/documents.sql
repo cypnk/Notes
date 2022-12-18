@@ -63,6 +63,33 @@ CREATE VIEW event_view AS
 SELECT name, realm, params, sort_order FROM events;-- --
 
 
+-- Permanent handlers
+CREATE TABLE handlers (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	params TEXT NOT NULL DEFAULT '{}' COLLATE NOCASE,
+	payload TEXT GENERATED ALWAYS AS (
+		json_extract( params, '$.payload' )
+	) STORED NOT NULL, 
+	event_name INTEGER GENERATED ALWAYS AS ( 
+		CAST( COALESCE( json_extract( 
+			params, '$.event' 
+		), NULL ) AS INTEGER )
+	) STORED NOT NULL, 
+	priority INTEGER GENERATED ALWAYS AS ( 
+		CAST( COALESCE( json_extract( 
+			params, '$.priority' 
+		), 0 ) AS INTEGER )
+	) STORED NOT NULL, 
+	
+	CONSTRAINT fk_handler_event 
+		FOREIGN KEY ( event_id ) 
+		REFERENCES events ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_handler_name ON handlers ( event_name );-- --
+CREATE INDEX idx_handler_priority ON handlers ( priority );-- --
+
+
 -- Localization
 CREATE TABLE languages (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
