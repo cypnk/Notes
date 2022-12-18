@@ -22,10 +22,6 @@ abstract class Entity implements Stringable extends Controllable {
 	
 	abstract public function save() : bool {}
 	
-	protected function getData() {
-		return $this->controller->getParam( 'Data' ) ?? null;
-	}
-	
 	protected function error( string $msg ) {
 		$this->errors[] = 
 			\get_called_class() . ' ' . $msg;
