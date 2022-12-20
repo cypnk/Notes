@@ -50,5 +50,9 @@ BEGIN
 			( strftime( '%s','now' ) + NEW.ttl ), 
 			'unixepoch' 
 		) WHERE rowid = NEW.rowid;
-END;
+END;-- --
+
+CREATE VIEW cache_view AS SELECT 
+	id, cache_id, ttl, content, expires, created, updated 
+	FROM caches;
 
