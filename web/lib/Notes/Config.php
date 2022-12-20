@@ -33,6 +33,7 @@ class Config extends Entity {
 	 */
 	public function __construct( Controller $ctrl ) {
 		parent::__construct( $ctrl );
+		$this->name	= 'Config';
 		
 		$this->request	= new \Notes\Request( $ctrl );
 		$this->replacements	= [
