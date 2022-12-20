@@ -22,11 +22,21 @@ CREATE TABLE configs (
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
 	realm TEXT GENERATED ALWAYS AS (
 		COALESCE( json_extract( settings, '$.realm' ), "" )
-	) STORED NOT NULL
+	) STORED NOT NULL,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );-- --
 -- Unique configuration per specific realm
 CREATE UNIQUE INDEX idx_config_realm ON configs ( realm ) 
 	WHERE realm IS NOT "";-- --
+CREATE INDEX idx_config_created ON configs ( created );-- --
+CREATE INDEX idx_config_updated ON configs ( updated );-- --
+
+CREATE TRIGGER config_update AFTER UPDATE ON users FOR EACH ROW
+BEGIN
+	UPDATE configs SET updated = CURRENT_TIMESTAMP 
+		WHERE id = OLD.id;
+END;-- --
 
 
 -- Permanent events
