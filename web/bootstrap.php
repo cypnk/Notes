@@ -279,7 +279,8 @@ $controller	=
 new \Notes\Controller( [
 	'\\Notes\\Data',
 	'\\Notes\\Config',
-	'\\Notes\\SHandler'
+	'\\Notes\\SHandler',
+	'\\Notes\\LogHandler'
 ] );
 
 
