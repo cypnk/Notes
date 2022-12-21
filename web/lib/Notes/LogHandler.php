@@ -48,7 +48,7 @@ class LogHandler extends Controllable {
 	 *  @return bool
 	 */
 	public function creatLog( string $label, string $msg ) : bool {
-		$log		= new \Notes\Log();
+		$log		= new \Notes\Log( $this->controller );
 		$log->label	= $label;
 		$log->body	= 
 		\Notes\Util::entities( 
