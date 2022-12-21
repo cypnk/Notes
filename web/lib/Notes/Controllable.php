@@ -18,7 +18,7 @@ abstract class Controllable {
 	
 	/**
 	 *  Main event controller
-	 *  @var \PubCabin\Controller
+	 *  @var \Notes\Controller
 	 */
 	protected readonly object $controller;
 	
@@ -43,11 +43,9 @@ abstract class Controllable {
 	/**
 	 *  Create new controllable with controller
 	 *  
-	 *  @param \PubCabin\Controller	$ctrl	Event controller
+	 *  @param \Notes\Controller	$ctrl	Event controller
 	 */
-	public function __construct( 
-		\PubCabin\Controller	$ctrl 
-	) {
+	public function __construct( \Notes\Controller $ctrl ) {
 		$this->controller	= $ctrl;
 	}
 	
