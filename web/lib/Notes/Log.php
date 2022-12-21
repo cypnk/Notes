@@ -46,14 +46,25 @@ class Log extends Content {
 		$this->_content['body']		??= '';
 		$this->_content['session_id']	??= \session_id();
 		
+		// Request parameters
+		$req	= $this->controller->getConfig()->getRequest();
+		$this->_content['ip']		??= $req->getIP();
+		$this->_content['host']		??= $req->getHost();
+		$this->_content['secure']	??= $req->isSecure();
+		$this->_content['method']	??= $req->getMethod();
+		$this->_content['uri']		??= $req->getURI();
+		$this->_content['query_string']	??= $req->getQS();
+		$this->_content['user_agent']	??= $req->getUA();
+		$this->_content['language']	??= $req->getLang();
+		$this->_content['file_range']	??= $req->getFileRange();
+		
 		$db = $this->getData();
 		$id = 
 		$db->setInsert(
 			"INESRT INTO event_logs ( content, status ) 
 				VALUES ( :content, :status );",
 			[
-				':content'	=> 
-				static::formatSettings( $this->_content )
+				':content'	=> \Notes\Util::encode( $this->_content ),
 				':status'	=> $this->status ?? 0
 			],
 			\LOGS
