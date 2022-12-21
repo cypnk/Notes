@@ -24,7 +24,7 @@ class Message {
 	
 	/**
 	 *  Core settings and configuration 
-	 *  @var \PubCabin\Config
+	 *  @var \Notes\Config
 	 */
 	protected readonly object $config;
 	
