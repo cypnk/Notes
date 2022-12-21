@@ -61,7 +61,7 @@ class Cache extends Entity {
 				VALUES ( :id, :ttl, :content );",
 			[
 				':id'		=> $this->cache_id,
-				':ttl'		=> $this->ttl
+				':ttl'		=> $this->ttl,
 				':content'	=> $this->content
 			],
 			\CACHE
