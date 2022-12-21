@@ -42,6 +42,9 @@ define( 'DATA',		\WRITABLE . 'documents.db' );
 // Visitor session database
 define( 'SESSIONS',	\WRITABLE . 'sessions.db' );
 
+// Event log database
+define( 'LOGS',		\WRITABLE . 'logs.db' );
+
 // Cached content views database
 define( 'CACHE',	\WRITABLE . 'cache.db' );
 
