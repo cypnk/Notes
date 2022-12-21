@@ -1262,16 +1262,6 @@ CREATE INDEX idx_history_user ON history ( user_id );-- --
 CREATE INDEX idx_history_label ON history ( label );-- --
 CREATE INDEX idx_history_created ON history ( created );-- --
 
--- Errors and notices
-CREATE TABLE messages(
-	content TEXT NOT NULL DEFAULT '{ "type" : "notice" }' COLLATE NOCASE,
-	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	mtype TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.type' ), "notice" )
-	) STORED NOT NULL
-);-- --
-CREATE INDEX idx_message_type ON messages ( mtype );-- --
-CREATE INDEX idx_message_created ON messages ( created );-- --
 
 -- Function execution
 CREATE TABLE operations (
