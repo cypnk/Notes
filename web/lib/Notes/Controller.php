@@ -137,7 +137,7 @@ class Controller {
 	}
 	
 	/**
-	 *  
+	 *  Register new event
 	 *  
 	 *  @param string	$name	Description for $name
 	 */
@@ -150,10 +150,10 @@ class Controller {
 	}
 	
 	/**
+	 *  Run handlers in given event
 	 *  
-	 *  
-	 *  @param string	$name		Description for $name
-	 *  @param array	$params		Description for $params
+	 *  @param string	$name		Unique event name
+	 *  @param array	$params		Runtime parameters
 	 */
 	public function run( string $name, ?array $params = null ) {
 		if ( \array_key_exists( $name, $this->events ) ) {
