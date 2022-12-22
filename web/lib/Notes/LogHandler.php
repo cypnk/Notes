@@ -61,24 +61,15 @@ class LogHandler extends Handler {
 			\Notes\Util::unifySpaces( $msg ) 
 		) );
 		
-		if ( $log->save() ) { 
-			$this->controller->run( 
-				'log_save_success', [ 'log' => $log ] 
-			);
-			
-			return true;
-		}
-		
-		$this->error( 
-			'Failed event-level log save ' . 
-			'Label: ' . $label . ' Messgae: ' . $msg 
-		);
-		$this->controller->run( 
-			'log_save_failed', [ 'log' => $log ] 
-		);
-		return false;
+		return $log->save();
 	}
 	
+	/**
+	 *  Handle application-level error/notice logging
+	 *  
+	 *  @param int		$eno	Error logging level
+	 *  @param string	$emsg	Log message
+	 */
 	public function errorLog( $eno, $emsg ) {
 		$label = 
 		match( $eno ) {
@@ -104,15 +95,40 @@ class LogHandler extends Handler {
 		return false;
 	}
 	
+	/**
+	 *  Handle event-level loging
+	 *  
+	 *  @param array	$param	Passed event parameters
+	 */
+	protected function saveLog( array $params ) {
+		$params['label']	??= 'unkown';
+		$params['message']	??= '';
+		
+		$create = 
+		$this->createLog( $params['label'], $params['message'] );
+		
+		if ( $create ) {
+			$this->controller->run( 
+				'log_save_success', $params 
+			);
+			return;
+		}
+		
+		$this->error( 
+			'Failed event-level log save ' . 
+			'Label: ' . $params['label'] . 
+			' Messgae: ' . $params['message']
+		);
+		
+		$this->controller->run( 'log_save_failed', $params );
+	}
+	
 	public function notify( \SplSubject $event, ?array $params = null ) {
 		$params	??= $event->getParams();
 		
 		switch ( $event->getName() ) {
 			case 'save_log':
-				$this->createLog( 
-					$params['label']	?? 'unkown', 
-					$params['message']	?? ''
-				);
+				$this->saveLog( $params );
 				break;
 		}
 	}
