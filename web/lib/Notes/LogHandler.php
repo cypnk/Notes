@@ -2,10 +2,10 @@
 
 namespace Notes;
 
-class LogHandler extends Controllable {
+class LogHandler extends Handler {
 	
 	public function __construct( \Notes\Controller $ctrl ) {
-		parent::__construct( $ctrl );
+		parent::__construct( $ctrl, -1 );
 		
 		// Make sure session is active
 		$this->controller->getSession()->sessionCheck();
@@ -15,6 +15,12 @@ class LogHandler extends Controllable {
 			[ $this, 'errorLog' ], 
 			\E_USER_ERROR | \E_USER_WARNING | 
 				\E_USER_NOTICE | \E_USER_DEPRECATED
+		);
+		
+		// Event-level logging
+		$this->controller->listen( 'save_log', $this );
+		$this->controller->run( 
+			'log_handler_loaded', [ 'handler' => $this ] 
 		);
 	}
 	
@@ -55,7 +61,22 @@ class LogHandler extends Controllable {
 			\Notes\Util::unifySpaces( $msg ) 
 		) );
 		
-		return $log->save();
+		if ( $log->save() ) { 
+			$this->controller->run( 
+				'log_save_success', [ 'log' => $log ] 
+			);
+			
+			return true;
+		}
+		
+		$this->error( 
+			'Failed event-level log save ' . 
+			'Label: ' . $label . ' Messgae: ' . $msg 
+		);
+		$this->controller->run( 
+			'log_save_failed', [ 'log' => $log ] 
+		);
+		return false;
 	}
 	
 	public function errorLog( $eno, $emsg ) {
@@ -68,7 +89,7 @@ class LogHandler extends Controllable {
 			default			=> 'unkown'
 		};
 		
-		if ( $this->creatLog( $label, $emsg ) ) {
+		if ( $this->createLog( $label, $emsg ) ) {
 			return true;
 		}
 		$emsg	= 
@@ -81,6 +102,19 @@ class LogHandler extends Controllable {
 			'Label: ' . $label . ' Messgae: ' . $msg 
 		);
 		return false;
+	}
+	
+	public function notify( \SplSubject $event, ?array $params = null ) {
+		$params	??= $event->getParams();
+		
+		switch ( $event->getName() ) {
+			case 'save_log':
+				$this->createLog( 
+					$params['label']	?? 'unkown', 
+					$params['message']	?? ''
+				);
+				break;
+		}
 	}
 }
 
