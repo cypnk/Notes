@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class CacheHandler extends Controllable {
+class CacheHandler extends Handler {
 	
 	/**
 	 *  Default cache timeout
@@ -14,6 +14,14 @@ class CacheHandler extends Controllable {
 	 *  @var string
 	 */
 	private readonly string $cache_updated;
+	
+	public function __construct( Controller	$ctrl, ?int $_pri = null ) {
+		parent::__construct( $ctrl, $_pri );
+		$this->controller->listen( 'find_cache', $this );
+		$this->controller->listen( 'save_cache', $this );
+		$this->controller->listen( 'load_cache', $this );
+		$this->controller->listen( 'delete_cache', $this );
+	}
 	
 	/**
 	 *  Get specific cache by identifier
@@ -108,6 +116,94 @@ class CacheHandler extends Controllable {
 		\hash( 'sha256', $this->cache_updated . trim( $key ) );
 	}
 	
+	public function notify( \SplSubject $event, ?array $params = null ) {
+		
+		switch ( $event->getName() ) {
+			case 'find_cache':
+				$this->checkCache( $event );
+				break;
+				
+			case 'load_cache':
+				$this->loadCache( $event );
+				break;
+				
+			case 'save_cache':
+				$this->saveCache( $event );
+				break;
+				
+			case 'delete_cache':
+				$this->deleteCache( $event );
+				break;
+		}
+	}
+	
+	protected function saveCache( \Notes\Event $event ) {
+		// TODO: Handle cache save
+	}
+	
+	/**
+	 *  Check if cache exists based on key stored in event
+	 *  
+	 *  @param \Notes\Event		$event		Cache triggering event
+	 */
+	protected function checkCache( \Notes\Event $event ) {
+		$params	= $event->getParams();
+		
+		// Default to cache not found
+		$params['cache_valid'] = false;
+		
+		$key	= $params['cache_key'] ?? '';
+		
+		// No key stored in event parameters
+		if ( empty( $key ) ) {
+			$event->params = $params;
+			return;	
+		}
+		
+		$db	= $this->controller->getData();
+		$find	= 
+		$db->getResults( 
+			"SELECT cache_id, content, expires 
+				FROM caches WHERE cache_id = :id LIMIT 1;", 
+			[ ':id' => $this->genCacheKey( $key ) ], 
+			\CACHE
+		);
+		
+		// No cache found
+		if ( empty( $find ) ) {
+			$event->params = $params;
+			return;
+		}
+		
+		// Find expiration
+		$row	= $find[0];
+		$exp	= \strtotime( $row['expires'] );
+		
+		// Formatting went wrong?
+		if ( false === $exp ) {
+			$event->params = $params;
+			return;
+		}
+		
+		// Cache is still valid
+		if ( $exp >= \time() ) {
+			$params['cache_valid'] = true;
+			$event->params = $params;
+		}
+	}
+	
+	/**
+	 *  Load cache data based on key stored in event
+	 *  
+	 *  @param \Notes\Event		$event		Cache triggering event
+	 */
+	protected function loadCache( \Notes\Event $event, bool $load = true ) {
+		// TODO: Handle cache retrieval
+	}
+	
+	protected function deleteCache( \Notes\Event $event ) {
+		// TODO: Remove from cache store
+	}
 }
 
 
