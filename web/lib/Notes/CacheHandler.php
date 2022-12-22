@@ -73,7 +73,7 @@ class CacheHandler extends Handler {
 		foreach ( $data as $c ) {
 			$i		= new \Notes\Cache();
 			$i->cache_id	= $this->genCacheKey( $c[0] );
-			$i->content	= $c[1];
+			$i->content	= $c[1] ?? '';
 			$i->ttl		= 
 				( int ) ( $c[2] ?? static::CACHE_TTL );
 			
@@ -137,8 +137,67 @@ class CacheHandler extends Handler {
 		}
 	}
 	
+	/**
+	 *  Prepare base cache parameters
+	 *  
+	 *  @param \Notes\Event		$event		Cache triggering event
+	 */
+	protected function prepareParams( \Notes\Event $event ) : array {
+		$params	= $event->getParams();
+		if ( empty( $params ) ) {
+			$this->output		= $params;
+			return [];
+		}
+		
+		// Default to cache invalid
+		$params['cache_valid']	= false;
+		
+		// Key stored in event parameters or empty key
+		$params['cache_id']	= 
+		empty( $params['cache_key'] ) ? 
+			'' : $this->genCacheKey( $params['cache_key'] );
+		
+		// Set TTL or default
+		$params['cache_ttl']	??= static::CACHE_TTL;
+		$params['cache_ttl']	= ( int ) $params['cache_ttl'];
+		
+		return $params;
+	}
+	
+	/**
+	 *  Create and save cache based on key stored in event
+	 *  
+	 *  @param \Notes\Event		$event		Cache triggering event
+	 */
 	protected function saveCache( \Notes\Event $event ) {
-		// TODO: Handle cache save
+		$params	= $this->prepareParams( $event );
+		
+		// No cache key to save
+		if ( empty( $params['cache_key'] ) ) {
+			$this->output		= $params;
+			return;
+		}
+		
+		$saved	= 
+		$this->saveCacheData( [ [
+			$params['cache_key'],
+			$params['cache_data'] ?? '',
+			$params['cache_ttl']
+		] ] );
+		
+		// Couldn't save?
+		if ( empty( $saved ) ) {
+			return;
+		}
+		
+		// Positive TTL?
+		if ( $params['cache_ttl'] > 0 ) {
+			$params['cache_valid'] = true;
+		}
+		
+		$params['cache']	= $saved[0];
+		
+		$this->output = $params;
 	}
 	
 	/**
@@ -147,31 +206,26 @@ class CacheHandler extends Handler {
 	 *  @param \Notes\Event		$event		Cache triggering event
 	 */
 	protected function checkCache( \Notes\Event $event ) {
-		$params	= $event->getParams();
+		$params	= $this->prepareParams( $event );
 		
-		// Default to cache not found
-		$params['cache_valid'] = false;
-		
-		$key	= $params['cache_key'] ?? '';
-		
-		// No key stored in event parameters
-		if ( empty( $key ) ) {
-			$event->params = $params;
-			return;	
+		// No cache ID to find
+		if ( empty( $params['cache_id'] ) ) {
+			$this->output		= $params;
+			return;
 		}
 		
 		$db	= $this->controller->getData();
 		$find	= 
 		$db->getResults( 
-			"SELECT cache_id, content, expires 
+			"SELECT cache_id, expires 
 				FROM caches WHERE cache_id = :id LIMIT 1;", 
-			[ ':id' => $this->genCacheKey( $key ) ], 
+			[ ':id' => $params['cache_id'] ], 
 			\CACHE
 		);
 		
 		// No cache found
 		if ( empty( $find ) ) {
-			$event->params = $params;
+			$this->output		= $params;
 			return;
 		}
 		
@@ -181,15 +235,15 @@ class CacheHandler extends Handler {
 		
 		// Formatting went wrong?
 		if ( false === $exp ) {
-			$event->params = $params;
+			$this->output		= $params;
 			return;
 		}
 		
 		// Cache is still valid
 		if ( $exp >= \time() ) {
-			$params['cache_valid'] = true;
-			$event->params = $params;
+			$params['cache_valid']	= true;
 		}
+		$this->output		= $params;
 	}
 	
 	/**
@@ -198,11 +252,52 @@ class CacheHandler extends Handler {
 	 *  @param \Notes\Event		$event		Cache triggering event
 	 */
 	protected function loadCache( \Notes\Event $event, bool $load = true ) {
-		// TODO: Handle cache retrieval
+		$params	= $this->prepareParams( $event );
+		
+		// No cache key to load
+		if ( empty( $params['cache_key'] ) ) {
+			$this->output		= $params;
+			return;
+		}
+		
+		$params['cache'] = 
+			$this->getCache( $params['cache_key'] );
+		
+		// No cache found
+		if ( empty( $params['cache'] ) ) {
+			$this->output		= $params;
+			return;
+		}
+		
+		// Check if cache is still valid
+		if ( $params['cache']->expires > \time() ) {
+			$params['cache_valid'] = true;
+		}
+		$this->output		= $params;
 	}
 	
+	/**
+	 *  Delete cache based on key stored in event
+	 *  
+	 *  @param \Notes\Event		$event		Cache triggering event
+	 */
 	protected function deleteCache( \Notes\Event $event ) {
-		// TODO: Remove from cache store
+		$params	= $this->prepareParams( $event );
+		
+		// No cache ID to delete
+		if ( empty( $params['cache_id'] ) ) {
+			$this->output		= $params;
+			return;
+		}
+		
+		$db	= $this->controller->getData();
+		$db->dataExec( 
+			"DELETE FROM caches WHERE cache_id = :id LIMIT 1;", 
+			[ ':id' => $params['cache_id'] ], 
+			\CACHE
+		);
+		
+		$this->output	= $params;
 	}
 }
 
