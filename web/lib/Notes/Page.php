@@ -31,8 +31,22 @@ class Page extends Content {
 		$start	= \Util::intRange( $start, 1, \PHP_INT_MAX - 3 );
 		$finish	= \Util::intRange( $finish, $start, \PHP_INT_MAX - 2 );
 		
-		// TODO: Load page blocks in given range
-		$this->blocks	= [];
+		$db	= $this->getData();
+		
+		$this->blocks = 
+		$db->getResults( 
+			"SELECT id, type_id, body, content, lang_id, sort_order 
+			FROM page_blocks WHERE page_id = :id ORDER BY 
+				id ASC, sort_order ASC
+			LIMIT :limit OFFSET :offset;", 
+			[
+				':id'		=> $this->id,
+				':limit'	=> $finish - $start,
+				':offset'	=> $start
+			], 
+			\DATA,
+			'controllable|\\Notes\\PageBlock'
+		);
 	}
 	
 	public function save() : bool {
