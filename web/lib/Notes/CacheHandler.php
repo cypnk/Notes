@@ -116,23 +116,30 @@ class CacheHandler extends Handler {
 		\hash( 'sha256', $this->cache_updated . trim( $key ) );
 	}
 	
+	/**
+	 *  Handle event notification
+	 * 
+	 *  @param \Notes\Event	$event		Cache triggering event
+	 *  @param array	$params		Optional passed parameters
+	 */
 	public function notify( \SplSubject $event, ?array $params = null ) {
+		$params	??= $event->getParams();
 		
 		switch ( $event->getName() ) {
 			case 'find_cache':
-				$this->checkCache( $event );
+				$this->checkCache( $params );
 				break;
 				
 			case 'load_cache':
-				$this->loadCache( $event );
+				$this->loadCache( $params );
 				break;
 				
 			case 'save_cache':
-				$this->saveCache( $event );
+				$this->saveCache( $params );
 				break;
 				
 			case 'delete_cache':
-				$this->deleteCache( $event );
+				$this->deleteCache( $params );
 				break;
 		}
 	}
@@ -140,10 +147,9 @@ class CacheHandler extends Handler {
 	/**
 	 *  Prepare base cache parameters
 	 *  
-	 *  @param \Notes\Event		$event		Cache triggering event
+	 *  @param array	$params		Passed parameters
 	 */
-	protected function prepareParams( \Notes\Event $event ) : array {
-		$params	= $event->getParams();
+	protected function prepareParams( array $params ) : array {
 		if ( empty( $params ) ) {
 			$this->output		= $params;
 			return [];
@@ -167,10 +173,9 @@ class CacheHandler extends Handler {
 	/**
 	 *  Create and save cache based on key stored in event
 	 *  
-	 *  @param \Notes\Event		$event		Cache triggering event
+	 *  @param array	$params		Passed parameters
 	 */
-	protected function saveCache( \Notes\Event $event ) {
-		$params	= $this->prepareParams( $event );
+	protected function saveCache( array $params ) {
 		
 		// No cache key to save
 		if ( empty( $params['cache_key'] ) ) {
@@ -203,11 +208,9 @@ class CacheHandler extends Handler {
 	/**
 	 *  Check if cache exists based on key stored in event
 	 *  
-	 *  @param \Notes\Event		$event		Cache triggering event
+	 *  @param array	$params		Passed parameters
 	 */
-	protected function checkCache( \Notes\Event $event ) {
-		$params	= $this->prepareParams( $event );
-		
+	protected function checkCache( array $params ) {
 		// No cache ID to find
 		if ( empty( $params['cache_id'] ) ) {
 			$this->output		= $params;
@@ -249,11 +252,9 @@ class CacheHandler extends Handler {
 	/**
 	 *  Load cache data based on key stored in event
 	 *  
-	 *  @param \Notes\Event		$event		Cache triggering event
+	 *  @param array	$params		Passed parameters
 	 */
-	protected function loadCache( \Notes\Event $event, bool $load = true ) {
-		$params	= $this->prepareParams( $event );
-		
+	protected function loadCache( array $params ) {
 		// No cache key to load
 		if ( empty( $params['cache_key'] ) ) {
 			$this->output		= $params;
@@ -279,11 +280,9 @@ class CacheHandler extends Handler {
 	/**
 	 *  Delete cache based on key stored in event
 	 *  
-	 *  @param \Notes\Event		$event		Cache triggering event
+	 *  @param array	$params		Passed parameters
 	 */
-	protected function deleteCache( \Notes\Event $event ) {
-		$params	= $this->prepareParams( $event );
-		
+	protected function deleteCache( array $params ) {
 		// No cache ID to delete
 		if ( empty( $params['cache_id'] ) ) {
 			$this->output		= $params;
