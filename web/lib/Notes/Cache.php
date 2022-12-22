@@ -10,7 +10,7 @@ class Cache extends Entity {
 	
 	public string $content;
 	
-	public string $expires;
+	protected string $_expires;
 	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
@@ -25,6 +25,11 @@ class Cache extends Entity {
 			case 'ttl':
 				$this->_ttl = ( int ) $value;
 				break;
+			
+			case 'expires':
+				$this->_expires = 
+					\strtotime( ( string ) $value );
+				break;
 		}
 		
 		parent::__set( $name, $value );
@@ -37,6 +42,9 @@ class Cache extends Entity {
 				
 			case 'ttl':
 				return $this->_ttl ?? 0;
+			
+			case 'expires':
+				return $this->_expires ?? time();
 		}
 		
 		return parent::__get( $name );
