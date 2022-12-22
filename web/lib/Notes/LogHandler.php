@@ -47,13 +47,13 @@ class LogHandler extends Controllable {
 	 *  @param string	$msg	Searchable log body
 	 *  @return bool
 	 */
-	public function creatLog( string $label, string $msg ) : bool {
+	public function createLog( string $label, string $msg ) : bool {
 		$log		= new \Notes\Log( $this->controller );
 		$log->label	= $label;
-		$log->body	= 
-		\Notes\Util::entities( 
+		
+		$log->setBody( \Notes\Util::entities( 
 			\Notes\Util::unifySpaces( $msg ) 
-		);
+		) );
 		
 		return $log->save();
 	}
