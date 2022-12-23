@@ -49,7 +49,7 @@ class CacheHandler extends Handler {
 			return [];
 		}
 		
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$params	= [];
 		$in	= $db->getInParam( $keys, $params );
 		
@@ -109,7 +109,7 @@ class CacheHandler extends Handler {
 	public function genCacheKey( string $key ) {
 		if ( !isset( $this->cache_updated ) ) {
 			$this->cache_updated	= 
-			$this->controller->getConfig()->updated ?? '';
+			$this->getControllerParam( '\\\Notes\\Config' )->updated ?? '';
 		}
 		
 		return 
@@ -217,7 +217,7 @@ class CacheHandler extends Handler {
 			return;
 		}
 		
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$find	= 
 		$db->getResults( 
 			"SELECT cache_id, expires 
@@ -289,7 +289,7 @@ class CacheHandler extends Handler {
 			return;
 		}
 		
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$db->dataExec( 
 			"DELETE FROM caches WHERE cache_id = :id LIMIT 1;", 
 			[ ':id' => $params['cache_id'] ], 
