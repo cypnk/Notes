@@ -51,7 +51,7 @@ CREATE TABLE events (
 	) STORED NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0
 );-- --
-CREATE UNIQUE INDEX idx_event_name ON events ( name );-- --
+CREATE UNIQUE INDEX idx_event_name ON events ( name, realm );-- --
 CREATE INDEX idx_event_realm ON events ( realm ) 
 	WHERE realm IS NOT "";-- --
 CREATE INDEX idx_event_sort ON events ( sort_order );-- --
