@@ -148,7 +148,7 @@ class UserMark extends Content {
 			':status'	=> $this->status ?? 0
 		];
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $um ) {
 			$params[':id']	= $this->id;
 			
