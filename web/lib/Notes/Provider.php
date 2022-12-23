@@ -126,7 +126,7 @@ abstract class Provider extends Entity {
 				\Notes\Util::encode( $this->settings )
 		] );
 		
-		$db		= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $ps ) {
 			return 
 			$db->setUpdate( static::$update_sql, $this->params, \DATA );
