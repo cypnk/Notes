@@ -52,24 +52,29 @@ INSERT INTO handlers ( params )
 	( json( '{
 		"event"		: "app_start",
 		"payload"	: "Environment",
-		"priority"	: 9999
+		"priority"	: 99999
 	}') ), 
 	( json( '{
 		"event"		: "app_start",
 		"payload"	: "SDLWindowAdjust",
-		"priority"	: 9990
+		"priority"	: 99990
 	}') ), 
 	
 	-- Web request
 	( json( '{
 		"event"		: "web_start",
-		"payload"	: "\\\\NotesModules\\\\Handlers\\\\WebInterface",
-		"priority"	: 9999
+		"payload"	: "\\\\Notes\\\\Config",
+		"priority"	: 99999
 	}') ),
 	( json( '{
 		"event"		: "web_start",
-		"payload"	: "\\\\NotesModules\\\\Handlers\\\\Membership",
-		"priority"	: 9990
+		"payload"	: "\\\\Notes\\\\SHandler",
+		"priority"	: 99998
+	}') ),
+	( json( '{
+		"event"		: "web_start",
+		"payload"	: "\\\\Notes\\\\LogHandler",
+		"priority"	: 99997
 	}') );-- --
 
 
