@@ -31,7 +31,7 @@ class Page extends Content {
 		$start	= \Util::intRange( $start, 1, \PHP_INT_MAX - 3 );
 		$finish	= \Util::intRange( $finish, $start, \PHP_INT_MAX - 2 );
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		
 		$this->blocks = 
 		$db->getResults( 
@@ -57,7 +57,7 @@ class Page extends Content {
 			return false;
 		}
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$params	= [
 			'sort_order'	=> $this->sort_order,
 			'status'	=> $this->status,
