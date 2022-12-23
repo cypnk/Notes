@@ -104,6 +104,7 @@ class BlockType extends Content {
 			':delete_tpl'	=> $this->delete_template	?? ''
 		];
 		
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $pb ) {
 			$params[':id']	= $this->id;
 			
