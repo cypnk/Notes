@@ -8,7 +8,7 @@ class LogHandler extends Handler {
 		parent::__construct( $ctrl, -1 );
 		
 		// Make sure session is active
-		$this->controller->getSession()->sessionCheck();
+		$this->getControllerParam( '\\\Notes\\SHandler' )->sessionCheck();
 		
 		// Application-level logging
 		\set_error_handler( 
