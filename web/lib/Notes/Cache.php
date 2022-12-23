@@ -63,7 +63,7 @@ class Cache extends Entity {
 			return false;
 		}
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$db->setUpdate(
 			"REPLACE INTO caches ( cache_id, ttl, content )
 				VALUES ( :id, :ttl, :content );",
