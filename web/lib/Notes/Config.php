@@ -160,7 +160,7 @@ class Config extends Entity {
 	}
 	
 	public function save() : bool {
-		$db		= $this->getData();
+		$db		= $this->getControllerParam( '\\\Notes\\Data' );
 		
 		// Format for saving
 		$settings	= \Notes\Util::encode( $this->settings );
