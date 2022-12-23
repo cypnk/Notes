@@ -58,7 +58,7 @@ class Document extends Content {
 			return false;
 		}
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$params	= [
 			':lang'		=> $this->lang_id ?? null,
 			':so'		=> $this->sort_order ?? 0,
