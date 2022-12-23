@@ -65,6 +65,8 @@ class Config extends Entity {
 			$realm = $this->request->website();
 		}
 		$this->realm	= $realm;
+		
+		$this->runWebStart();
 	}
 	
 	public function __set( $name, $value ) {
@@ -137,6 +139,28 @@ class Config extends Entity {
 				\Notes\Util::decode( $r['settings'] ) 
 			);
 		}
+	}
+	
+	/**
+	 *  Run 'web_start' event with current realm
+	 */
+	protected function runWebStart() {
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
+		$ev	= 
+		$db->getResults( 
+			"SELECT params FROM events WHERE 
+				name = :event, realm = :realm
+				LIMIT 1;", 
+			[ 
+				':event' => 'web_start',
+				':realm' => $this->realm
+			], 
+			\DATA, 
+			'column'
+		);
+		
+		$params = empty( $ev ) ? [] : \Notes\Util::decode( $ev );
+		$this->controller->run( 'web_start', $params );
 	}
 	
 	/**
