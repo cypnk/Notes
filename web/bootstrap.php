@@ -275,7 +275,6 @@ function logToMail( string $msg, int $i, int $c ) {
 } );
 
 // Start controller
-$controller	= 
-new \Notes\Controller( ['\\Notes\\Data'] );
+$controller	= new \Notes\Controller();
 
 
