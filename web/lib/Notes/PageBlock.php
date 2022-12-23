@@ -134,7 +134,7 @@ class PageBlock extends Content {
 			':status'	=> $this->status ?? 0
 		];
 		
-		$db = $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		
 		if ( $pb ) {
 			$params[':id']	= $this->id;
