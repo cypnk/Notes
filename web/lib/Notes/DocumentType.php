@@ -8,7 +8,7 @@ class DocumentType extends Content {
 	
 	public function save() : bool {
 		$this->_content['label']	= $this->label;
-		$db				= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		
 		if ( isset( $this->id ) ) {
 			return 
