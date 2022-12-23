@@ -32,7 +32,7 @@ CREATE UNIQUE INDEX idx_config_realm ON configs ( realm )
 CREATE INDEX idx_config_created ON configs ( created );-- --
 CREATE INDEX idx_config_updated ON configs ( updated );-- --
 
-CREATE TRIGGER config_update AFTER UPDATE ON users FOR EACH ROW
+CREATE TRIGGER config_update AFTER UPDATE ON configs FOR EACH ROW
 BEGIN
 	UPDATE configs SET updated = CURRENT_TIMESTAMP 
 		WHERE id = OLD.id;
@@ -80,24 +80,50 @@ CREATE TABLE handlers (
 	payload TEXT GENERATED ALWAYS AS (
 		json_extract( params, '$.payload' )
 	) STORED NOT NULL, 
-	event_name INTEGER GENERATED ALWAYS AS ( 
-		CAST( COALESCE( json_extract( 
-			params, '$.event' 
-		), NULL ) AS INTEGER )
+	event_name TEXT GENERATED ALWAYS AS ( 
+		REPLACE( LOWER( TRIM( 
+			COALESCE( json_extract( params, '$.event' ), ""	) 
+		) ), ' ', '_' )
 	) STORED NOT NULL, 
 	priority INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( 
 			params, '$.priority' 
 		), 0 ) AS INTEGER )
-	) STORED NOT NULL, 
+	) STORED NOT NULL
+);-- --
+CREATE INDEX idx_handler_name ON handlers ( event_name );-- --
+CREATE INDEX idx_handler_priority ON handlers ( priority );-- --
+
+-- Matching handlers to their events
+CREATE TABLE event_handlers(
+	event_id INTEGER DEFAULT NULL,
+	handler_id INTEGER NOT NULL,
 	
 	CONSTRAINT fk_handler_event 
 		FOREIGN KEY ( event_id ) 
 		REFERENCES events ( id )
+		ON DELETE CASCADE,
+	
+	CONSTRAINT fk_event_handler
+		FOREIGN KEY ( handler_id ) 
+		REFERENCES handlers ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE INDEX idx_handler_name ON handlers ( event_name );-- --
-CREATE INDEX idx_handler_priority ON handlers ( priority );-- --
+CREATE UNIQUE INDEX idx_event_handler 
+	ON event_handlers ( event_id, handler_id )
+	WHERE event_id IS NOT NULL;-- --
+
+CREATE TRIGGER handler_insert AFTER INSERT ON handlers FOR EACH ROW 
+WHEN NEW.event_name IS NOT ""
+BEGIN
+	REPLACE INTO event_handlers( event_id, handler_id ) 
+		VALUES ( 
+			( SELECT COALESCE( id, NULL ) 
+			 	FROM events 
+				WHERE name = NEW.event_name LIMIT 1 
+			), NEW.id 
+		);
+END;-- --
 
 
 -- Localization
