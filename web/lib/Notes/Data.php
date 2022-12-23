@@ -208,6 +208,14 @@ class Data extends Controllable {
 			case 'column': {
 				return $ok ? $stm->fetchColumn() : '';
 			}
+				
+			// List of column values
+			case 'listcolumn':
+			case 'list column':
+			case 'columnlist':
+			case 'column list': {
+				return $ok ? $stm->fetchAll( \PDO::FETCH_COLUMN, 0 ) : [];
+			}
 			
 			// Multi-mode
 			default: {
