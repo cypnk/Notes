@@ -227,7 +227,7 @@ class User extends Entity {
 				static::formatSettings( $this->settings )
 		];
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $us ) {
 			$sql = 
 			"UPDATE users SET status = :status, 
