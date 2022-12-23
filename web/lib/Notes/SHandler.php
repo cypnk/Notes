@@ -95,8 +95,8 @@ class SHandler extends Controllable {
 		"INSERT OR IGNORE INTO sessions ( session_id )
 			VALUES ( :id );";
 		
-		$config	= $this->controller->getConfig();
-		$db	= $this->controller->getData();
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$bt	= $config->setting( 'session_bytes', 'int' );
 		$id	= \Notes\Util::genId( $bt );
 		if ( $db->dataExec( $sql, [ ':id' => $id ], 'success', \SESSIONS ) ) {
@@ -115,7 +115,7 @@ class SHandler extends Controllable {
 	 */
 	public function sessionDestroy( $id ) {
 		$sql	= "DELETE FROM sessions WHERE session_id = :id;";
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $db->dataExec( 
 			$sql, [ ':id' => $id ], 'success', \SESSIONS 
 		) ) {
@@ -134,7 +134,7 @@ class SHandler extends Controllable {
 		"DELETE FROM sessions WHERE (
 			strftime( '%s', 'now' ) - 
 			strftime( '%s', updated ) ) > :gc;";
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $db->dataExec( $sql, [ ':gc' => $max ], 'success', \SESSIONS ) ) {
 			return true;
 		}
@@ -151,7 +151,7 @@ class SHandler extends Controllable {
 		"SELECT session_data FROM sessions 
 			WHERE session_id = :id LIMIT 1;";
 		
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		$out	= 
 		$db->dataExec( $sql, [ 'id' => $id ], 'column', \SESSIONS );
 		
@@ -173,7 +173,7 @@ class SHandler extends Controllable {
 		"REPLACE INTO sessions ( session_id, session_data )
 			VALUES( :id, :data );";
 		
-		$db	= $this->controller->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $db->dataExec( 
 			$sql, [ ':id' => $id, ':data' => $data ], 'success', \SESSIONS 
 		) ) {
@@ -198,7 +198,7 @@ class SHandler extends Controllable {
 	 */
 	public function sessionCookieParams() : bool {
 		$options		= $this->defaultCookieOptions();
-		$config			= $this->controller->getConfig();
+		$config			= $this->getControllerParam( '\\\Notes\\Config' );
 		// Override some defaults
 		$options['lifetime']	=  
 			$config->setting( 'cookie_exp', static::COOKIE_EXP, 'int' );
@@ -256,7 +256,7 @@ class SHandler extends Controllable {
 	 *  @param string	$visit	Previous random visitation identifier
 	 */
 	public function sessionCanary( string $visit = '' ) {
-		$config	= $this->controller->getConfig();
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
 		$bt	= $config->setting( 'session_bytes', static::SESSION_BYTES, 'int' );
 		$exp	= $config->setting( 'session_exp', static::SESSION_EXP, 'int' );
 	
@@ -309,7 +309,7 @@ class SHandler extends Controllable {
 	 *  @return string
 	 */
 	public function sameSiteCookie() : string {
-		$config	= $this->controller->getConfig();
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
 		if ( $config->setting( 
 			'cookie_restrict', static::COOKIE_RESTRICT, 'bool' 
 		) ) {
@@ -330,7 +330,7 @@ class SHandler extends Controllable {
 			return $prefix;
 		}
 		
-		$config = $this->controller->getConfig();
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
 		
 		if ( !$config->setting( 
 			'cookie_prefixed', static::COOKIE_PREFIXED, 'bool' 
@@ -357,7 +357,7 @@ class SHandler extends Controllable {
 	 *  @return array
 	 */
 	public function defaultCookieOptions( array $options = [] ) : array {
-		$config = $this->controller->getConfig();
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
 		$cexp	= $config->setting( 'cookie_exp', static::COOKIE_EXP, 'int' );
 		$cpath	= $config->setting( 'cookie_path', static::COOKIE_PATH );
 		
@@ -391,7 +391,7 @@ class SHandler extends Controllable {
 	 *  @return mixed
 	 */
 	public function getCookie( string $name, $default ) {
-		$config = $this->controller->getConfig();
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
 		$realm	= $this->cookiePrefix() . $config->realmName();
 		if ( !isset( $_COOKIE[$realm] ) ) {
 			return $default;
@@ -426,8 +426,7 @@ class SHandler extends Controllable {
 			] 
 		);
 		
-		$config		= $this->controller->getConfig();
-		
+		$config	= $this->getControllerParam( '\\\Notes\\Config' );
 		return 
 		\setcookie( 
 			$this->cookiePrefix() . 
