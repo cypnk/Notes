@@ -17,14 +17,9 @@ class Controller {
 	protected array $params;
 	
 	public function __construct( ?array $_params = null ) {
-		if ( empty( $_params ) ) {
-			// Default parameters
-			$this->params['Data']		= new Data( $this );
-			$this->params['Config']		= new Config( $this );
-			$this->params['SHandler']	= new SHandler( $this );
-		} else {
-			$this->addParams( $_params );	
-		}
+		if ( empty( $_params ) ) { return; }
+		
+		$this->addParams( $_params );
 	}
 	
 	/**
@@ -34,19 +29,37 @@ class Controller {
 	 */
 	public function addParams( array $_params ) {
 		foreach ( $_params as $p ) {
-			// Only handle strings
-			if ( !\is_string( $p ) ) {
+			// Only handle strings and objects
+			if ( !\is_string( $p ) || !\is_object( $p ) ) {
 				continue;
 			}
 			
-			$k = \strrchr( \rtrim( $p, '\\' ), '\\' );
-			// Not a class
-			if ( false === $k ) { 
-				continue; 
+			// Filter type
+			$t = match( \strtolower( \gettype( $p ) ) ) {
+				'string'	=> 'string', 
+				'object', 'resource', 'resource (closed)' 
+						=> 'object', 
+				// Skip all else
+				default		=> 'skip'
 			}
 			
-			$k = \substr( $k, 1 );
+			// Shouldn't be handled
+			if ( 0 == \strcmp( 'skip', $t ) ) {
+				continue;
+			}
+			
+			// Create search key
+			$k = ( 0 == \strcmp( 'object', $t ) ) ? 
+				\spl_object_hash( $p ) : \rtrim( $p, '\\' );
+			
+			// Already added?
 			if ( \array_key_exists( $k, $this->params ) ) {
+				continue;
+			}
+			
+			// Add as-is, if object
+			if ( 0 == \strcmp( 'object', $t ) ) {
+				$this->params[$k] = $p;
 				continue;
 			}
 			
@@ -57,10 +70,7 @@ class Controller {
 				)			=> new $p( $this ),
 				
 				// Other type of class
-				\class_exists( $p )	=> new $p(),
-				
-				// Something else
-				default			=> $p
+				\class_exists( $p )	=> new $p()
 			}
 		}
 	}
@@ -73,27 +83,6 @@ class Controller {
 	 */
 	public function getParam( string $name ) {
 		return $this->params[$name] ?? null;
-	}
-	
-	/**
-	 *  Current configuration return helper
-	 */
-	public function getConfig() {
-		return $this->params['Config'] ?? null;
-	}
-	
-	/**
-	 *  Current data handler return helper
-	 */
-	public function getData() {
-		return $this->params['Data'] ?? null;
-	}
-	
-	/**
-	 *  Current session handler return helper
-	 */
-	public function getSession() {
-		return $this->params['SHandler'] ?? null;
 	}
 	
 	/**
