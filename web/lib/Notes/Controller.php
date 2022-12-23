@@ -17,9 +17,12 @@ class Controller {
 	protected array $params;
 	
 	public function __construct( ?array $_params = null ) {
-		if ( empty( $_params ) ) { return; }
+		// Default parameters
+		$this->addParams( 
+			empty( $_params ) ? [ '\\Notes\\Data' ] : $_params 
+		);
 		
-		$this->addParams( $_params );
+		$this->loadWebStartHandlers();
 	}
 	
 	/**
@@ -72,6 +75,32 @@ class Controller {
 				// Other type of class
 				\class_exists( $p )	=> new $p()
 			}
+		}
+	}
+	
+	/**
+	 *  Load 'web_start' event handlers
+	 */
+	public function loadWebStartHandlers() {
+		$db = $this->getParam( '\\Notes\\Data' );
+		$hd = 
+		$db->getResults( 
+			"SELECT payload FROM handlers 
+				WHERE event_name = :event ORDER BY priority DESC;", 
+			[ ':event' => 'web_start' ], 
+			\DATA,
+			'column list'
+		);
+		
+		// No startup handlers?
+		if ( empty( $hd ) ) {
+			return;	
+		}
+		
+		// Apply load start events
+		$this->addParam( $hd );
+		foreach ( $hd as $h ) {
+			$this->listen( 'web_start', $this->getParam( $h ) );
 		}
 	}
 	
