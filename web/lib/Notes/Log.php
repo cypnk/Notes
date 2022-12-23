@@ -58,7 +58,7 @@ class Log extends Content {
 		$this->_content['language']	??= $req->getLang();
 		$this->_content['file_range']	??= $req->getFileRange();
 		
-		$db = $this->getData();
+		$db = $this->getControllerParam( '\\\Notes\\Data' );
 		$id = 
 		$db->setInsert(
 			"INESRT INTO event_logs ( content, status ) 
