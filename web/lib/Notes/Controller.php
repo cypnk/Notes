@@ -18,9 +18,9 @@ class Controller {
 	
 	public function __construct( ?array $_params = null ) {
 		// Default parameters
-		$this->addParams( 
-			empty( $_params ) ? [ '\\Notes\\Data' ] : $_params 
-		);
+		if ( !empty( $_params ) ) {
+			$this->addParams( $_params );
+		}
 		
 		$this->loadWebStartHandlers();
 	}
@@ -82,6 +82,7 @@ class Controller {
 	 *  Load 'web_start' event handlers
 	 */
 	public function loadWebStartHandlers() {
+		$this->addParams( ['\\Notes\\Data'] );
 		$db = $this->getParam( '\\Notes\\Data' );
 		$hd = 
 		$db->getResults( 
