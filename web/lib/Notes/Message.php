@@ -28,9 +28,11 @@ class Message {
 	 */
 	protected readonly object $config;
 	
-	public function __construct( Controller $ctrl ) {
+	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
-		$this->config	= $ctrl->getConfig();
+		
+		$ctrl->addParam( '\\\Notes\\Config' );
+		$this->config	= $ctrl->getParam( '\\\Notes\\Config' );
 	}
 	
 	/**
