@@ -48,7 +48,7 @@ class ResourceFile extends Content {
 			':status'	=> $this->status ?? 0
 		];
 		
-		$db	= $this->getData();
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		if ( $rf ) {
 			$params[':id']	= $this->id;
 			return 
