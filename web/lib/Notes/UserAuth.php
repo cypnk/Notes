@@ -83,7 +83,7 @@ class User extends Entity {
 		$sql		= 
 		"SELECT * FROM login_view WHERE id = :id LIMIT 1;";
 		$res	= 
-		$this->getData()->getResults( 
+		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
 			$sql, [ ':id' => $id ], \DATA, 
 			'class|\\Notes\\User'
 		);
@@ -104,7 +104,7 @@ class User extends Entity {
 		"SELECT * FROM login_pass WHERE username = :user LIMIT 1;";
 		
 		$data	= 
-		$this->getData()->getResults( 
+		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
 			$sql, [ ':user' => $username ], \DATA,
 			'class|\\Notes\\User'
 		);
@@ -125,13 +125,12 @@ class User extends Entity {
 	public function updateUserActivity( string $mode = '' ) : bool {
 		$now	= \Notes\Util::utc();
 		
-		$ctrl	= $this->getController();
-		$data	= $this->getData();
-		$config = $ctrl->getConfig();
+		$data	= $this->getControllerParam( '\\\Notes\\Data' );
+		$config = $this->getControllerParam( '\\\Notes\\Config' );
 		$req	= $config->getRequest();
 		
 		// Start session first
-		$ctrl->getSession()->sessionCheck();
+		$this->getControllerParam( '\\\Notes\\SHandler' )->sessionCheck();
 		
 		switch ( $mode ) {
 			case 'active':
@@ -274,7 +273,7 @@ class User extends Entity {
 	 *  @return string
 	 */
 	public function resetLookup() : string {
-		$db	= $this->getData()->getDb( \DATA );
+		$db	= $this->getControllerParam( '\\\Notes\\Data' )->getDb( \DATA );
 		$stm	= 
 		$db->prepare( 
 			"UPDATE logout_view SET lookup = '' 
