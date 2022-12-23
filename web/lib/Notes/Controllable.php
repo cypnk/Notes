@@ -111,6 +111,18 @@ abstract class Controllable {
 	}
 	
 	/**
+	 *  Get while optionally loading parameter object
+	 *  
+	 *  @param string	$name	Loaded/loading object name
+	 *  @return mixed
+	 */
+	public function getControllerParam( string $name ) {
+		$this->controller->addParam([ $name ]);
+		
+		return $this->controller->getParam( $name );
+	}
+	
+	/**
 	 *  Event parameters
 	 *  
 	 *  @return array
