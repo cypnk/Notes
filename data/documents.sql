@@ -35,7 +35,7 @@ CREATE INDEX idx_config_updated ON configs ( updated );-- --
 CREATE TRIGGER config_update AFTER UPDATE ON configs FOR EACH ROW
 BEGIN
 	UPDATE configs SET updated = CURRENT_TIMESTAMP 
-		WHERE id = OLD.id;
+		WHERE id = NEW.id;
 END;-- --
 
 
@@ -454,11 +454,11 @@ END;-- --
 CREATE TRIGGER user_update AFTER UPDATE ON users FOR EACH ROW
 BEGIN
 	UPDATE users SET updated = CURRENT_TIMESTAMP 
-		WHERE id = OLD.id;
+		WHERE id = NEW.id;
 	
 	UPDATE user_search 
 		SET username = NEW.username || ' ' || NEW.display
-		WHERE docid = OLD.id;
+		WHERE docid = NEW.id;
 END;-- --
 
 -- Delete user search data following user delete
@@ -664,7 +664,7 @@ END;-- --
 CREATE TRIGGER document_update AFTER UPDATE ON documents FOR EACH ROW
 BEGIN
 	UPDATE documents SET updated = CURRENT_TIMESTAMP 
-		WHERE id = OLD.id;
+		WHERE id = NEW.id;
 		
 	UPDATE documents SET lang_id = (
 			SELECT COALESCE( id, NULL ) FROM languages 
