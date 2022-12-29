@@ -106,14 +106,7 @@ class Config extends Entity {
 			return;
 		}
 		
-		// Build path tree
-		$path	= [ $request->getHost() ];
-		$tree	= 
-		\array_map( function( $v ) use $path {
-			$path[] = $path[count( $path ) - 1] . 
-				\Notes\Util::slashPath( $v );
-		}, explode( '/', $request->getURI() ) );
-		
+		$tree	= $request->pathTree();
 		$db	= $this->getData();
 		
 		// Get globals
