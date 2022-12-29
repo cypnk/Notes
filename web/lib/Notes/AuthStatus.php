@@ -52,7 +52,7 @@ enum AuthStatus {
 			
 			AuthStatus::RealmError,
 			AuthStatus::ScopeError		=> 'location'
-		}
+		};
 	}
 }
 
