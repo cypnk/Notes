@@ -83,6 +83,12 @@ class Request extends Message {
 	public readonly array $lv_headers;
 	
 	/**
+	 *  Requested path tree starting with host
+	 *  @var array
+	 */
+	public readonly array $path_tree;
+	
+	/**
 	 *  Process HTTP_* variables
 	 *  
 	 *  @param bool		$lower		Get array keys in lowercase
@@ -622,6 +628,26 @@ class Request extends Message {
 		
 		$this->host = $host ?? '';
 		return $this->host;
+	}
+	
+	/**
+	 *  Build request paths based on currently host and URI
+	 *  
+	 *  @return array
+	 */
+	public function pathTree() : array {
+		if ( isset( $this->path_tree ) ) {
+			return $this->path_tree;
+		}
+		$path	= [ $this->getHost() ];
+		$tree	= 
+		\array_map( function( $v ) use $path {
+			$path[] = $path[count( $path ) - 1] . 
+				\Notes\Util::slashPath( $v );
+		}, explode( '/', $this->getURI() ) );
+		
+		$this->path_tree = $tree;
+		return $tree;
 	}
 	
 	/**
