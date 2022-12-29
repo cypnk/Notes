@@ -32,7 +32,7 @@ abstract class Form {
 		'<form name="{name}" id="{id}" 
 			class="pa4 black-80 measure" action="{action}" 
 			method="{method}" enctype="{enctype}">' . 
-		'<legend class="mb2 f4 measure">Login</legend>{body}</form>',
+		'<legend class="mb2 f4 measure">{legend}</legend>{body}</form>',
 		
 		// No legend
 		'form_nl'	=>
@@ -50,9 +50,6 @@ abstract class Form {
 	 *  @param string	$_method	Submission method
 	 *  @param string	$_enc		Content encoding type
 	 *  @param string	$_id		Optional, on-page identifier
-	 *  @return Return description
-	 *  
-	 *  @details More details
 	 */
 	public function __construct( 
 		string	$_name, 
