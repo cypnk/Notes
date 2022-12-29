@@ -223,7 +223,7 @@ class SHandler extends Controllable {
 			\session_cache_limiter( '' );
 			
 			$this->sessionCookieParams();
-			$config = $this->controller->getConfig();
+			$config	= $this->getControllerParam( '\\\Notes\\Config' );
 			\session_name( 
 				$this->cookiePrefix() . 
 				$config->realmName() 
