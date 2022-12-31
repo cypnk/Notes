@@ -23,6 +23,12 @@ class User extends Entity {
 	
 	protected string $_new_password;
 	
+	protected string $_hash;
+	
+	protected int $_is_approved;
+	
+	protected int $_is_locked;
+	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
 			case 'display':
@@ -68,6 +74,18 @@ class User extends Entity {
 				$this->_user_clean	= 
 				static::cleanUsername( $this->_username );
 				return;
+			
+			case 'hash':
+				$this->_hash		= ( string ) $value;
+				return;
+				
+			case 'is_approved':
+				$this->_is_approved	= ( int ) $value;
+				return;
+				
+			case 'is_locked':
+				$this->_is_locked	= ( int ) $value;
+				return;
 		}
 		
 		parent::__set( $name, $value );
@@ -100,6 +118,15 @@ class User extends Entity {
 					$this->check_password ?? '',
 					$this->_password
 				);
+			
+			case 'hash':
+				return $this->_hash ?? '';
+				
+			case 'is_approved':
+				return $this->_is_approved ?? 0;
+				
+			case 'is_locked':
+				return $this->_is_locked ?? 0;
 		}
 		
 		parent::__get( $name );
