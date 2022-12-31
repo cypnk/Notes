@@ -31,6 +31,21 @@ class Controller {
 	 *  @param array	$_params	Loading parameters
 	 */
 	public function addParams( array $_params ) {
+		
+		set_error_handler( function( 
+			$eno, $emsg, $efile, $eline 
+		) {
+			$str	= 
+			'Error adding controller parameters ' .  
+				'Message: {msg} File: {file} Line: {line}';
+			
+			logException( 
+				new \ErrorException( 
+					$emsg, 0, $eno, $efile, $eline 
+				), $str 
+			);
+		}, E_WARNING | E_ERROR );
+		
 		foreach ( $_params as $p ) {
 			// Only handle strings and objects
 			if ( !\is_string( $p ) || !\is_object( $p ) ) {
@@ -76,6 +91,8 @@ class Controller {
 				\class_exists( $p )	=> new $p()
 			}
 		}
+		
+		\restore_error_handler();
 	}
 	
 	/**
