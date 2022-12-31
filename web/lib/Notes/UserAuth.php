@@ -116,6 +116,25 @@ class User extends Entity {
 	}
 	
 	/**
+	 *  Get login details by unique lookup hash
+	 *  
+	 *  @param string	$lookup		SQLite generated unique key
+	 *  @return mixed
+	 */
+	public function findUserByLookup( string $lookup ) {
+		$sql		= 
+		"SELECT * FROM login_view WHERE lookup = :lookup LIMIT 1;";
+		$res	= 
+		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
+			$sql, [ ':lookup' => $lookup ], \DATA, 
+			'class|\\Notes\\User'
+		);
+		if ( empty( $res ) ) {
+			return null;
+		}	
+	}
+	
+	/**
 	 *  Update the last activity IP of the given user
 	 *  Most of these actions use triggers in the database
 	 *  
