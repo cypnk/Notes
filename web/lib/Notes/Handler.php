@@ -29,7 +29,9 @@ class Handler implements \SplObserver extends Controllable {
 	 *  @param int			$_pri	Optional execution priority
 	 */
 	public function __construct( Controller	$ctrl, ?int $_pri = null ) {
-		$this->priority( $_pri ?? 0 );
+		if ( null !== $_pri ) {
+			$this->priority = $_pri;
+		}
 		
 		parent::__construct( $ctrl );
 	}
@@ -51,7 +53,7 @@ class Handler implements \SplObserver extends Controllable {
 	}
 	
 	/**
-	 *  @brief Brief description
+	 *  Accept notification from event
 	 *  
 	 *  @param SplSubject	$event Description for $event
 	 *  @param array	$params Description for $params
