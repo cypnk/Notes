@@ -36,10 +36,20 @@ class Handler implements \SplObserver extends Controllable {
 		parent::__construct( $ctrl );
 	}
 	
+	/**
+	 *  Get current handler's priority, if set, defaults to 0
+	 *  
+	 *  @return int
+	 */
 	public function getPriority() : int {
 		return $this->priority ?? 0;
 	}
 	
+	/**
+	 *  Set current handler's priority, if not fixed, returns true on success
+	 *  
+	 *  @return bool
+	 */
 	public function setPriority( int $p = 0 ) : bool {
 		if ( $this->fixed_priority ) {
 			return false;
@@ -48,6 +58,11 @@ class Handler implements \SplObserver extends Controllable {
 		return true;
 	}
 	
+	/**
+	 *  Get preset or post-execution handler output
+	 *  
+	 *  @return array
+	 */
 	public function getOutput( string $name ) : array {
 		return $this->output[$name] ?? [];
 	}
@@ -60,3 +75,4 @@ class Handler implements \SplObserver extends Controllable {
 	 */
 	public function notify( \SplSubject $event, ?array $params = null ) {}
 }
+
