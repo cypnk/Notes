@@ -39,7 +39,7 @@ enum HttpStatus {
 	case NotImplemented	= 501;
 	
 	// Special cases
-	case Options;
+	case Options		= 4000;
 	case MethodNotAllowed	= 405;
 	case RangeError		= 416;
 	case Locked		= 423;
@@ -51,14 +51,53 @@ enum HttpStatus {
 	case Unavailable	= 503;
 	
 	// Authentication
-	case Auth;
-	case AuthBasic;
-	case AuthDigest;
+	case Auth		= 1001;
+	case AuthBasic		= 1002;
+	case AuthDigest		= 1003;
 	
 	/**
 	 *  Currently allowed methods
 	 */
 	public const Methods	= 'GET, POST, HEAD, OPTIONS';
+	
+	/**
+	 *  Send the filename, if applicable, of the HTTP status code client view
+	 *  
+	 *  @return string
+	 */
+	public function errorFile() : string {
+		return 
+		match( $this ) {
+			static::InternalError, 
+			static::NotImplemented, 
+			static::Unavailable		=> '50x.html',
+			
+			static::BadRequest,
+			static::Unauthorized,
+			static::Forbidden,
+			static::NotFound,
+			static::MethodNotAllowed,
+			static::TooMany			=> $this->value . '.html',
+			
+			default				=> ''
+		}	
+	}
+	
+	/**
+	 *  Check if the current status is an internal error (50x) type
+	 *  
+	 *  @return string
+	 */
+	public function internalError() : bool {
+		return 
+		match( $this ) {
+			static::InternalError, 
+			static::NotImplemented, 
+			static::Unavailable		=> true,
+			
+			default				=> false
+		}
+	}
 	
 	/**
 	 *  Send the selected HTTP status code or zero on error
