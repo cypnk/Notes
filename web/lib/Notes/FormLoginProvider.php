@@ -2,14 +2,14 @@
 
 namespace Notes;
 
-class LocalLoginProvider extends IDProvider {
+class FormLoginProvider extends IDProvider {
 	
 	protected readonly \Notes\UserAuth $auth;
 	
 	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
-		$this->name = "LocalLoginProvider";
+		$this->name = "FormLoginProvider";
 	}
 	
 	/**
