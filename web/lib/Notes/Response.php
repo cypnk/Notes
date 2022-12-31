@@ -728,6 +728,11 @@ class Response extends Message {
 	 *  @return bool				True on success
 	 */
 	protected function sendErrorFile( \Notes\HttpStatus $code ) : bool {
+		// No error file to send?
+		if ( empty( $code->errorFile() ) ) {
+			return false;
+		}
+		
 		// Try to send generic file error, if it exists, and exit
 		$path = 
 		$this->config->setting( 'error_path', 'string' );
@@ -738,23 +743,15 @@ class Response extends Message {
 		
 		$path	= \Notes\Util::slashPath( $path, true );
 		
-		// Send generic 50x if internal
-		if ( $code->internalError() ) {
-			if ( $this->sendFile( 
-				$path . $code->errorFile(), false, false, $code 
-			) ) {
-				$this->flushBuffers( true );
-			}
-		}
-		
-		if ( empty( $code->errorFile() ) ) {
-			return false;
-		}
-		
 		// TODO: Trigger error file sending event
 		if ( $this->sendFile( $path . $code->errorFile(), false, false, $code ) ) {
+			// End request and flush, if internal error
+			if ( $code->internalError() ) {
+				$this->flushBuffers( true );
+			}
 			return true;
 		}
+		
 		return false;
 	}
 	
