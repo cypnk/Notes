@@ -268,9 +268,8 @@ class Response extends Message {
 	 */
 	public function visitorAbort( string $msg = 'File send' ) {
 		$this->cleanOutput( true );
-		if ( !\headers_sent() ) {
-			$this->httpCode( 205 );
-		}
+		$status	= \Notes\HttpStatus::ClientClosed;
+		$status->sendHeader();
 		$this->notices[] = 'Client disconnected :' . $msg );
 		die();
 	}
@@ -316,17 +315,17 @@ class Response extends Message {
 	/**
 	 *  Prepare to send a file instead of an HTTP response
 	 *  
-	 *  @param string	$path		File path to send
-	 *  @param int		$code		HTTP Status code
-	 *  @param bool		$verify		Verify mime content type
+	 *  @param string		$path		File path to send
+	 *  @param \Notes\HttpStatus	$code		HTTP Status code
+	 *  @param bool			$verify		Verify mime content type
 	 */
 	public function sendFilePrep( 
-		string		$path, 
-		int		$code		= 200, 
-		bool		$verify		= true 
+		string			$path, 
+		\Notes\HttpStatus	$code		= \Notes\HttpStatus::ClientOK, 
+		bool			$verify		= true 
 	) {
 		$this->scrubOutput();
-		$this->httpCode( $code );
+		$code->sendHeader();
 		
 		// Set content type if mime is found
 		if ( $verify ) {
@@ -618,16 +617,16 @@ class Response extends Message {
 	 *  Prepare to send back a dynamically generated file (E.G. Captcha)
 	 *  This function is a plugin helper
 	 *  
-	 *  @param string	$mime		Generated file's mime content-type
-	 *  @param string	$fname		File name
-	 *  @param int		$code		HTTP Status code
-	 *  @param bool		$cache		Cache generated file if true
+	 *  @param string		$mime		Generated file's mime content-type
+	 *  @param string		$fname		File name
+	 *  @param \Notes\HttpStatus	$code		HTTP Status code
+	 *  @param bool			$cache		Cache generated file if true
 	 */
 	public function sendGenFilePrep( 
-		string		$mime, 
-		string		$fname, 
-		int		$code		= 200, 
-		bool		$cache		= false 
+		string			$mime, 
+		string			$fname, 
+		\Notes\HttpStatus	$code		= \Notes\HttpStatus::ClientOK, 
+		bool			$cache		= false 
 	) {
 		$this->sendFilePrep( $fname, $code, false );
 		$this->headers[] = "Content-Type: {$mime}";
@@ -637,15 +636,15 @@ class Response extends Message {
 	/**
 	 *  Send a physical file if it exists
 	 *  
-	 *  @param string	$path		Physical path relative to script
-	 *  @param bool		$down		Prompt download if true
-	 *  @param int		$code		HTTP Status code
+	 *  @param string		$path		Physical path relative to script
+	 *  @param bool			$down		Prompt download if true
+	 *  @param \Notes\HttpStatus	$code		HTTP Status code
 	 */
 	public function sendFile(
-		string		$path,
-		bool		$down		= false, 
-		bool		$cache		= true,
-		int		$code		= 200
+		string			$path,
+		bool			$down		= false, 
+		bool			$cache		= true,
+		\Notes\HttpStatus	$code		= \Notes\HttpStatus::ClientOK
 	) : bool {
 		// No file found
 		if ( !\is_readable( $path ) || !\is_file( $path ) ) {
@@ -670,18 +669,18 @@ class Response extends Message {
 	/**
 	 *  Print headers, content, and end execution
 	 *  
-	 *  @param int		$code		HTTP Status code
-	 *  @param string	$content	Page data to send to client
-	 *  @param bool		$cache		Cache page data if true
+	 *  @param \Notes\HttpStatus	$code		HTTP Status code
+	 *  @param string		$content	Page data to send to client
+	 *  @param bool			$cache		Cache page data if true
 	 */
 	public function send(
-		int		$code		= 200,
-		string		$content	= '',
-		bool		$cache		= false,
-		bool		$feed		= false
+		\Notes\HttpStatus	$code		= \Notes\HttpStatus::ClientOK,
+		string			$content	= '',
+		bool			$cache		= false,
+		bool			$feed		= false
 	) {
 		$this->scrubOutput();
-		$this->httpCode( $code );
+		$code->sendHeader();
 		
 		if ( $feed ) {
 			$this->headers[] = 
@@ -706,7 +705,10 @@ class Response extends Message {
 		// TODO: Trigger 'contentsend' event and schedule 'ob_end_flush'
 		
 		// Check gzip prerequisites
-		if ( $code != 304 && \extension_loaded( 'zlib' ) ) {
+		if ( 
+			$code->value != \Notes\HttpStatus::NotModified && 
+			\extension_loaded( 'zlib' ) 
+		) {
 			\ob_start( 'ob_gzhandler' );
 		}
 		
@@ -722,10 +724,10 @@ class Response extends Message {
 	/**
 	 *  Error file sending helper
 	 *  
-	 *  @param int		$code		Error code number
-	 *  @return bool			True on success
+	 *  @param \Notes\HttpStatus	$code		Error code number
+	 *  @return bool				True on success
 	 */
-	protected function sendErrorFile( int $code ) : bool {
+	protected function sendErrorFile( \Notes\HttpStatus $code ) : bool {
 		// Try to send generic file error, if it exists, and exit
 		$path = 
 		$this->config->setting( 'error_path', 'string' );
@@ -736,41 +738,30 @@ class Response extends Message {
 		
 		$path	= \Notes\Util::slashPath( $path, true );
 		
-		// Send generic 50x if in series
-		if ( \in_array( $code, [ 500, 501, 503 ] ) ) {
+		// Send generic 50x if internal
+		if ( $code->internalError() ) {
 			if ( $this->sendFile( 
-				$path . '50x.html', false, false, $code 
+				$path . $code->errorFile(), false, false, $code 
 			) ) {
 				$this->flushBuffers( true );
 			}
 		}
 		
-		switch( $code ) {
-			case 400:
-			case 401:
-			case 403:
-			case 404:
-			case 405:
-			case 429:
-			case 500:
-			case 501:
-			case 503:
-				$path = $path . $code . '.html';
-				break;
-		}
-	
-		// TODO: Trigger error file sending event
-		if ( $this->sendFile( $path, false, false, $code ) ) {
-			return true;
+		if ( empty( $code->errorFile() ) ) {
+			return false;
 		}
 		
+		// TODO: Trigger error file sending event
+		if ( $this->sendFile( $path . $code->errorFile(), false, false, $code ) ) {
+			return true;
+		}
 		return false;
 	}
 	
 	/**
 	 *  Send error message
 	 */
-	public function sendError( int $code, string $body ) {
+	public function sendError( \Notes\HttpStatus $code, string $body ) {
 		// Try to send a static error file if it exists first
 		if ( $this->sendErrorFile( $code ) ) {
 			$this->flushBuffers( true );
@@ -796,7 +787,10 @@ class Response extends Message {
 		}
 		
 		// Create return code based on returned ETag
-		$code	= $this->ifModified( $tags['etag'] )? 200 : 304;
+		$code	= 
+		$this->ifModified( $tags['etag'] ) ? 
+			\Notes\HttpStatus::ClientOK : 
+			\Notes\HttpStatus::NotModified;
 		
 		// Send on success
 		return $this->sendFile( $path, false, true, $code );
@@ -953,79 +947,14 @@ class Response extends Message {
 	}
 	
 	/**
-	 *  Create HTTP status code message
-	 *  
-	 *  @param int		$code		HTTP Status code
-	 */
-	public function httpCode( int $code ) {
-		$green	= [
-			200, 201, 202, 204, 205, 206, 
-			300, 301, 302, 303, 304,
-			400, 401, 403, 404, 405, 406, 407, 409, 410, 411, 412, 
-			413, 414, 415,
-			500, 501
-		];
-		
-		if ( \in_array( $code, $green ) ) {
-			\http_response_code( $code );
-			
-			// Some codes need additional headers
-			switch( $code ) {
-				case 405:
-					$this->sendAllowHeader();
-					break;
-			}
-			
-			return;
-		}
-		
-		$prot = $this->getProtocol();
-		
-		// Special cases
-		switch( $code ) {
-			case 416:
-				$this->headers[] = 
-				"$prot $code " . 'Range Not Satisfiable';
-				return;
-				
-			case 425:
-				$this->headers[] =
-				"$prot $code Too Early";
-				return;
-			
-			case 429:
-				$this->headers[] =
-				"$prot $code Too Many Requests";
-				return;
-				
-			case 431:
-				$this->headers[] = 
-				"$prot $code " . 
-				'Request Header Fields Too Large';
-				return;
-			
-			case 503:
-				$this->headers[] = 
-				"$prot $code Service Unavailable";
-				return;
-		}
-		
-		// Log unkown status type
-		$this->errors[] = 'Unknown status code "' . $code . '"';
-		
-		\http_response_code( 500 );
-		$this->flushBuffers( true );
-	}
-	
-	/**
 	 *  Redirect with status code
 	 *  
-	 *  @param int		$code	HTTP Status code
-	 *  @param string	$path	Full URL to from current domain
+	 *  @param \Notes\HttpStatus	$code	HTTP Status code
+	 *  @param string		$path	Full URL to from current domain
 	 */
 	public function redirect(
-		int		$code		= 200,
-		string		$path		= ''
+		\Notes\HttpStatus	$code		= \Notes\HttpStatus::ClientOK,
+		string			$path		= ''
 	) {
 		$url	= \parse_url( $path );
 		$host	= $url['host'] ?? '';
@@ -1044,7 +973,7 @@ class Response extends Message {
 		$path	= \preg_replace( '/\.{2,}', '.', $path );
 		
 		if ( false === \headers_sent() ) {
-			\header( 'Location: ' . $path, true, $code );
+			\header( 'Location: ' . $path, true, $code->value );
 		}
 		
 		$this->eraseBuffers( true );
