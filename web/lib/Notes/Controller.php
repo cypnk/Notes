@@ -173,9 +173,9 @@ class Controller {
 	}
 	
 	/**
-	 *  Register new event
+	 *  Add runnable event to current list
 	 *  
-	 *  @param string	$name	Description for $name
+	 *  @param string	$name	Unique event name
 	 */
 	public function addEvent( string $name ) {
 		if ( \array_key_exists( $name, $this->events ) ) {
