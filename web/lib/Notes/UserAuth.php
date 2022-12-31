@@ -80,17 +80,7 @@ class User extends Entity {
 	 *  @return mixed
 	 */
 	public function findUserById( int $id ) {
-		$sql		= 
-		"SELECT * FROM login_view WHERE id = :id LIMIT 1;";
-		$res	= 
-		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
-			$sql, [ ':id' => $id ], \DATA, 
-			'class|\\Notes\\User'
-		);
-		if ( empty( $res ) ) {
-			return null;
-		}
-		return $res[0];
+		return $this->findUserByParam( 'id', $id );
 	}
 	
 	/**
@@ -100,19 +90,7 @@ class User extends Entity {
 	 *  @return mixed
 	 */
 	public function findUserByUsername( string $username ) {
-		$sql	= 
-		"SELECT * FROM login_pass WHERE username = :user LIMIT 1;";
-		
-		$data	= 
-		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
-			$sql, [ ':user' => $username ], \DATA,
-			'class|\\Notes\\User'
-		);
-		
-		if ( empty( $data ) ) {
-			return [];
-		}
-		return $data[0];
+		return $this->findUserByParam( 'name', $username );
 	}
 	
 	/**
@@ -122,16 +100,44 @@ class User extends Entity {
 	 *  @return mixed
 	 */
 	public function findUserByLookup( string $lookup ) {
-		$sql		= 
-		"SELECT * FROM login_view WHERE lookup = :lookup LIMIT 1;";
+		return $this->findUserByParam( 'lookup', $username );
+	}
+	
+	/**
+	 *  Get login details by generated hash
+	 *  
+	 *  @param string	$hash		Preset user hash key
+	 *  @return mixed
+	 */
+	public function findUserByHash( string $hash ) {
+		return $this->findUserByParam( 'hash', $hash );
+	}
+	
+	/**
+	 *  Generic user selector by parameter
+	 *  
+	 *  @param string	$mode		Searching login view mode
+	 *  @param mixed	$param		Finding parameter
+	 *  @return mixed
+	 */
+	public function findUserByParam( string $mode, $param ) {
+		$sql = 
+		match( $mode ) {
+			'id'	=> 'SELECT * FROM login_view WHERE id = :param LIMIT 1;',
+			'name'	=> 'SELECT * FROM login_pass WHERE username = :param LIMIT 1;',
+			'lookup'=> 'SELECT * FROM login_view WHERE lookup = :param LIMIT 1;',
+			'hash'	=> 'SELECT * FROM login_view WHERE hash = :param LIMIT 1;'
+		}
+			
 		$res	= 
 		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
-			$sql, [ ':lookup' => $lookup ], \DATA, 
+			$sql, [ ':param' => $param ], \DATA, 
 			'class|\\Notes\\User'
 		);
 		if ( empty( $res ) ) {
 			return null;
-		}	
+		}
+		return $data[0];
 	}
 	
 	/**
