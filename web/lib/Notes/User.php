@@ -23,6 +23,8 @@ class User extends Entity {
 	
 	protected string $_new_password;
 	
+	private string $_clear_password;
+	
 	protected string $_hash;
 	
 	protected int $_is_approved;
@@ -51,6 +53,7 @@ class User extends Entity {
 					return;
 				}
 				
+				$this->_clear_password	= ( string ) $value;
 				$this->_new_password	= 
 					static::hashPassword( ( string ) $value );
 				return;
@@ -239,7 +242,7 @@ class User extends Entity {
 		return 
 		\Notes\IDProvider::userHash( 
 			$this->_username, 
-			$this->_password,
+			$this->_clear_password ?? $this->_password,
 			$this->getControllerParam( '\\Notes\\Config' )->realm
 		);
 	}
