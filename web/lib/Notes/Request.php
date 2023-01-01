@@ -641,12 +641,12 @@ class Request extends Message {
 		}
 		$path	= [ $this->getHost() ];
 		\array_map( function( $v ) use ( &$path ) {
-			$path[] = $path[count( $path ) - 1] . 
-			\Notes\Util::slashPath( $v );
+			$path[] = 
+			\rtrim( \end( $path ) . '/' . \ltrim( $v, '/' ), '/' );
 		}, explode( '/', \ltrim( $this->getURI(), '/' ) );
 		
 		$this->path_tree = $path;
-		return $path;
+		return $this->path_tree;
 	}
 	
 	/**
