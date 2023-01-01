@@ -67,8 +67,7 @@ class FormLoginProvider extends IDProvider {
 		
 		// No user found?
 		if ( empty( $user ) ) {
-			$status = AuthStatus::NoUser;
-			return null;
+			static::sendNoUser( $status );
 		}
 		
 		// Verify credentials
@@ -86,8 +85,7 @@ class FormLoginProvider extends IDProvider {
 		}
 		
 		// Login failiure
-		$status = AuthStatus::Failed;
-		return null;
+		return static::sendFailed( $status );
 	}
 	
 }
