@@ -232,6 +232,18 @@ class User extends Entity {
 		) );
 	}
 	
+	/**
+	 *  Generate provider hash
+	 */
+	protected function userHash() : string {
+		return 
+		\Notes\IDProvider::userHash( 
+			$this->_username, 
+			$this->_password,
+			$this->getControllerParam( '\\Notes\\Config' )->realm
+		);
+	}
+	
 	public function save() : bool {
 		$us	= isset( $this->id ) ? true : false;
 		
@@ -263,7 +275,8 @@ class User extends Entity {
 			// Changing password too?
 			if ( isset( $this->_new_password ) ) {
 				$params[':pass'] = $this->_new_password;
-				$sql .= ', password = :pass';
+				$params[':hash'] = $this->userHash();
+				$sql .= ', password = :pass, hash = :hash';
 			}
 			
 			$params[':id'] = $this->id;
@@ -278,12 +291,13 @@ class User extends Entity {
 		$params[':name']	= $this->_username;
 		$params[':clean']	= $this->_user_clean;
 		$params[':pass']	= $this->_new_password;
+		$params[':hash']	= $this->userHash();
 		
 		$id	= 
 		$db->setInsert(
 			"INESRT INTO users
-				( status, bio, settings, username, user_clean, password ) 
-			VALUES ( :status, :bio, :settings, :name, :clean, :pass );",
+				( status, bio, settings, username, user_clean, password, hash ) 
+			VALUES ( :status, :bio, :settings, :name, :clean, :pass, :hash );",
 			$params,
 			\DATA
 		);
