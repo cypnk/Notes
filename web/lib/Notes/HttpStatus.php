@@ -54,11 +54,24 @@ enum HttpStatus {
 	case Auth		= 1001;
 	case AuthBasic		= 1002;
 	case AuthDigest		= 1003;
+	case AuthDigestStale	= 1004;
 	
 	/**
 	 *  Currently allowed methods
 	 */
 	public const Methods	= 'GET, POST, HEAD, OPTIONS';
+	
+	/**
+	 *  Digest type header
+	 */
+	public const DigestBasicHeader	= 
+	'WWW-Authenticate: Basic charset="UTF-8"';
+		
+	public const DigestHeader	= 
+	'WWW-Authenticate: Digest charset="UTF-8" ' . 
+		'realm="{realm}" qop="auth, auth-int", ' . 
+		'algorithm=SHA-256, nonce="{nonce}", ' . 
+		'opaque="{opaque}"';
 	
 	/**
 	 *  Send the filename, if applicable, of the HTTP status code client view
@@ -68,19 +81,19 @@ enum HttpStatus {
 	public function errorFile() : string {
 		return 
 		match( $this ) {
-			static::InternalError, 
-			static::NotImplemented, 
-			static::Unavailable		=> '50x.html',
+			HttpStatus::InternalError, 
+			HttpStatus::NotImplemented, 
+			HttpStatus::Unavailable		=> '50x.html',
 			
-			static::BadRequest,
-			static::Unauthorized,
-			static::Forbidden,
-			static::NotFound,
-			static::MethodNotAllowed,
-			static::TooMany			=> $this->value . '.html',
+			HttpStatus::BadRequest,
+			HttpStatus::Unauthorized,
+			HttpStatus::Forbidden,
+			HttpStatus::NotFound,
+			HttpStatus::MethodNotAllowed,
+			HttpStatus::TooMany		=> $this->value . '.html',
 			
 			default				=> ''
-		}	
+		};
 	}
 	
 	/**
@@ -91,12 +104,12 @@ enum HttpStatus {
 	public function internalError() : bool {
 		return 
 		match( $this ) {
-			static::InternalError, 
-			static::NotImplemented, 
-			static::Unavailable		=> true,
+			HttpStatus::InternalError, 
+			HttpStatus::NotImplemented, 
+			HttpStatus::Unavailable		=> true,
 			
 			default				=> false
-		}
+		};
 	}
 	
 	/**
@@ -119,70 +132,72 @@ enum HttpStatus {
 		return
 		match( $this ) {
 			// Options request
-			static::Options			= ( function() {
+			HttpStatus::Options		= ( function() {
 				\http_response_code( 205 );
-				\header( 'Allow: ' . static::Methods, true );
+				\header( 'Allow: ' . HttpStatus::Methods, true );
 				return 205;
 			} )(),
 			
-			static::MethodNotAllowed	=> ( function() {
+			HttpStatus::MethodNotAllowed	=> ( function() {
 				\http_response_code( 405 );
-				\header( 'Allow: ' . static::Methods, true );
+				\header( 'Allow: ' . HttpStatus::Methods, true );
 				return 405;
 			} )(),
 			
-			static::RangeError		=> ( function() {
+			HttpStatus::RangeError		=> ( function() {
 				\header( "$prot 416 Range Not Satisfiable", true );
 				return 416;
 			} )(),
 			
-			static::Locked			=> ( function() {
+			HttpStatus::Locked		=> ( function() {
 				\header( "$prot 423 Resource Locked", true );
 				return 423;
 			} )(),
 			
-			static::TooEarly		=> ( function() {
+			HttpStatus::TooEarly		=> ( function() {
 				\header( "$prot 425 Too Early", true );
 				return 425;
 			} )(),
 
-			static::TooMany			=> ( function() {
+			HttpStatus::TooMany		=> ( function() {
 				\header( "$prot 429 Too Many Requests", true );
 				return 429;
 			} )(),
 			
-			static::TooLarge		=> ( function() {
+			HttpStatus::TooLarge		=> ( function() {
 				\header( "$prot 431 Request Header Fields Too Large", true );
 				return 431;
 			} )(),
 
-			static::Unavailable		=> ( function() {
+			HttpStatus::Unavailable		=> ( function() {
 				\header( "$prot 503 Service Unavailable", true );
 				return 503;
 			} )(),
 			
 			// Both cases should reset
-			static::ClientClosed,
-			static::ResetContent		=> ( function() {
+			HttpStatus::ClientClosed,
+			HttpStatus::ResetContent	=> ( function() {
 				\http_response_code( 205 );
 				return 205;
 			} )(),
 			
 			// Authentication
-			static::Auth,
-			static::AuthBasic		=> ( function() {
+			HttpStatus::Auth,
+			HttpStatus::AuthBasic		=> ( function() {
 				\http_response_code( 401 );
-				\header( 'WWW-Authenticate: Basic charset="UTF-8"', true );
+				\header( self::DigestBasicHeader, true );
 				return 401;
 			} )(),
 			
-			static::AuthDigest		=> ( function() {
-				$dh	= 
-				'WWW-Authenticate: Digest charset="UTF-8" realm="{realm}" ' . 
-				'qop="auth, auth-int", algorithm=SHA-256, ' . 
-				'nonce="{nonce}", opaque="{opaque}"';
-				
+			HttpStatus::AuthDigest, 
+			HttpStatus::AuthDigestStale	=> ( function() {
 				\http_response_code( 401 );
+				
+				$dh	= 
+				( $this == HttpStatus::AuthDigestStale ) ? 
+					self::DigestHeader . ', stale=true' : 
+					self::DigestHeader;
+				
 				\header( \strtr( $dh, [ 
 					'{realm}'	=> $realm ?? \bin2hex( \random_bytes( 12 ) ),
 					'{opaque}'	=> $opqaue ?? \bin2hex( \random_bytes( 12 ) ),
