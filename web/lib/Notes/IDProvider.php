@@ -25,13 +25,18 @@ class IDProvider extends Provider {
 	 *  
 	 *  @param string	$username	Client entered username
 	 *  @param string	$password	Raw password
+	 *  @param string	$realm		Current authentication realm
 	 */
-	public static function userHash( string $username, string $password ) : string {
+	public static function userHash( 
+		string	$username, 
+		string	$password, 
+		string	$realm 
+	) : string {
 		return 
 		\hash( 'sha256', \strtr( 
 			'{username}:{realm}:{password}', [
 				'{username}'	=> $username,
-				'{realm}'	=> $this->realm,
+				'{realm}'	=> $realm,
 				'{password}'	=> $password
 			] 
 		) );
