@@ -13,20 +13,6 @@ class DigestLoginProvider extends IDProvider {
 	}
 	
 	/**
-	 *  Create hash for user with given credentials and current realm
-	 */
-	public function userHash( string $username, string $password ) : string {
-		return 
-		\hash( 'sha256', \strtr( 
-			'{username}:{realm}:{password}', [
-				'{username}'	=> $username,
-				'{realm}'	=> $this->realm,
-				'{password}'	=> $password
-			] 
-		) );
-	}
-	
-	/**
 	 *  Initialize authentication helper with basic settings
 	 */
 	public function initUserAuth( \Notes\User $user ) {
@@ -37,22 +23,6 @@ class DigestLoginProvider extends IDProvider {
 		$auth->hash		= $user->hash;
 		
 		$this->auth	 	= $auth;
-	}
-	
-	/**
-	 *  Set login failure status and return null
-	 */
-	protected function sendFailed( \Notes\AuthStatus &$status ) {
-		$status = \Notes\AuthStatus::Failed;
-		return null;
-	}
-	
-	/**
-	 *  Set no user found status and return null
-	 */
-	protected function sendNoUser( \Notes\AuthStatus &$status ) {
-		$status = AuthStatus::NoUser;
-		return null;
 	}
 	
 	/**
@@ -172,18 +142,18 @@ class DigestLoginProvider extends IDProvider {
 		\Notes\AuthStatus	&$status 
 	) : ?\Notes\User {
 		if ( 2 !== count( $data ) ) {
-			return $this->sendFailed( $status );
+			return static::sendFailed( $status );
 		}
 		
 		$user = $this->auth->findUserByUsername( $data[0] );
 		// No user found?
 		if ( empty( $user ) ) {
-			return $this->sendNoUser( $status );
+			return static::sendNoUser( $status );
 		}
 		
 		// Verify credentials
 		if ( !\Notes\User::verifyPassword( $data[1], $user->password ) ) {
-			return $this->sendFailed( $status );
+			return static::sendFailed( $status );
 		}
 		
 		// Refresh password if needed
@@ -211,7 +181,7 @@ class DigestLoginProvider extends IDProvider {
 		
 		// Nothing to find or match
 		if ( empty( $data['username'] ) || $data['response'] ) {
-			return $this->sendFailed( $status );
+			return static::sendFailed( $status );
 		}
 		
 		/**
@@ -221,7 +191,7 @@ class DigestLoginProvider extends IDProvider {
 			$data['uri'], 
 			\Notes\Util::slashPath( $req->getUri() ) 
 		) ) {
-			return $this->sendFailed( $status );
+			return static::sendFailed( $status );
 		}
 		*/
 		
@@ -230,7 +200,7 @@ class DigestLoginProvider extends IDProvider {
 		
 		// No user found?
 		if ( empty( $user ) ) {
-			return $this->sendNoUser( $status );
+			return static::sendNoUser( $status );
 		}
 		
 		// Digest response hash
@@ -245,7 +215,7 @@ class DigestLoginProvider extends IDProvider {
 		}
 		
 		// Login failiure
-		return $this->sendFailed( $status );
+		return static::sendFailed( $status );
 	}
 	
 	/**
@@ -259,7 +229,7 @@ class DigestLoginProvider extends IDProvider {
 	) : ?\Notes\User {
 		$auth	= $this->authHeader();
 		if ( empty( $auth ) ) {
-			return $this->sendFailed( $status );
+			return static::sendFailed( $status );
 		}
 		
 		$data	= 
@@ -275,7 +245,7 @@ class DigestLoginProvider extends IDProvider {
 		
 		// Nothing to use?
 		if ( empty( $data ) ) {
-			return $this->sendFailed( $status );
+			return static::sendFailed( $status );
 		}
 		
 		$data	= 
