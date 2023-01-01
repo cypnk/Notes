@@ -19,4 +19,37 @@ class IDProvider extends Provider {
 		'report'	=> '',
 		'authority'	=> ''
 	];
+	
+	/**
+	 *  Create hash for user with given credentials and current realm
+	 *  
+	 *  @param string	$username	Client entered username
+	 *  @param string	$password	Raw password
+	 */
+	public static function userHash( string $username, string $password ) : string {
+		return 
+		\hash( 'sha256', \strtr( 
+			'{username}:{realm}:{password}', [
+				'{username}'	=> $username,
+				'{realm}'	=> $this->realm,
+				'{password}'	=> $password
+			] 
+		) );
+	}
+	
+	/**
+	 *  Set login failure status and return null
+	 */
+	public static function sendFailed( \Notes\AuthStatus &$status ) {
+		$status = \Notes\AuthStatus::Failed;
+		return null;
+	}
+	
+	/**
+	 *  Set no user found status and return null
+	 */
+	public static function sendNoUser( \Notes\AuthStatus &$status ) {
+		$status = AuthStatus::NoUser;
+		return null;
+	}
 }
