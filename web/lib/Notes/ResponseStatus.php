@@ -135,15 +135,15 @@ enum RepsonseStatus {
 		return
 		match( $this ) {
 			// Options request
-			ResponseStatus::Options		= ( function() {
+			ResponseStatus::Options			=> ( function() {
 				\http_response_code( 205 );
-				\header( 'Allow: ' . ResponseStatus::Methods, true );
+				\header( 'Allow: ' . self::Methods, true );
 				return 205;
 			} )(),
 			
 			ResponseStatus::MethodNotAllowed	=> ( function() {
 				\http_response_code( 405 );
-				\header( 'Allow: ' . ResponseStatus::Methods, true );
+				\header( 'Allow: ' . self::Methods, true );
 				return 405;
 			} )(),
 			
@@ -152,7 +152,7 @@ enum RepsonseStatus {
 				return 416;
 			} )(),
 			
-			ResponseStatus::Locked		=> ( function() {
+			ResponseStatus::Locked			=> ( function() {
 				\header( "$prot 423 Resource Locked", true );
 				return 423;
 			} )(),
@@ -162,7 +162,7 @@ enum RepsonseStatus {
 				return 425;
 			} )(),
 
-			ResponseStatus::TooMany		=> ( function() {
+			ResponseStatus::TooMany			=> ( function() {
 				\header( "$prot 429 Too Many Requests", true );
 				return 429;
 			} )(),
@@ -179,7 +179,7 @@ enum RepsonseStatus {
 			
 			// Both cases should reset
 			ResponseStatus::ClientClosed,
-			ResponseStatus::ResetContent	=> ( function() {
+			ResponseStatus::ResetContent		=> ( function() {
 				\http_response_code( 205 );
 				return 205;
 			} )(),
@@ -193,7 +193,7 @@ enum RepsonseStatus {
 			} )(),
 			
 			ResponseStatus::AuthDigest, 
-			ResponseStatus::AuthDigestStale	=> ( function() {
+			ResponseStatus::AuthDigestStale		=> ( function() {
 				\http_response_code( 401 );
 				
 				$dh	= 
@@ -210,7 +210,7 @@ enum RepsonseStatus {
 			} )(),
 			
 			// Everything else
-			default				=> ( function() {
+			default					=> ( function() {
 				\http_response_code( $this );
 				return ( int ) \http_response_code();
 			} )()
