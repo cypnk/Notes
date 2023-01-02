@@ -68,13 +68,38 @@ class IDProvider extends Provider {
 		
 		$user			= $data[0];
 		
-		// Override hash
+		// Override user hash with current auth hash
 		$user->hash		= $auth->hash;
 		
 		// Set current authentication
 		$this->auth	 	= $auth;
 		
 		return $user;
+	}
+	
+	/**
+	 *  Reset authenticated user data types for processing
+	 *  
+	 *  @param \Notes\User	$user	Stored user in database
+	 *  @param string	$ahash	Current authorization hash
+	 *  @return array
+	 */
+	public static function formatAuthUser( \Notes\User $user, string $ahash ) : array {
+		$user->is_approved	??= false;
+		$user->is_locked	??= false;
+		$user->settings		??= [];
+		
+		return [
+			'id'		=> ( int ) ( $user['id'] ?? 0 ), 
+			'status'	=> ( int ) ( $user['status'] ?? 0 ), 
+			'name'		=> $user->username ?? '', 
+			'auth'		=> $ahash,
+			'is_approved'	=> $user->is_approved ? true : false,
+			'is_locked'	=> $user->is_locked ? true : false, 
+			'hash'		=> $user->hash ?? '',
+			'settings'	=> 
+				\is_array( $user->settings ) ? $user->settings : []
+		];
 	}
 	
 	/**
@@ -113,5 +138,35 @@ class IDProvider extends Provider {
 	public static function sendNoUser( \Notes\AuthStatus &$status ) {
 		$status = AuthStatus::NoUser;
 		return null;
+	}
+	
+	/**
+	 *  Refresh and re-save password if current auth credentials are stale
+	 *  
+	 *  @param string	$password	Current cleartext password
+	 */
+	protected function refreshPassword( string $password ) {
+		if ( !isset( $this->_auth ) ) {
+			return;	
+		}
+		
+		if ( \Notes\User::passNeedsRehash( $this->_auth->password ) ) {
+			\Notes\User::savePassword( $this->_auth->user_id, $password );
+		}
+	}
+	
+	/**
+	 *  Reset current login session
+	 */
+	public function logout() {
+		if ( !isset( $this->_auth ) ) {
+			return;	
+		}
+		
+		$sess	= $this->getControllerParam( '\\Notes\\SHandler' );
+		$sess->deleteCookie( 'auth' );
+		$sess->sessionCheck( true );
+		
+		$this->_auth->resetLookup();
 	}
 }
