@@ -9,6 +9,8 @@ class User extends Entity {
 	 */
 	const AUTO_APPROVE_REG	= 1;
 	
+	protected string $_name;
+	
 	public int $is_approved;
 	
 	public int $is_locked;
@@ -49,6 +51,11 @@ class User extends Entity {
 	
 	public function __set( $name, $value ) {
 		switch ( $name ) {
+			case 'name':
+			case 'username':
+				$this->_name	= ( string ) $value;
+				return;
+				
 			case 'failed_attempts':
 				$this->_failed_attempts	= ( int ) $value;
 				return;
@@ -63,6 +70,10 @@ class User extends Entity {
 	
 	public function __get( $name ) {
 		switch ( $name ) {
+			case 'name':
+			case 'username':
+				return $this->_name ?? '';
+				
 			case 'failed_attempts':
 				return $this->_failed_attempts ?? 0;
 			
