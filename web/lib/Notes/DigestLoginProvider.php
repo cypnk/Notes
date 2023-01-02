@@ -4,8 +4,6 @@ namespace Notes;
 
 class DigestLoginProvider extends IDProvider {
 	
-	protected readonly \Notes\UserAuth $auth;
-	
 	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
@@ -132,9 +130,11 @@ class DigestLoginProvider extends IDProvider {
 			return static::sendFailed( $status );
 		}
 		
-		$auth = $this->auth->findUserByUsername( $data[0] );
+		$ua	= new \Notes\UserAuth( $this->controller );
+		$auth	= $ua->findUserByUsername( $data[0] );
+		
 		// No user found?
-		if ( empty( $user ) ) {
+		if ( empty( $auth ) ) {
 			return static::sendNoUser( $status );
 		}
 		
@@ -149,9 +149,9 @@ class DigestLoginProvider extends IDProvider {
 		}
 		
 		$status = AuthStatus::Success;
-		$this->initUserAuth( $auth );
-		$this->auth->updateUserActivity( 'login' );
-		return $user;
+		$auth->updateUserActivity( 'login' );
+		
+		return $this->initUserAuth( $auth );
 	}
 	
 	/**
