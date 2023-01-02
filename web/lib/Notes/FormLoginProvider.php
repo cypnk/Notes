@@ -4,8 +4,6 @@ namespace Notes;
 
 class FormLoginProvider extends IDProvider {
 	
-	protected readonly \Notes\UserAuth $auth;
-	
 	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
@@ -45,11 +43,6 @@ class FormLoginProvider extends IDProvider {
 		$this->auth->resetLookup();
 	}
 	
-	public function initUserAuth( \Notes\User $user ) {
-		// TOOD: Preload with given username
-		$this->auth = new \Notes\UserAuth( $this->controller );
-	}
-	
 	/**
 	 *  Login user by credentials
 	 *  
@@ -63,24 +56,26 @@ class FormLoginProvider extends IDProvider {
 		string			$password,
 		\Notes\AuthStatus	&$status
 	) : ?\Notes\User {
-		$user = $this->auth->findUserByUsername( $username );
+		$auth = $this->auth->findUserByUsername( $username );
 		
 		// No user found?
-		if ( empty( $user ) ) {
-			static::sendNoUser( $status );
+		if ( empty( $auth ) ) {
+			static::sendNoUser( $auth );
+			return null;
 		}
 		
 		// Verify credentials
-		if ( \Notes\User::verifyPassword( $password, $user->password ) ) {
+		if ( \Notes\User::verifyPassword( $password, $auth->password ) ) {
 			
 			// Refresh password if needed
-			if ( \Notes\User::passNeedsRehash( $user->password ) ) {
-				\Notes\User::savePassword( $user->id, $password );
+			if ( \Notes\User::passNeedsRehash( $auth->password ) ) {
+				\Notes\User::savePassword( $auth->user_id, $password );
 			}
 			
 			$status = AuthStatus::Success;
-			$this->initUserAuth( $user );
+			$user	= $this->initUserAuth( $auth );
 			$this->auth->updateUserActivity( 'login' );
+			
 			return $user;
 		}
 		
