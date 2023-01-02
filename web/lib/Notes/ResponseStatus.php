@@ -145,22 +145,21 @@ enum RepsonseStatus {
 			logException( 
 				new \ErrorException( 
 					$emsg, 0, $eno, $efile, $eline 
-				), \strtr( $str, [ 
+				), \strtr( $emsg ?? $str, [ 
 					'{value}'	=> $value,
 					'{file}'	=> 'ResponseStatus'
 				] )
 			);
-		}, E_WARNING | \E_USER_ERROR | \E_USER_WARNING );
+			
+		}, E_WARNING | \E_USER_WARNING );
 		
 		if ( \headers_sent() ) {
-			logException( 
-				new \ErrorException( 
-					$emsg, 0, $eno, $efile, $eline 
-				), 
+			\trigger_error( 
 				\strtr( 'Headers already sent and {value} not set' . $err, [ 
 					'{value}'	=> $value,
 					'{file}'	=> 'ResponseStatus'
-				] )
+				] ), 
+				\E_USER_WARNING 
 			);
 			\restore_error_handler();
 			return $value;
