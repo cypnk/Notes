@@ -13,19 +13,6 @@ class DigestLoginProvider extends IDProvider {
 	}
 	
 	/**
-	 *  Initialize authentication helper with basic settings
-	 */
-	public function initUserAuth( \Notes\User $user ) {
-		$auth			= new \Notes\UserAuth( $this->controller );
-		$auth->user_id		= $user->id;
-		$auth->is_locked	= $user->is_locked;
-		$auth->is_approved	= $user->is_approved;
-		$auth->hash		= $user->hash;
-		
-		$this->auth	 	= $auth;
-	}
-	
-	/**
 	 *  Filtered Authorization header
 	 *  
 	 *  @return string
@@ -145,24 +132,24 @@ class DigestLoginProvider extends IDProvider {
 			return static::sendFailed( $status );
 		}
 		
-		$user = $this->auth->findUserByUsername( $data[0] );
+		$auth = $this->auth->findUserByUsername( $data[0] );
 		// No user found?
 		if ( empty( $user ) ) {
 			return static::sendNoUser( $status );
 		}
 		
 		// Verify credentials
-		if ( !\Notes\User::verifyPassword( $data[1], $user->password ) ) {
+		if ( !\Notes\User::verifyPassword( $data[1], $auth->password ) ) {
 			return static::sendFailed( $status );
 		}
 		
 		// Refresh password if needed
-		if ( \Notes\User::passNeedsRehash( $user->password ) ) {
-			\Notes\User::savePassword( $user->id, $password );
+		if ( \Notes\User::passNeedsRehash( $auth->password ) ) {
+			\Notes\User::savePassword( $auth->user_id, $password );
 		}
 		
 		$status = AuthStatus::Success;
-		$this->initUserAuth( $user );
+		$this->initUserAuth( $auth );
 		$this->auth->updateUserActivity( 'login' );
 		return $user;
 	}
@@ -196,20 +183,20 @@ class DigestLoginProvider extends IDProvider {
 		*/
 		
 		// Lookup username
-		$user = $this->auth->findUserByName( 'name', $data['username'] );
+		$auth = $this->auth->findUserByName( 'name', $data['username'] );
 		
 		// No user found?
-		if ( empty( $user ) ) {
+		if ( empty( $auth ) ) {
 			return static::sendNoUser( $status );
 		}
 		
 		// Digest response hash
 		$test	= 
-		$this->testHash( $data, $user->hash, $req->getMethod() );
+		$this->testHash( $data, $auth->hash, $req->getMethod() );
 		
 		if ( \hash_equals( $data['response'], $test ) ) {
-			$status = AuthStatus::Success;
-			$this->initUserAuth( $user );
+			$status	= AuthStatus::Success;
+			$user	= $this->initUserAuth( $auth );
 			$this->auth->updateUserActivity( 'login' );
 			return $user;
 		}
