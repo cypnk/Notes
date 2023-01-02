@@ -144,9 +144,7 @@ class DigestLoginProvider extends IDProvider {
 		}
 		
 		// Refresh password if needed
-		if ( \Notes\User::passNeedsRehash( $auth->password ) ) {
-			\Notes\User::savePassword( $auth->user_id, $password );
-		}
+		$this->refreshPassword( $data[1] );
 		
 		$status = AuthStatus::Success;
 		$auth->updateUserActivity( 'login' );
