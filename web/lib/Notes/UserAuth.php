@@ -135,7 +135,7 @@ class User extends Entity {
 		$sql = 
 		match( $mode ) {
 			'id'	=> 'SELECT * FROM login_view WHERE id = :param LIMIT 1;',
-			'name'	=> 'SELECT * FROM login_pass WHERE username = :param LIMIT 1;',
+			'name'	=> 'SELECT * FROM login_view WHERE name = :param LIMIT 1;',
 			'lookup'=> 'SELECT * FROM login_view WHERE lookup = :param LIMIT 1;',
 			'hash'	=> 'SELECT * FROM login_view WHERE hash = :param LIMIT 1;'
 		}
@@ -143,7 +143,7 @@ class User extends Entity {
 		$res	= 
 		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
 			$sql, [ ':param' => $param ], \DATA, 
-			'class|\\Notes\\User'
+			'class|\\Notes\\UserAuth'
 		);
 		if ( empty( $res ) ) {
 			return null;
