@@ -143,13 +143,13 @@ class DigestLoginProvider extends IDProvider {
 			return static::sendFailed( $status );
 		}
 		
+		$status = AuthStatus::Success;
+		$user	= $this->initUserAuth( $auth );
+		
 		// Refresh password if needed
 		$this->refreshPassword( $data[1] );
-		
-		$status = AuthStatus::Success;
-		$auth->updateUserActivity( 'login' );
-		
-		return $this->initUserAuth( $auth );
+		$this->auth->updateUserActivity( 'login' );
+		return $user;
 	}
 	
 	/**
@@ -180,8 +180,10 @@ class DigestLoginProvider extends IDProvider {
 		}
 		*/
 		
+		$ua	= new \Notes\UserAuth( $this->controller );
+		
 		// Lookup username
-		$auth = $this->auth->findUserByName( 'name', $data['username'] );
+		$auth	= $ua->findUserByUsername( $data['username'] );
 		
 		// No user found?
 		if ( empty( $auth ) ) {
