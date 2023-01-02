@@ -4,6 +4,8 @@ namespace Notes;
 
 class IDProvider extends Provider {
 	
+	protected readonly \Notes\UserAuth $auth;
+	
 	protected static $insert_sql		= 
 	"INSERT INTO id_providers ( sort_order, settings, label )
 		VALUES( :so, :settings, :label );";
@@ -19,6 +21,28 @@ class IDProvider extends Provider {
 		'report'	=> '',
 		'authority'	=> ''
 	];
+	
+	/**
+	 *  Initialize authentication helper with basic settings
+	 */
+	protected function initUserAuth( \Notes\UserAuth $auth ) : \Notes\User {
+		$res	= 
+		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
+			"SELECT ", [ ':id' => $auth->user_id ], \DATA, 
+			'class|\\Notes\\User'
+		);
+		if ( empty( $res ) ) {
+			return null;
+		}
+		$user			= $data[0];
+		
+		$user->is_locked	= $auth->is_locked;
+		$user->is_approved	= $auth->is_approved;
+		$user->hash		= $auth->hash;
+		$this->auth	 	= $auth;
+		
+		return $user;
+	}
 	
 	/**
 	 *  Create hash for user with given credentials and current realm
