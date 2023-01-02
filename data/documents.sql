@@ -421,6 +421,23 @@ CREATE VIEW login_view AS SELECT
 	JOIN users ON logins.user_id = users.id
 	LEFT JOIN user_auth ua ON users.id = ua.user_id;-- --
 
+-- Post-login user data
+CREATE VIEW user_view AS SELECT 
+	users.id AS id, 
+	users.uuid AS uuid, 
+	users.updated AS updated, 
+	users.status AS status, 
+	users.username AS username, 
+	users.password AS password, 
+	users.settings AS user_settings, 
+	users.hash AS hash,
+	ua.is_approved AS is_approved, 
+	ua.is_locked AS is_locked, 
+	ua.expires AS expires
+	
+	FROM users
+	LEFT JOIN user_auth ua ON users.id = ua.user_id;-- --
+	
 
 -- Login regenerate. Not intended for SELECT
 -- Usage:
