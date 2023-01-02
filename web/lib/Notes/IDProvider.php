@@ -28,17 +28,19 @@ class IDProvider extends Provider {
 	protected function initUserAuth( \Notes\UserAuth $auth ) : \Notes\User {
 		$res	= 
 		$this->getControllerParam( '\\\Notes\\Data' )->getResults( 
-			"SELECT ", [ ':id' => $auth->user_id ], \DATA, 
+			"SELECT * FROM user_view", [ ':id' => $auth->user_id ], \DATA, 
 			'class|\\Notes\\User'
 		);
 		if ( empty( $res ) ) {
 			return null;
 		}
+		
 		$user			= $data[0];
 		
-		$user->is_locked	= $auth->is_locked;
-		$user->is_approved	= $auth->is_approved;
+		// Override hash
 		$user->hash		= $auth->hash;
+		
+		// Set current authentication
 		$this->auth	 	= $auth;
 		
 		return $user;
