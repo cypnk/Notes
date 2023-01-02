@@ -247,6 +247,17 @@ class User extends Entity {
 		);
 	}
 	
+	public function updateLogin() {
+		$sql	= 'UPDATE logins SET hash = :hash WHERE user_id = :id;';
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
+		
+		return 
+		$db->setUpdate( $sql, [
+			':hash'	=> $this->userHash(),
+			':id'	=> $this->id
+		], \DATA );
+	}
+	
 	public function save() : bool {
 		$us	= isset( $this->id ) ? true : false;
 		
@@ -278,8 +289,8 @@ class User extends Entity {
 			// Changing password too?
 			if ( isset( $this->_new_password ) ) {
 				$params[':pass'] = $this->_new_password;
-				$params[':hash'] = $this->userHash();
-				$sql .= ', password = :pass, hash = :hash';
+				$sql .= ', password = :pass';
+				$this->updateLogin();
 			}
 			
 			$params[':id'] = $this->id;
@@ -293,14 +304,13 @@ class User extends Entity {
 		
 		$params[':name']	= $this->_username;
 		$params[':clean']	= $this->_user_clean;
-		$params[':pass']	= $this->_new_password;
-		$params[':hash']	= $this->userHash();
+		$params[':pass']	= $this->_new_password
 		
 		$id	= 
 		$db->setInsert(
 			"INESRT INTO users
-				( status, bio, settings, username, user_clean, password, hash ) 
-			VALUES ( :status, :bio, :settings, :name, :clean, :pass, :hash );",
+				( status, bio, settings, username, user_clean, password ) 
+			VALUES ( :status, :bio, :settings, :name, :clean, :pass );",
 			$params,
 			\DATA
 		);
@@ -309,6 +319,8 @@ class User extends Entity {
 			return false;
 		}
 		$this->id = $id;
+		$this->updateLogin();
+		
 		return true;
 	}
 }
