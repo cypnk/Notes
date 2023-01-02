@@ -403,7 +403,8 @@ END;-- --
 -- SELECT * FROM login_view WHERE lookup = :lookup;
 -- SELECT * FROM login_view WHERE name = :username;
 CREATE VIEW login_view AS SELECT 
-	logins.user_id AS id, 
+	logins.id AS id,
+	logins.user_id AS user_id, 
 	users.uuid AS uuid, 
 	logins.lookup AS lookup, 
 	logins.hash AS hash, 
