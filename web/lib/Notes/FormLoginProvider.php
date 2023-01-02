@@ -56,7 +56,8 @@ class FormLoginProvider extends IDProvider {
 		string			$password,
 		\Notes\AuthStatus	&$status
 	) : ?\Notes\User {
-		$auth = $this->auth->findUserByUsername( $username );
+		$ua	= new \Notes\UserAuth( $this->controller );
+		$auth	= $ua->findUserByUsername( $username );
 		
 		// No user found?
 		if ( empty( $auth ) ) {
@@ -73,10 +74,9 @@ class FormLoginProvider extends IDProvider {
 			}
 			
 			$status = AuthStatus::Success;
-			$user	= $this->initUserAuth( $auth );
-			$this->auth->updateUserActivity( 'login' );
+			$auth->updateUserActivity( 'login' );
 			
-			return $user;
+			return $this->initUserAuth( $auth );
 		}
 		
 		// Login failiure
