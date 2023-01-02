@@ -128,53 +128,78 @@ enum RepsonseStatus {
 		?string		$realm	= null,
 		?string		$opqaue	= null
 	) : int {
+		
+		// Current value
+		$value	= $this->value ?? 0;
+		
+		// Error suffix
+		$err	= '. Message: {msg} File: {file} Line: {line}';
+		
+		// Intercept any warnings/errors
+		\set_error_handler( function( 
+			$eno, $emsg, $efile, $eline 
+		) use ( $value, $err ) {
+			$str = 'Unable to set response status header {value}' . $err;
+			
+			logException( 
+				new \ErrorException( 
+					$emsg, 0, $eno, $efile, $eline 
+				), \strtr( $str, [ 
+					'{value}'	=> $value,
+					'{file}'	=> 'ResponseStatus'
+				] )
+			);
+		}, E_WARNING | \E_USER_ERROR | \E_USER_WARNING );
+		
 		if ( \headers_sent() ) {
-			return 0;
+			logException( 
+				new \ErrorException( 
+					$emsg, 0, $eno, $efile, $eline 
+				), 
+				\strtr( 'Headers already sent and {value} not set' . $err, [ 
+					'{value}'	=> $value,
+					'{file}'	=> 'ResponseStatus'
+				] )
+			);
+			\restore_error_handler();
+			return $value;
 		}
 		
-		return
+		$code = 
 		match( $this ) {
 			// Options request
 			ResponseStatus::Options			=> ( function() {
 				\http_response_code( 205 );
 				\header( 'Allow: ' . self::Methods, true );
-				return 205;
 			} )(),
 			
 			ResponseStatus::MethodNotAllowed	=> ( function() {
 				\http_response_code( 405 );
 				\header( 'Allow: ' . self::Methods, true );
-				return 405;
 			} )(),
 			
 			ResponseStatus::RangeError		=> ( function() {
 				\header( "$prot 416 Range Not Satisfiable", true );
-				return 416;
 			} )(),
 			
 			ResponseStatus::Locked			=> ( function() {
 				\header( "$prot 423 Resource Locked", true );
-				return 423;
 			} )(),
 			
 			ResponseStatus::TooEarly		=> ( function() {
 				\header( "$prot 425 Too Early", true );
-				return 425;
 			} )(),
 
 			ResponseStatus::TooMany			=> ( function() {
 				\header( "$prot 429 Too Many Requests", true );
-				return 429;
 			} )(),
 			
 			ResponseStatus::TooLarge		=> ( function() {
 				\header( "$prot 431 Request Header Fields Too Large", true );
-				return 431;
 			} )(),
 
 			ResponseStatus::Unavailable		=> ( function() {
 				\header( "$prot 503 Service Unavailable", true );
-				return 503;
 			} )(),
 			
 			// Both cases should reset
@@ -189,7 +214,6 @@ enum RepsonseStatus {
 			ResponseStatus::AuthBasic		=> ( function() {
 				\http_response_code( 401 );
 				\header( self::AuthBasicHeader, true );
-				return 401;
 			} )(),
 			
 			ResponseStatus::AuthDigest, 
@@ -206,15 +230,17 @@ enum RepsonseStatus {
 					'{opaque}'	=> $opqaue ?? \bin2hex( \random_bytes( 12 ) ),
 					'{nonce}'	=> \bin2hex( \random_bytes( 12 ) )
 				] ), true );
-				return 401;
 			} )(),
 			
 			// Everything else
 			default					=> ( function() {
 				\http_response_code( $this );
-				return ( int ) \http_response_code();
 			} )()
 		};
+		
+		\restore_error_handler();
+		
+		return ( int ) \http_response_code();
 	}
 }
 
