@@ -92,6 +92,7 @@ enum RepsonseStatus {
 			ResponseStatus::Unauthorized,
 			ResponseStatus::Forbidden,
 			ResponseStatus::NotFound,
+			ResponseStatus::Gone,
 			ResponseStatus::MethodNotAllowed,
 			ResponseStatus::TooMany		=> $this->value . '.html',
 			
