@@ -126,8 +126,10 @@ class DigestLoginProvider extends IDProvider {
 		array			$data, 
 		\Notes\AuthStatus	&$status 
 	) : ?\Notes\User {
+		$this->auth_type	= \Notes\AuthType::Basic;
+		
 		if ( 2 !== count( $data ) ) {
-			return static::sendFailed( $status );
+			return static::sendFailed( $status, $this, $data );
 		}
 		
 		$ua	= new \Notes\UserAuth( $this->controller );
@@ -135,12 +137,12 @@ class DigestLoginProvider extends IDProvider {
 		
 		// No user found?
 		if ( empty( $auth ) ) {
-			return static::sendNoUser( $status );
+			return static::sendNoUser( $status, $this, $data );
 		}
 		
 		// Verify credentials
 		if ( !\Notes\User::verifyPassword( $data[1], $auth->password ) ) {
-			return static::sendFailed( $status );
+			return static::sendFailed( $status, $this, $data );
 		}
 		
 		$status = AuthStatus::Success;
@@ -163,10 +165,11 @@ class DigestLoginProvider extends IDProvider {
 		array			$data
 		\Notes\AuthStatus	&$status 
 	) : ?\Notes\User {
+		$this->auth_type	= \Notes\AuthType::Digest;
 		
 		// Nothing to find or match
 		if ( empty( $data['username'] ) || $data['response'] ) {
-			return static::sendFailed( $status );
+			return static::sendFailed( $status, $this, $data );
 		}
 		
 		/**
@@ -187,7 +190,7 @@ class DigestLoginProvider extends IDProvider {
 		
 		// No user found?
 		if ( empty( $auth ) ) {
-			return static::sendNoUser( $status );
+			return static::sendNoUser( $status, $this, $data );
 		}
 		
 		// Digest response hash
@@ -202,7 +205,7 @@ class DigestLoginProvider extends IDProvider {
 		}
 		
 		// Login failiure
-		return static::sendFailed( $status );
+		return static::sendFailed( $status, $this, $data );
 	}
 	
 	/**
@@ -218,7 +221,7 @@ class DigestLoginProvider extends IDProvider {
 	) : ?\Notes\User {
 		$auth	= $this->authHeader();
 		if ( empty( $auth ) ) {
-			return static::sendNoUser( $status );
+			return static::sendNoUser( $status, $this );
 		}
 		
 		$data	= 
@@ -232,9 +235,16 @@ class DigestLoginProvider extends IDProvider {
 				$this->paramFilter( $auth, 6 )
 		};
 		
+		$this->controller->run( 
+			'user_login_start', [ 
+				'provider'	=> $this, 
+				'data'		=> $data
+			]
+		);
+		
 		// Nothing to use?
 		if ( empty( $data ) ) {
-			return static::sendFailed( $status );
+			return static::sendFailed( $status, $this );
 		}
 		
 		$data	= 
