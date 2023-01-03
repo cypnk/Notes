@@ -16,12 +16,14 @@ class FormLoginProvider extends IDProvider {
 	 *  @param string		$username	Login name to search
 	 *  @param string		$password	User provided password
 	 *  @param \Notes\AuthStatus	$status		Authentication success etc...
+	 *  @param bool			$upstatus	Update auth status
 	 *  @return \Notes\User
 	 */
 	public function login(
 		string			$username,
 		string			$password,
-		\Notes\AuthStatus	&$status
+		\Notes\AuthStatus	&$status, 
+		bool			$upstatus		= true
 	) : ?\Notes\User {
 		$ua	= new \Notes\UserAuth( $this->controller );
 		$auth	= $ua->findUserByUsername( $username );
@@ -43,7 +45,11 @@ class FormLoginProvider extends IDProvider {
 		
 		// Refresh password if needed
 		$this->refreshPassword( $data[1] );
-		$this->auth->updateUserActivity( 'login' );
+		
+		// Also update status?
+		if ( $upstatus )
+		    	$this->authStatus( $status, $user );
+		}
 		return $user;
 	}
 	
