@@ -46,6 +46,9 @@ class IDProvider extends Provider {
 	
 	public function __get( $name ) {
 		switch ( $name ) {
+			case 'auth':
+				return $this->_auth ?? null;
+				
 			case 'auth_type':
 				return 
 				$this->_auth_type ?? \Notes\AuthType::Unkown;
