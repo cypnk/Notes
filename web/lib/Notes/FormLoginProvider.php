@@ -7,7 +7,8 @@ class FormLoginProvider extends IDProvider {
 	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
-		$this->name = "FormLoginProvider";
+		$this->name		= "FormLoginProvider";
+		$this->auth_type	= \Notes\AuthType::Form;
 	}
 	
 	/**
@@ -28,15 +29,22 @@ class FormLoginProvider extends IDProvider {
 		$ua	= new \Notes\UserAuth( $this->controller );
 		$auth	= $ua->findUserByUsername( $username );
 		
+		$data	= [ 'username' => $username, 'password' => $password ];
+		$this->controller->run( 
+			'user_login_start', [ 
+				'provider'	=> $this, 
+				'data'		=> $data
+			]
+		);
+		
 		// No user found?
 		if ( empty( $auth ) ) {
-			static::sendNoUser( $auth );
-			return null;
+			return static::sendNoUser( $auth, $this, $data );
 		}
 		
 		// Verify credentials
 		if ( !\Notes\User::verifyPassword( $password, $auth->password ) ) {
-			return static::sendFailed( $status );
+			return static::sendFailed( $status, $this, $data );
 		}
 		
 		
