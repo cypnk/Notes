@@ -5,6 +5,7 @@ namespace Notes;
 enum AuthStatus {
 	case Success;
 	case Failed;
+	case Active;
 	
 	case NoUser;
 	case Duplicate;
@@ -31,6 +32,7 @@ enum AuthStatus {
 	public function mode() : string {
 		return 
 		match( $this ) {
+			AuthStatus::Active,
 			AuthStatus::Success,
 			AuthStatus::Failed,
 			AuthStatus::Duplicate,
