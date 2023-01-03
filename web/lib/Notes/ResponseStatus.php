@@ -206,7 +206,6 @@ enum RepsonseStatus {
 			ResponseStatus::ClientClosed,
 			ResponseStatus::ResetContent		=> ( function() {
 				\http_response_code( 205 );
-				return 205;
 			} )(),
 			
 			// Authentication
