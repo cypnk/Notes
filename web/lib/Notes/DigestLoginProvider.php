@@ -209,14 +209,16 @@ class DigestLoginProvider extends IDProvider {
 	 *  Sort authentication schemes
 	 *  
 	 *  @param \Notes\AuthStatus	$status		Authentication success etc...
+	 *  @param bool			$upstatus	Update auth status
 	 *  @return \Notes\User
 	 */
 	public function login(
-		\Notes\AuthStatus	&$status 
+		\Notes\AuthStatus	&$status, 
+		bool			$upstatus	= true
 	) : ?\Notes\User {
 		$auth	= $this->authHeader();
 		if ( empty( $auth ) ) {
-			return static::sendFailed( $status );
+			return static::sendNoUser( $status );
 		}
 		
 		$data	= 
@@ -238,13 +240,17 @@ class DigestLoginProvider extends IDProvider {
 		$data	= 
 		\array_map( '\\Notes\\Util::entities', $data );
 		
-		// Digest auth
-		if ( \array_key_exists( 'nonce', $data ) ) {
-			return $this->digestLogin( $data, $status );
-		}
 		
-		// Basic auth
-		return $this->basicLogin( $data, $status );
+		$user =
+		\array_key_exists( 'nonce', $data ) ? 
+			$this->digestLogin( $data, $status ) :	// Digest auth
+			$this->basicLogin( $data, $status );	// Basic auth
+		
+		// Also update status?
+		if ( $upstatus )
+		    	$this->authStatus( $status, $user );
+		}
+		return $user;
 	}	
 }
 
