@@ -107,15 +107,6 @@ class IDProvider extends Provider {
 	}
 	
 	/**
-	 *  Get current user authentication, if set
-	 *  
-	 *  @return mixed
-	 */
-	public function getAuth() {
-		return $this->_auth ?? null;
-	}
-	
-	/**
 	 *  Reset authenticated user data types for processing
 	 *  
 	 *  @param \Notes\User	$user	Stored user in database
@@ -239,6 +230,171 @@ class IDProvider extends Provider {
 		$sess->sessionCheck( true );
 		
 		$this->_auth->resetLookup();
+	}
+	
+	/**
+	 *  Generate authentication token based on browser settings
+	 *  
+	 *  @param string	$hash	Unique user hash (digest or form created)
+	 *  @return string
+	 */
+	protected function authToken( string $hash ) : string {
+		$req = $this->getControllerParam( '\\Notes\\Config' )->getRequest();
+		
+		return \hash( 'tiger160,4', $req->getUA() . $hash );
+	}
+	
+	/**
+	 *  Complete user authorization and optionally set cookie
+	 *  
+	 *  @param \Notes\UserAuth	$auth		Current authentication
+	 *  @param bool			$cookie		Create cookie, if true (default)
+	 */
+	protected function completeAuth( \Notes\UserAuth $auth, bool $cookie = true ) {
+		$session = $this->getControllerParam( '\\Notes\\SHandler' );
+		$session->sessionCheck();
+		
+		// User found, apply authorization
+		$user	= $this->initUserAuth( $auth );
+		
+		// Update last activity
+		$this->authStatus( \Notes\AuthStatus::Active, $user );
+		
+		// Reset data types and apply to session
+		$fmt	= static::formatAuthUser( $user, $this->authToken( $auth->hash ) );
+		$_SESSION['user'] = $fmt;
+		
+		// Done at this point
+		if ( !$cookie ) {
+			return;
+		}
+		
+		$session->makeCookie( 
+			'user', 
+			$this->authToken( $fmt['auth'] ) . '|' . $user->lookup ?? ''
+		);
+	}
+	
+	/**
+	 *  Attempt authentication by session if possible
+	 *  
+	 *  @return bool
+	 */
+	protected function authFromSession() : bool {
+		
+		$session = $this->getControllerParam( '\\Notes\\SHandler' );
+		$session->sessionCheck();
+		
+		// Nothing to check?
+		if ( empty( $_SESSION['user'] ) || !\is_array( $_SESSION['user'] ) ) {
+			return false;
+		}
+			
+		// Fetched results must be an 8-item array
+		$user	= $_SESSION['user'];
+		if ( \count( $user ) !== 8 ) { 
+			$_SESSION['user']	= '';
+			return false; 
+		}
+		
+		// Check if current browser settings have changed since auth token creation
+		$token	= $this->authToken( $user['hash'] );
+		
+		if ( 0 != \strcmp( ( string ) $user['auth'] ?? '', $token ) ) { 
+			return false; 
+		}
+		
+		// Find authentication by given hash
+		$ua	= new \Notes\UserAuth( $this->controller );
+		$auth	= 
+		$ua->findfindUserByHash( 
+			\Notes\Util::pacify( $user['hash'] ?? '' ) 
+		);
+		
+		// No cookie found?
+		if ( empty( $auth ) ) {
+			return false;
+		}
+		$this->completeAuth( $auth );
+		return true;
+	}
+	
+	/**
+	 *  Attempt authentication by session if possible
+	 *  
+	 *  @return bool
+	 */
+	protected function authFromCookie() : bool {
+		
+		$session	= $this->getControllerParam( '\\Notes\\SHandler' );
+		$session->sessionCheck();
+		
+		$cookie	= $session->getCookie( 'user', '' );
+		if ( empty( $cookie ) ) {
+			return false;
+		}
+		
+		$cookie = ( string ) $cookie;
+		
+		// Sane defaults
+		if ( \Notes\Util::strsize( $cookie ) > 255 ) {
+			return false;
+		}
+		
+		// Auth token before lookup
+		$sttok	= \strstr( $cookie, '|', true );
+		if ( false === $sttok ) {
+			return false;
+		}
+		
+		$lookup	= \substr( $cookie, \strlen( $sttok ) + 1 ); 
+		if ( empty( $lookup ) ) {
+			return false;	
+		}
+		
+		$ua	= new \Notes\UserAuth( $this->controller );
+		$auth	= 
+		$ua->findfindUserByLookup( 
+			\Notes\Util::pacify( $lookup ) 
+		);
+		
+		// No cookie found?
+		if ( empty( $auth ) ) {
+			return false;
+		}
+		
+		$token	= $this->authToken( $auth->hash ); 
+		if ( 0 == \strcmp( $sttok, $token ) ) { 			
+			$this->completeAuth( $auth );
+			return true;
+		}
+		return false; 
+	}
+	
+	/**
+	 *  Verify user authentication session or cookie
+	 *  
+	 *  @param bool		$delete		Forget existing auth if true
+	 *  @return array
+	 */
+	public function authUser( bool $delete = false ) : bool {
+		// Already set?
+		if ( isset( $this->_auth ) ) {	
+			// Delete login?
+			if ( $delete ) {
+				$session = $this->getControllerParam( '\\Notes\\SHandler' );
+				$session->deleteCookie( 'user' );
+				
+				$this->_auth->resetLookup();
+			}
+			return true;
+		}
+		
+		// Try session auth
+		return 
+		$this->authFromSession() ? true : 
+			// Session was empty? Check cookie lookup
+			$this->authFromCookie();
 	}
 	
 	/**
