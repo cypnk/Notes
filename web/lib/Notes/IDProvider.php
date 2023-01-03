@@ -169,4 +169,58 @@ class IDProvider extends Provider {
 		
 		$this->_auth->resetLookup();
 	}
+	
+	/**
+	 *  Update user authentication activity status
+	 *  
+	 *  @param \Notes\AuthStatus	$status		Current authentication status
+	 *  @param mixed		$user		Of type \Notes\User on validity or null
+	 */
+	protected function authStatus( \Notes\AuthStatus $status, ?\Notes\User $user ) {
+		// Can't update user status
+		if ( !isset( $this->_auth ) || empty( $user ) ) {
+			return;	
+		}
+		
+		// Don't do anything on duplicate errors
+		if ( $status == \Notes\AuthStatus::Duplicate ) {
+			return;	
+		}
+		
+		// Everything else
+		match( $status ) {
+			// Set activity
+			\Notes\AuthStatus::Active	=> 
+				$this->_auth->updateUserActivity( 'active' ),
+			
+			// Login success
+			\Notes\AuthStatus::Success	=> 
+				$this->_auth->updateUserActivity( 'login' ),
+			
+			// Active login failed
+			\Notes\AuthStatus::Failed, 
+			\Notes\AuthStatus::EmailError,
+			\Notes\AuthStatus::PinError	=> 
+				$this->_auth->updateUserActivity( 'failedlogin' ),
+			
+			// Change approval status
+			\Notes\AuthStatus::Unapproved	=> 
+				$this->_auth->updateUserActivity( 'unapprove' ),
+			
+			// Lock on provider errors
+			\Notes\AuthStatus::LockedOut,
+			\Notes\AuthStatus::AuthProviderError,
+			\Notes\AuthStatus::PermProviderError	=>
+				$this->_auth->updateUserActivity( 'lock' ),
+			
+			// Reset lookup on check errors
+			\Notes\AuthStatus::RealmError,
+			\Notes\AuthStatus::ScopeError,
+			\Notes\AuthStatus::RoleError,
+			\Notes\AuthStatus::SessionError,
+			\Notes\AuthStatus::UserError,
+			\Notes\AuthStatus::CookieError	=> 
+				$this->_auth->resetLookup()
+		};
+	}
 }
