@@ -75,6 +75,21 @@ INSERT INTO handlers ( params )
 		"event"		: "web_start",
 		"payload"	: "\\\\Notes\\\\LogHandler",
 		"priority"	: 99997
+	}') ),
+	( json( '{
+		"event"		: "web_start",
+		"payload"	: "\\\\Notes\\\\WebInterface",
+		"priority"	: 99996
+	}') ),
+	( json( '{
+		"event"		: "web_start",
+		"payload"	: "\\\\Notes\\\\Membership",
+		"priority"	: 99995
+	}') ),
+	( json( '{
+		"event"		: "web_start",
+		"payload"	: "\\\\Notes\\\\RouteHandler",
+		"priority"	: 99994
 	}') );-- --
 
 
