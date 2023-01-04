@@ -69,7 +69,7 @@ class IDProvider extends Provider {
 			return [];
 		}
 		
-		$data = 
+		return 
 		match( true ) {
 			// Basic auth only?
 			( false === \strpos( $auth, '=' ) )	=> ( function() use ( $auth ) {
@@ -134,8 +134,6 @@ class IDProvider extends Provider {
 				return $matched;
 			} )()
 		};
-		
-		return $data;
 	}
 	
 	/**
