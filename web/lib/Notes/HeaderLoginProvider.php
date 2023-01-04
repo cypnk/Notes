@@ -1,71 +1,17 @@
 <?php declare( strict_types = 1 );
+/**
+ *  @file	/web/lib/Notes/HeaderLoginProvider.php
+ *  @brief	'WWW-Authenticate' header based login provider
+ */
 
 namespace Notes;
 
-class DigestLoginProvider extends IDProvider {
+class HeaderLoginProvider extends IDProvider {
 	
 	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
-		$this->name = "DigestLoginProvider";
-	}
-	
-	/**
-	 *  Filtered Authorization header
-	 *  
-	 *  @return string
-	 */
-	protected function authHeader() : string {
-		// Current request
-		$req	= 
-		$this
-			->getControllerParam( '\\Notes\\Config' )
-			->getRequest();
-		
-		// Find the Authorization header, if set
-		$auth	= $req->httpHeaders( true )['authorization'] ?? '';
-		
-		return \trim( \Notes\Util::unifySpaces( $auth ) );
-	}
-	
-	/**
-	 *  Parametized array of authentication data 
-	 *  
-	 *  @param string	$auth	Raw Authorization header
-	 *  @param int		$s	Prefix strip size
-	 *  @return array
-	 */
-	protected function paramFilter( string $auth, int $s ) : array {
-		$auth = \substr( $auth, $s );
-		if ( empty( $auth ) ) {
-			return [];
-		}
-		
-		// Basic auth only?
-		if ( false === \strpos( $auth, '=' ) ) {
-			$data = \base64_decode( $auth );
-			if ( false === $data || empty( $data ) ) {
-				return [];
-			}
-			
-			return explode( ':', $data, 2 );
-		}
-		
-		$data = [];
-		
-		// Unquote, trim, and parse
-		\parse_str( \strtr( 
-			$auth, [ '"' => '', ' ' => '' ] 
-		), $data );
-		
-		// Fail on duplicates, if any
-		foreach ( $data as $v ) {
-			if ( \is_array( $v ) ) {
-				return [];
-			}
-		}
-		
-		return $data;
+		$this->name = "HeaderLoginProvider";
 	}
 	
 	/**
@@ -126,8 +72,6 @@ class DigestLoginProvider extends IDProvider {
 		array			$data, 
 		\Notes\AuthStatus	&$status 
 	) : ?\Notes\User {
-		$this->auth_type	= \Notes\AuthType::Basic;
-		
 		if ( 2 !== count( $data ) ) {
 			return static::sendFailed( $status, $this, $data );
 		}
@@ -165,23 +109,27 @@ class DigestLoginProvider extends IDProvider {
 		array			$data
 		\Notes\AuthStatus	&$status 
 	) : ?\Notes\User {
-		$this->auth_type	= \Notes\AuthType::Digest;
-		
 		// Nothing to find or match
 		if ( empty( $data['username'] ) || $data['response'] ) {
 			return static::sendFailed( $status, $this, $data );
 		}
 		
-		/**
-		TODO: Validate against sent URI
-		// URI mismatch
-		if ( 0 !== \strcasecmp( 
-			$data['uri'], 
-			\Notes\Util::slashPath( $req->getUri() ) 
-		) ) {
-			return static::sendFailed( $status );
+		// Check against URI, if given
+		if ( empty( $data['uri'] ) ) {
+			return static::sendFailed( $status, $this );
+		} else {
+			$req	= 
+			$this->getControllerParam( '\\Notes\\Config' )
+				->getRequest();
+			
+			// URI mismatch?
+			if ( 0 !== \strcasecmp( 
+				$data['uri'], 
+				\Notes\Util::slashPath( $req->getUri() ) 
+			) ) {
+				return static::sendFailed( $status, $this );
+			}
 		}
-		*/
 		
 		$ua	= new \Notes\UserAuth( $this->controller );
 		
@@ -197,8 +145,9 @@ class DigestLoginProvider extends IDProvider {
 		$test	= 
 		$this->testHash( $data, $auth->hash, $req->getMethod() );
 		
+		// Response matches
 		if ( \hash_equals( $data['response'], $test ) ) {
-			$status	= AuthStatus::Success;
+			$status	= \Notes\AuthStatus::Success;
 			$user	= $this->initUserAuth( $auth );
 			$this->auth->updateUserActivity( 'login' );
 			return $user;
@@ -221,18 +170,27 @@ class DigestLoginProvider extends IDProvider {
 	) : ?\Notes\User {
 		$auth	= $this->authHeader();
 		if ( empty( $auth ) ) {
+			$this->auth_type = \Notes\AuthType::Unknown;
 			return static::sendNoUser( $status, $this );
 		}
 		
-		$data	= 
+		$data			= [];
+		
+		// Check authentication scheme from sent header against supported types
+		$lauth			= \strtolower( $auth );
+		$this->auth_type	=
 		match( true ) {
-			// Strip 'Digest ' and filter
-			\str_starts_with( $auth, 'Digest ' )	=>  
-				$this->paramFilter( $auth, 7 ),
-				
-			// Strip 'Basic ' and filter
-			\str_starts_with( $auth, 'Basic ' )	=> 
-				$this->paramFilter( $auth, 6 )
+			\str_starts_with( $lauth, 'basic' ) => ( function() use ( &$data ) {
+				$data	= static::paramFilter( $auth, 'basic' );
+				return \Notes\AuthType::Basic;
+			} )(),
+			
+			\str_starts_with( $lauth, 'digest' )=> ( function() use ( &$data ) { 
+				$data	= static::paramFilter( $auth, 'digest' );
+				return \Notes\AuthType::Digest;
+			} )(),
+			
+			default	=> \Notes\AuthType::Unknown
 		};
 		
 		$this->controller->run( 
@@ -247,14 +205,18 @@ class DigestLoginProvider extends IDProvider {
 			return static::sendFailed( $status, $this );
 		}
 		
-		$data	= 
-		\array_map( '\\Notes\\Util::entities', $data );
-		
-		
 		$user =
-		\array_key_exists( 'nonce', $data ) ? 
-			$this->digestLogin( $data, $status ) :	// Digest auth
-			$this->basicLogin( $data, $status );	// Basic auth
+		match( $this->auth_type ) {
+			\Notes\AuthType::Basic	=> $this->basicLogin( $data, $status ),
+			\Notes\AuthType::Digest	=> $this->digestLogin( $data, $status ),
+			
+			// Unknown/Unsupported auth type
+			default		=> null
+		};
+		
+		if ( empty( $user ) ) {
+			return static::sendFailed( $status, $this );
+		}
 		
 		// Also update status?
 		if ( $upstatus )
