@@ -150,15 +150,6 @@ abstract class Controllable {
 	}
 	
 	/**
-	 *  Get current database handler
-	 *  
-	 *  @return mixed
-	 */
-	protected function getData() {
-		return $this->controller->getParam( 'Data' ) ?? null;
-	}
-	
-	/**
 	 *  Helper to detect and parse a 'settings' data type
 	 *  
 	 *  @param string	$name		Setting name
