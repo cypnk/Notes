@@ -48,7 +48,7 @@ class FormLoginProvider extends IDProvider {
 		}
 		
 		
-		$status = AuthStatus::Success;
+		$status = \Notes\AuthStatus::Success;
 		$user	= $this->initUserAuth( $auth );
 		
 		// Refresh password if needed
