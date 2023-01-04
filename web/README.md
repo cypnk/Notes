@@ -1,7 +1,7 @@
 Work in progress...
 
 Web version software requirements:
-* [PHP](https://www.php.net/manual/en/install.php) version 8 or above with the following modules enabled or installed
+* [PHP](https://www.php.net/manual/en/install.php) version 8.1 or above with the following modules enabled or installed
 	* [iconv](https://www.php.net/manual/en/intro.iconv.php)
 	* [mbstring](https://www.php.net/manual/en/intro.mbstring.php)
 	* [intl](https://www.php.net/manual/en/intro.intl.php)
