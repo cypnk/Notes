@@ -599,7 +599,10 @@ class IDProvider extends Provider {
 						'status'	=> $status
 					]
 				);
-			} )()
+			} )(),
+			
+			// Catch
+			default				=> null
 		};
 	}
 }
