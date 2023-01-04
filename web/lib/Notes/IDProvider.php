@@ -51,11 +51,72 @@ class IDProvider extends Provider {
 				
 			case 'auth_type':
 				return 
-				$this->_auth_type ?? \Notes\AuthType::Unkown;
+				$this->_auth_type ?? \Notes\AuthType::Unknown;
 		}
 		return parent::__get( $name );	
 	}
 	
+	/**
+	 *  Parametized array of authentication data 
+	 *  
+	 *  @param string	$auth	Raw Authorization header
+	 *  @param string	$s	Authentication scheme label
+	 *  @return array
+	 */
+	protected static function paramFilter( string $auth, string $s ) : array {
+		$auth = \substr( $auth, \strlen( $s ) + 1 );
+		if ( empty( $auth ) ) {
+			return [];
+		}
+		
+		// Basic auth only?
+		if ( false === \strpos( $auth, '=' ) ) {
+			$data = \base64_decode( $auth );
+			if ( false === $data || empty( $data ) ) {
+				return [];
+			}
+			
+			return explode( ':', $data, 2 );
+		}
+		
+		$data = [];
+		
+		// Unquote, trim, and parse
+		\parse_str( \strtr( 
+			$auth, [ '"' => '', ' ' => '' ] 
+		), $data );
+		
+		// Fail on duplicates, if any
+		foreach ( $data as $v ) {
+			if ( \is_array( $v ) ) {
+				return [];
+			}
+		}
+		
+		return $data;
+	}
+	
+	/**
+	 *  Filtered Authorization header
+	 *  
+	 *  @return string
+	 */
+	protected function authHeader() : string {
+		// Current request
+		$req	= 
+		$this
+			->getControllerParam( '\\Notes\\Config' )
+			->getRequest();
+		
+		// Find the Authorization header, if set
+		$auth	= $req->httpHeaders( true )['authorization'] ?? '';
+		
+		return \trim( \Notes\Util::unifySpaces( $auth ) );
+	}
+	
+	/**
+	 *  Set current user authorization only once
+	 */
 	protected function setAuth( $auth ) {
 		if ( isset( $this->_auth ) ) {
 			\trigger_error( 'Attempt to override previously set auth', \E_USER_WARNING );
@@ -70,6 +131,9 @@ class IDProvider extends Provider {
 		\trigger_error( 'Attempt to set auth not of type Notes\\UserAuth', \E_USER_WARNING );
 	}
 	
+	/**
+	 *  Set current user authentication type only once
+	 */
 	protected function setAuthType( $value ) {
 		if ( isset( $this->_auth_type ) ) {
 			\trigger_error( 'Attempt to override previously set authentication type', \E_USER_WARNING );
