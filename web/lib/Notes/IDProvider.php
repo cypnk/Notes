@@ -69,29 +69,71 @@ class IDProvider extends Provider {
 			return [];
 		}
 		
-		// Basic auth only?
-		if ( false === \strpos( $auth, '=' ) ) {
-			$data = \base64_decode( $auth );
-			if ( false === $data || empty( $data ) ) {
-				return [];
-			}
+		$data = 
+		match( true ) {
+			// Basic auth only?
+			( false === \strpos( $auth, '=' ) )	=> ( function() use ( $auth ) {
+				$data = \base64_decode( $auth );
+				if ( false === $data || empty( $data ) ) {
+					return [];
+				}
+				return explode( ':', $data, 2 );
+			} )(),
 			
-			return explode( ':', $data, 2 );
-		}
-		
-		$data = [];
-		
-		// Unquote, trim, and parse
-		\parse_str( \strtr( 
-			$auth, [ '"' => '', ' ' => '' ] 
-		), $data );
-		
-		// Fail on duplicates, if any
-		foreach ( $data as $v ) {
-			if ( \is_array( $v ) ) {
-				return [];
-			}
-		}
+			// PHP type (non-CGI) multiples?
+			( false !== \strpos( $auth, '[]' ) )	=> ( function() use ( $auth ) {
+				$matched = [];
+				
+				// Unquote, trim, and parse
+				\parse_str( 
+					\Notes\Util::unifySpaces( 
+						\strtr( $auth, [ '"' => '' ] ) 
+					), $matched 
+				);
+				return $matched;
+			} )(),
+			
+			// Everything else
+			default					=> ( function() use ( $auth ) {
+				$matched	= [];
+				$parts		= explode( ',', $auth );
+				
+				foreach ( $parts as $i ) {
+  					list( $k, $v ) = explode( '=', $i, 2 );
+					
+					// Skip empty values
+					if ( empty( \trim( $v ) ) {
+						continue;
+					}
+					
+					// Trimmed key
+					$k = \Notes\Util::unifySpaces( $k, true );
+					
+					// Duplicate values?
+					if ( isset( $matched[$k] ) ) {
+						// Reformat to array
+						if ( !\is_array( $matched[$k] ) ) {
+							$tmp = $matched[$k];
+							$matched[$k] = [];
+							$matched[$k][] = $tmp;
+						}
+						
+						// Unquoted and trimmed
+						$matched[$k][]	= 
+						\Notes\Util::unifySpaces(
+							\trim( \strtr( $v, [ '"' => '' ] ) )
+						);
+						continue;
+					}
+					
+					$matched[$k]	= 
+					\Notes\Util::unifySpaces(
+						\trim( \strtr( $v, [ '"' => '' ] ) )
+					);
+				}
+				return $matched;
+			} )()
+		};
 		
 		return $data;
 	}
