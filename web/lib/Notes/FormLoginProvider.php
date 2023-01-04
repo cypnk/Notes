@@ -1,4 +1,8 @@
 <?php declare( strict_types = 1 );
+/**
+ *  @file	/web/lib/Notes/FormLoginProvider.php
+ *  @brief	HTML form based login provider
+ */
 
 namespace Notes;
 
@@ -9,6 +13,9 @@ class FormLoginProvider extends IDProvider {
 		
 		$this->name		= "FormLoginProvider";
 		$this->auth_type	= \Notes\AuthType::Form;
+		if ( isset( $_POST['username'] ) ) {
+			// TODO: Login/register form
+		}
 	}
 	
 	/**
