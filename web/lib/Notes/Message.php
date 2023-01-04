@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class Message {
+class Message extends Controllable {
 	
 	/**
 	 *  Message source or destination URI
