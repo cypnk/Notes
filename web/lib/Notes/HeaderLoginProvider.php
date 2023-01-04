@@ -102,12 +102,14 @@ class HeaderLoginProvider extends IDProvider {
 	 *  User login by digest challenge response
 	 *  
 	 *  @param array		$data		Auth header parameters
+	 *  @param \Notes\Request	$request	Current visitor
 	 *  @param \Notes\AuthStatus	$status		Authentication success etc...
 	 *  @return \Notes\User
 	 */
 	protected function digestLogin( 
-		array			$data
-		\Notes\AuthStatus	&$status 
+		array			$data,
+		\Notes\Request		$request, 
+		\Notes\AuthStatus	&$status
 	) : ?\Notes\User {
 		// Nothing to find or match
 		if ( empty( $data['username'] ) || $data['response'] ) {
@@ -118,14 +120,11 @@ class HeaderLoginProvider extends IDProvider {
 		if ( empty( $data['uri'] ) ) {
 			return static::sendFailed( $status, $this );
 		} else {
-			$req	= 
-			$this->getControllerParam( '\\Notes\\Config' )
-				->getRequest();
 			
 			// URI mismatch?
 			if ( 0 !== \strcasecmp( 
 				$data['uri'], 
-				\Notes\Util::slashPath( $req->getUri() ) 
+				\Notes\Util::slashPath( $request->getUri() ) 
 			) ) {
 				return static::sendFailed( $status, $this );
 			}
@@ -143,7 +142,7 @@ class HeaderLoginProvider extends IDProvider {
 		
 		// Digest response hash
 		$test	= 
-		$this->testHash( $data, $auth->hash, $req->getMethod() );
+		$this->testHash( $data, $auth->hash, $request->getMethod() );
 		
 		// Response matches
 		if ( \hash_equals( $data['response'], $test ) ) {
@@ -175,22 +174,19 @@ class HeaderLoginProvider extends IDProvider {
 		}
 		
 		$data			= [];
+		$req			= 
+		$this->getControllerParam( '\\Notes\\Config' )
+				->getRequest();
 		
-		// Check authentication scheme from sent header against supported types
-		$lauth			= \strtolower( $auth );
-		$this->auth_type	=
-		match( true ) {
-			\str_starts_with( $lauth, 'basic' ) => ( function() use ( &$data ) {
-				$data	= static::paramFilter( $auth, 'basic' );
-				return \Notes\AuthType::Basic;
-			} )(),
+		// Set authentication scheme
+		$this->auth_type	= \Notes\AuthType::mode( $auth, $req->getMethod() );
+		$data			= 
+		match( $this->auth_type ) {
+			\Notes\AuthType::Basic		=> static::paramFilter( $auth, 'basic' ),
+			\Notes\AuthType::Digest		=> static::paramFilter( $auth, 'digest' ),
+			\Notes\AuthType::External	=> [],	// TODO
 			
-			\str_starts_with( $lauth, 'digest' )=> ( function() use ( &$data ) { 
-				$data	= static::paramFilter( $auth, 'digest' );
-				return \Notes\AuthType::Digest;
-			} )(),
-			
-			default	=> \Notes\AuthType::Unknown
+			default				=> []
 		};
 		
 		$this->controller->run( 
@@ -208,7 +204,7 @@ class HeaderLoginProvider extends IDProvider {
 		$user =
 		match( $this->auth_type ) {
 			\Notes\AuthType::Basic	=> $this->basicLogin( $data, $status ),
-			\Notes\AuthType::Digest	=> $this->digestLogin( $data, $status ),
+			\Notes\AuthType::Digest	=> $this->digestLogin( $data, $req, $status ),
 			
 			// Unknown/Unsupported auth type
 			default		=> null
