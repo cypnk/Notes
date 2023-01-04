@@ -20,7 +20,7 @@ abstract class Controllable {
 	 *  Main event controller
 	 *  @var \Notes\Controller
 	 */
-	protected readonly object $controller;
+	protected readonly \Notes\Controller $controller;
 	
 	/**
 	 *  Controllable parameters on execution
