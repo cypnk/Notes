@@ -281,6 +281,8 @@ class User extends Entity {
 		];
 		
 		$db	= $this->getControllerParam( '\\\Notes\\Data' );
+		$log	= $this->getControllerParam( '\\\Notes\\LogHandler' );
+		
 		if ( $us ) {
 			$sql = 
 			"UPDATE users SET status = :status, 
@@ -296,7 +298,14 @@ class User extends Entity {
 			$params[':id'] = $this->id;
 			$sql .= ' WHERE id = :id;';
 			
-			return $db->setUpdate( $sql, $params, \DATA );
+			$ok = $db->setUpdate( $sql, $params, \DATA );
+			if ( $ok ) {
+				$log->createLog( 'user update success', $this->_username );
+				return true;
+			}
+			
+			$log->createLog( 'user update failed', $this->_username );
+			return false;
 		}
 		
 		// Set new password
@@ -316,11 +325,13 @@ class User extends Entity {
 		);
 		
 		if ( empty( $id ) ) {
+			$log->createLog( 'new user failed', $this->_username );
 			return false;
 		}
 		$this->id = $id;
 		$this->updateLogin();
 		
+		$log->createLog( 'new user success', $this->_username );
 		return true;
 	}
 }
