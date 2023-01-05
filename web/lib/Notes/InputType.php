@@ -8,10 +8,12 @@ enum InputType {
 	case Email;
 	case Radio;
 	case Select;
+	case Search;
 	case Wysiwyg;
 	case Checkbox;
 	case Password;
 	case Textarea;
+	case DateTime;
 	
 	case Hidden;
 	case Other;
@@ -21,69 +23,91 @@ enum InputType {
 	case Button;
 	
 	// Generic input
-	const InputRender	= 
-	'<label for="{name}" class="{label_classes}">{label} ' . 
-	'<span class="{special_classes}">{special}</span></label> ' . 
-	'<input id="{id}" name="{name}" class="{input_classes}" ' . 
-		'aria-describedby="{id}-desc" {extras}> ';
+	const InputRender	=<<<HTML
+{input_field_before}<input id="{id}" name="{name}" type="text" 
+	aria-describedby="{id}-desc" placeholder="{placeholder}" 
+	class="{input_classes}" value="{value}" 
+	{required}{extra}>{input_field_after}
+HTML;
 	
 	// Typed text input
-	const InputTypeRender	=
-	'<label for="{name}" class="{label_classes}">{label} ' . 
-	'<span class="{special_classes}">{special}</span></label> ' . 
-	'<input id="{id}" name="{name}" class="{input_classes}" ' . 
-		'type="{type}" aria-describedby="{id}-desc" {extras}>';
+	const InputTypeRender	=<<<HTML
+{input_field_before}<input id="{id}" name="{name}" type="{type}" 
+	aria-describedby="{id}-desc" placeholder="{placeholder}" 
+	class="{input_classes}" value="{value}" 
+	{required}{extra}>{input_field_after}
+HTML;
 	
 	// Checkbox and radio button
-	const TickRender	= 
-	'<label for="{name}" class="{label_classes}">{label} ' . 
-	'<span class="{special_classes}">{special}</span> ' . 
-	'<input id="{id}" name="{name}" type="{type}" class="{input_classes}" ' . 
-		'aria-describedby="{id}-desc" {extras}></label>';
+	const TickRender	=<<<HTML
+{input_field_before}<input id="{id}" name="{name}" value="{value}" 
+	type="{type}" class="{input_classes}" aria-describedby="{id}-desc" 
+	{required}{extra}>{input_field_after}
+HTML;
 	
 	// Multiline
-	const TextareaRender	=
-	'<label for="{name}" class="{label_classes}">{label} ' . 
-	'<span class="{special_classes}">{special}</span></label> ' . 
-	'<textarea id="{id}" name="{name}" class="{input_classes}" ' . 
-		'aria-describedby="{id}-desc" {extras}>{value}</textarea>';
+	const TextareaRender	=<<<HTML
+{input_field_before}<textarea id="{id}" name="{name}" 
+	aria-describedby="{id}-desc" placeholder="{placeholder}" 
+	rows="{rows} cols="{cols}" class="{input_classes}" 
+	{required}{extra}>{value}</textarea>{input_field_after} 
+HTML;
 	
 	// HTML Formatted multiline
-	const WysiwygRender	=
-	'<label for="{name}" class="{label_classes}">{label} ' . 
-	'<span class="{special_classes}">{special}</span></label> ' . 
-	'<div class="wysiwyg" rel="{id}"></div>' . 
-	'<textarea id="{id}" name="{name}" class="{input_classes}" ' . 
-		'aria-describedby="{id}-desc" 
-		data-wysiwyg="{id}" {extras}>{value}</textarea>';
+	const WysiwygRender	=<<<HTML
+{input_field_before}<div class="{wysiwyg-classes}" rel="{id}-wysiwyg"></div>
+<textarea id="{id}" name="{name}" 
+	aria-describedby="{id}-desc" placeholder="{placeholder}" 
+	rows="{rows} cols="{cols}" class="{input_classes}" 
+	data-wysiwyg="{id}" {required}{extra}
+	>{value}</textarea>{input_field_after} 
+HTML;
 	
 	// Multiple options
-	const SelectRender	= 
-	'<label for="{name}" class="{label_classes}">{label} ' . 
-	'<span class="{special_classes}">{special}</span></label> ' . 
-	'<select id="{id}" name="{name}" class="{input_classes}" ' . 
-		'aria-describedby="{id}-desc">{options}</select>';
+	const SelectRender	=<<<HTML
+{input_field_before} 
+<select id="{id}" name="{name}" aria-describedby="{id}-desc"
+	class="{input_classes}" {required}{extra}>
+	{unselect_option}{options}</select>{input_field_after} 
+HTML;
 	
 	// Single option in above
 	const OptionRender	= 
 	'<option value="{value}" {selected}>{label}</option>';
 	
+	// Unselected option
+	const UnselectRender	= '<option value="">--</option>';
+	
 	// Hidden input template
 	const HiddenRender	= 
 	'<input type="hidden" name="{name}" value="{value}">';
 	
-	// Instructions and/or accessibility descriptions
-	const DescRender	= 
-	'<small id="{id}-desc" class="{desc_classes}">{description}</small>';
+	const SubmitRender	=<<<HTML
+<p class="{input_wrap_classes}">
+{input_before}{input_submit_before}<input type="{type}" id="{id}" 
+	name="{name}" value="{value}" class="{submit_classes}" 
+	{extra}>{input_submit_after}{input_after}</p>
+HTML;
 	
 	// Field wrapper
-	const InputWrap		= 
-	'<p class="{input_wrap_classes}">{input} {desc}</p>';
+	const InputWrap		=<<<HTML
+<p class="{input_wrap_classes}">{input_before}
+{label_before}<label for="{id}" class="{label_classes}">{label}
+	{special_before}<span class="{special_classes}"
+	>{special}</span>{special_after}</label>{label_after} 
+{input}
+{desc_before}<small id="{id}-desc" class="{desc_classes}" 
+	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
+HTML;
 	
 	/**
 	 *  Render the current input type in the above templates
 	 */
 	public function render( array $input ) : string {
+		
+		// Default to text type if not given
+		$input['type'] ??= 'text';
+		$input['type'] = \strtolower( $input['type'] );
 		
 		$data = static::placeholders( $input );
 		
@@ -93,22 +117,34 @@ enum InputType {
 		// Default styling
 		static::baseStyling( $data );
 		
-		// TODO
-		// $input['validation']		??= [];
-		
-		$input = 
+		$data['{input}'} = 
 		match( $this ) {
 			// Flat text
 			InputType::Text, 
-			InputType::Email, 
+			InputType::Email,
+			InputType::Search, 
 			InputType::Password	=> 
 				\strtr( static::InputTypeRender, $data ),
 			
-			// TODO: Selection
-			InputType::Select	=> ( function() use ( $input, $data ) {
-				$data['{options}'] = 
+			// Datetime
+			InputType::DateTime	=> ( function() use ( &$data ) {
+				// Override type
+				$data['{type}']	= 'datetime-local';
+				
+				return \strtr( static::InputTypeRender, $data )
+			} )(),
+			
+			// Select
+			InputType::Select	=> ( function() use ( &$data, $input ) {
+				// Set unselected (empty) option
+				$data['{unselect_option}']	= 
+				empty( $input['unselect'] ) ? '' : 
+					static::UnselectRender;
+				
+				$data['{options}']		= 
 				static::renderOptions( $input['options'] ?? [] );
 				
+				return 
 				\strtr( static::SelectRender, $data ),
 			} )(),
 			
@@ -129,51 +165,104 @@ enum InputType {
 			InputType::Hidden	=>
 				\strtr( static::HiddenRender, $data ), 
 			
+			// Buttons
+			InputType::Button,
+			InputType::Submit	=>
+				\strtr( static::SubmitRender, $data ), 
+				
 			// Everything else
 			default		=> 
 				\strtr( static::InputRender, $data )
 		};
 		
+		
 		return 
-		\strtr( static::InputWrap, [ 
-			'{desc}'	=> \strtr( static::DescRender, $data ),
-			'{input}'	=> $input 
-		] );
+		match( $this ) {
+			// Send bare
+			InputType::Submit,
+			InputType::Button,
+			InputType::Hidden	=> $data['{input}'],
+			
+			// Send wrapped
+			default			=> 
+				\strtr( static::InputWrap, $data )
+		};
+	}
+	
+	// TODO
+	public function validate( array $input ) {
+		
 	}
 	
 	/**
 	 *  Set default placeholder values
 	 */
 	public static baseDefaults( array &$data ) {
+		
 		// Application
 		$data['{id}']			??= '';
 		$data['{name}']			??= $data['{id}'];
 		$data['{value}']		??= '';
+		$data['{placeholder}']		??= '';
+		$data['{required}']		??= '';
 		
 		// Accessibility
 		$data['{label}']		??= '';
 		$data['{special}']		??= '';
 		$data['{description}']		??= '';
-		$data['{extras}']		??= '';
+		$data['{extra}']		??= '';
 		
 		// Reset selected if not set
 		$data['{selected}']  		??= '';
+		
+		// Overridden content
+		$data['{input_field_before}']	??= '';
+		$data['{input_field_after}']	??= '';
+		
+		$data['{input_before}']		??= '';
+		$data['{input_after}']		??= '';
+		
+		$data['{label_before}']		??= '';
+		$data['{label_after}']		??= '';
+		$data['{special_before}']	??= '';
+		$data['{special_after}']	??= '';
+		$data['{desc_before}']		??= '';
+		$data['{desc_after}']		??= '';
+		
+		$data['{special_extras}']	??= '';
+		$data['{desc_extras}']		??= '';
+		$data['{label_extras}']		??= '';
+		
 	}
 	
 	/**
 	 *  Default styling from tachyons.css
 	 */
 	public static baseStyling( array &$data ) {
-		$data['{input_wrap_classes}']	??= '';
-		$data['{label_classes}']	??= 'f6 b db mb2';
-		$data['{special_classes}']	??= 'normal black-60';
-		$data['{desc_classes}']		??= 'f6 black-70';
+		$data['{input_wrap_classes}']	??= 'pa4 black-80';
+		$data['{label_classes}']	??= 
+		match( $this ) { 
+			// Radio labels are simpler
+			InputType::Radio,
+			InputType::Checkbox	=> 'f6 b lh-copy mb2',
+			
+			default			=> 'f6 b db mb2'
+		};
+		
+		$data['{special_classes}']	??= 'normal black-80';
+		$data['{desc_classes}']		??= 'f6 black-80';
 		$data['{input_classes}']	??= 
 		match( $this ) {
-			InputType::Select,
+			// Ticks
 			InputType::Radio,
-			InputType::Checkbox	=> 'input-reset',
+			InputType::Checkbox	=> 'b mr2',
 			
+			// Clickable
+			InputType::Button,
+			InputType::Submit	=> 
+			'f6 link dim ph3 pv2 mb2 dib white bg-dark-blue',
+			
+			// Multiline
 			InputType::Textarea,
 			InputType::Wysiwyg	=> 
 			'db border-box black-80 w-100 ba b--black-50 pa2 mb2',
@@ -212,7 +301,7 @@ enum InputType {
 			// Skip arrays
 			if ( \is_array( $v ) ) { return; }
 			
-			$data['{' . $k . '}'] = $v;
+			$data['{' . $k . '}'] = $v ?? '';
 		} );
 		
 		return $data;
