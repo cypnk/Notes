@@ -44,13 +44,17 @@ class FormLoginProvider extends IDProvider {
 			]
 		);
 		
+		$log	= $this->getControllerParam( '\\\Notes\\LogHandler' );
+		
 		// No user found?
 		if ( empty( $auth ) ) {
+			$log->createLog( 'form login no user', $username );
 			return static::sendNoUser( $auth, $this, $data );
 		}
 		
 		// Verify credentials
 		if ( !\Notes\User::verifyPassword( $password, $auth->password ) ) {
+			$log->createLog( 'form login failed', $username );
 			return static::sendFailed( $status, $this, $data );
 		}
 		
@@ -58,6 +62,7 @@ class FormLoginProvider extends IDProvider {
 		$status = \Notes\AuthStatus::Success;
 		$user	= $this->initUserAuth( $auth );
 		
+		$log->createLog( 'form login success', $username );
 		// Refresh password if needed
 		$this->refreshPassword( $data[1] );
 		
