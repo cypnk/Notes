@@ -5,57 +5,13 @@ namespace Notes;
 abstract class Form extends Controllable {
 	
 	/**
-	 *  Submission type
-	 *  @var string
-	 */
-	public readonly string $method;
-	
-	/**
-	 *  Form encoding type, defaults to 'application/x-www-form-urlencoded'
-	 *  @var string
-	 */
-	public readonly string $enctype;
-	
-	/**
 	 *  Current form definition type
 	 *  @var \Notes\FormType
 	 */
 	public readonly \Notes\FormType $form_type;
 	
-	/**
-	 *  List of inputs
-	 *  @var array
-	 */
-	public array $inputs;
 	
 	abstract public function render( array $data ) : string {}
-	
-	/**
-	 *  Basic form constructor
-	 *  
-	 *  @param string	$_inputs	List of form inputs
-	 *  @param string	$_name		Form unique label
-	 *  @param string	$_method	Submission method
-	 *  @param string	$_enc		Content encoding type
-	 *  @param string	$_id		Optional, on-page identifier
-	 */
-	public function __construct( 
-		array	$_inputs,
-		string	$_name, 
-		string	$_method,
-		string	$_enc, 
-		?string	$_id		= null 
-	) {
-		$this->name	= $_name;
-		if ( empty( $_id ) ) {
-			$this->id = $_name;
-		}
-		
-		$this->method	= $_method;
-		$this->enctype	= $_enc;
-		$this->inputs	= $_inputs;
-	}
-	
 	
 	/**
 	 *  Initiate field token or reset existing
