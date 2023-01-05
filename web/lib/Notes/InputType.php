@@ -14,6 +14,11 @@ enum InputType {
 	case Textarea;
 	
 	case Hidden;
+	case Other;
+	
+	// TODO
+	case Submit;
+	case Button;
 	
 	// Generic input
 	const InputRender	= 
