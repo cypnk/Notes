@@ -23,7 +23,7 @@ enum FormType {
 	 */
 	public function render( array $form ) : string {
 		// Prepare placeholders
-		$data = \Notes\InputType::placeholders( $form );
+		$data = \Notes\Util::placeholders( $form );
 		
 		// Default placeholders
 		static::baseDefaults( $data );
