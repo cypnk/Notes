@@ -13,6 +13,8 @@ enum InputType {
 	case Password;
 	case Textarea;
 	
+	case Hidden;
+	
 	// Generic input
 	const InputRender	= 
 	'<label for="{name}" class="{label_classes}">{label} ' . 
@@ -60,6 +62,10 @@ enum InputType {
 	// Single option in above
 	const OptionRender	= 
 	'<option value="{value}" {selected}>{label}</option>';
+	
+	// Hidden input template
+	const HiddenRender	= 
+	'<input type="hidden" name="{name}" value="{value}">';
 	
 	// Instructions and/or accessibility descriptions
 	const DescRender	= 
@@ -114,7 +120,10 @@ enum InputType {
 			InputType::Wysiwyg	=> 
 				\strtr( static::WysiwygRender, $data ),
 			
-				
+			// Hidden inputs
+			InputType::Hidden	=>
+				\strtr( static::HiddenRender, $data ), 
+			
 			// Everything else
 			default		=> 
 				\strtr( static::InputRender, $data )
