@@ -198,6 +198,25 @@ class Util {
 			static::cleanUrl( $v );
 	}
 	
+	/**
+	 *  Format template placeholders to {value} format
+	 *  
+	 *  @param array	$input	Original data
+	 *  @return array
+	 */
+	public static function placeholders( array $input ) : array {
+		$data = [];
+		
+		// Format data to placeholders
+		\array_walk( $input, function( $v, $k ) use ( &$data ) {
+			// Skip arrays (sub definitions)
+			if ( \is_array( $v ) ) { return; }
+			
+			$data['{' . $k . '}'] = $v ?? '';
+		} );
+		
+		return $data;
+	}
 	
 	
 	/**
