@@ -127,7 +127,7 @@ HTML;
 				\strtr( static::InputTypeRender, $data ),
 			
 			// Datetime
-			InputType::DateTime	=> ( function() use ( &$data ) {
+			InputType::DateTime	=> ( function() use ( $data ) {
 				// Override type
 				$data['{type}']	= 'datetime-local';
 				
@@ -135,7 +135,7 @@ HTML;
 			} )(),
 			
 			// Select
-			InputType::Select	=> ( function() use ( &$data, $input ) {
+			InputType::Select	=> ( function() use ( $data, $input ) {
 				// Set unselected (empty) option
 				$data['{unselect_option}']	= 
 				empty( $input['unselect'] ) ? '' : 
@@ -154,12 +154,22 @@ HTML;
 				\strtr( static::TickRender, $data ),
 			
 			// Multiline
-			InputType::Textarea	=> 
-				\strtr( static::TextareaRender, $data ),
+			InputType::Textarea	=> ( function() use ( $data ) {
+				$data['{rows}']	??= 5;
+				$data['{cols}']	??= 50;
+				
+				return 
+				\strtr( static::TextareaRender, $data );
+			} )(),
 			
 			// Multiline formatted
-			InputType::Wysiwyg	=> 
-				\strtr( static::WysiwygRender, $data ),
+			InputType::Wysiwyg	=> ( function() use ( $data ) { 
+				$data['{rows}']	??= 5;
+				$data['{cols}']	??= 50;
+				
+				return 
+				\strtr( static::WysiwygRender, $data );
+			} )(),
 			
 			// Hidden inputs
 			InputType::Hidden	=>
