@@ -11,7 +11,7 @@ abstract class Form extends Controllable {
 	public readonly \Notes\FormType $form_type;
 	
 	
-	abstract public function render( array $data ) : string {}
+	abstract public function render( array $data ) : string;
 	
 	/**
 	 *  Initiate field token or reset existing
