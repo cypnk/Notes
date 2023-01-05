@@ -4,26 +4,41 @@ namespace Notes;
 
 class Document extends Content {
 	
-	public readonly int $type_id;
+	protected readonly int $_type_id;
 	
 	public string $summary;
 	
 	public array $pages	= [];
 	
-	public function __construct() {
+	public function __set( $name, $value ) {
+		switch ( $name ) {
+			case 'type_id':
+				$value = ( int ) $value;
+				
+				// Prevent override
+				if ( isset( $this->_type_id ) ) {
+					$this->error( 
+						'Attempted to override document type from ' . 
+						$this->_type_id . ' to ' . $value
+					);
+					return;
+				}
+				
+				$this->_type_id = $value;
+				break;
+				
+		}
 		
+		parent::__set( $name, $value );	
 	}
 	
-	public function docType( ?int $id = null ) : int {
-		if ( empty( $id ) ) {
-			return $this->type_id ?? 0;
+	public function __get( $name ) {
+		switch ( $switch ) {
+			case 'type_id':
+				return $this->_type_id ?? 0;
 		}
 		
-		if ( isset( $this->type_id ) ) {
-			return $this->type_id;
-		}
-		$this->type_id = $id;
-		return $id;
+		return parent::__get( $name );
 	}
 	
 	public function addPage() {
