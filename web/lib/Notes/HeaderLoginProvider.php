@@ -72,7 +72,10 @@ class HeaderLoginProvider extends IDProvider {
 		array			$data, 
 		\Notes\AuthStatus	&$status 
 	) : ?\Notes\User {
+		$log	= $this->getControllerParam( '\\\Notes\\LogHandler' );
+		
 		if ( 2 !== count( $data ) ) {
+			$log->createLog( 'basic login error', 'Auth detail error' );
 			return static::sendFailed( $status, $this, $data );
 		}
 		
@@ -81,11 +84,13 @@ class HeaderLoginProvider extends IDProvider {
 		
 		// No user found?
 		if ( empty( $auth ) ) {
+			$log->createLog( 'basic login error', 'No user' );
 			return static::sendNoUser( $status, $this, $data );
 		}
 		
 		// Verify credentials
 		if ( !\Notes\User::verifyPassword( $data[1], $auth->password ) ) {
+			$log->createLog( 'basic login error', $data[1] );
 			return static::sendFailed( $status, $this, $data );
 		}
 		
@@ -95,6 +100,8 @@ class HeaderLoginProvider extends IDProvider {
 		// Refresh password if needed
 		$this->refreshPassword( $data[1] );
 		$this->auth->updateUserActivity( 'login' );
+		
+		$log->createLog( 'basic login success', $data[1] );
 		return $user;
 	}
 	
@@ -111,13 +118,17 @@ class HeaderLoginProvider extends IDProvider {
 		\Notes\Request		$request, 
 		\Notes\AuthStatus	&$status
 	) : ?\Notes\User {
+		$log	= $this->getControllerParam( '\\\Notes\\LogHandler' );
+		
 		// Nothing to find or match
 		if ( empty( $data['username'] ) || $data['response'] ) {
+			$log->createLog( 'digest login error', 'Auth detail missing' );
 			return static::sendFailed( $status, $this, $data );
 		}
 		
 		// Check against URI, if given
 		if ( empty( $data['uri'] ) ) {
+			$log->createLog( 'digest login error', 'URI missing' );
 			return static::sendFailed( $status, $this );
 		} else {
 			
@@ -126,6 +137,7 @@ class HeaderLoginProvider extends IDProvider {
 				$data['uri'], 
 				\Notes\Util::slashPath( $request->getUri() ) 
 			) ) {
+				$log->createLog( 'digest login error', 'URI mismatch' );
 				return static::sendFailed( $status, $this );
 			}
 		}
@@ -137,6 +149,10 @@ class HeaderLoginProvider extends IDProvider {
 		
 		// No user found?
 		if ( empty( $auth ) ) {
+			$log->createLog( 
+				'digest login error', 
+				'No user: ' . $data['username'] 
+			);
 			return static::sendNoUser( $status, $this, $data );
 		}
 		
@@ -149,6 +165,8 @@ class HeaderLoginProvider extends IDProvider {
 			$status	= \Notes\AuthStatus::Success;
 			$user	= $this->initUserAuth( $auth );
 			$this->auth->updateUserActivity( 'login' );
+			
+			$log->createLog( 'digest login success', $data['username'] );
 			return $user;
 		}
 		
@@ -168,8 +186,12 @@ class HeaderLoginProvider extends IDProvider {
 		bool			$upstatus	= true
 	) : ?\Notes\User {
 		$auth	= $this->authHeader();
+		$log	= $this->getControllerParam( '\\\Notes\\LogHandler' );
+		
 		if ( empty( $auth ) ) {
 			$this->auth_type = \Notes\AuthType::Unknown;
+			$log->createLog( 'header login error', 'No auth' );
+			
 			return static::sendNoUser( $status, $this );
 		}
 		
@@ -179,7 +201,8 @@ class HeaderLoginProvider extends IDProvider {
 				->getRequest();
 		
 		// Set authentication scheme
-		$this->auth_type	= \Notes\AuthType::mode( $auth, $req->getMethod() );
+		$this->auth_type	= 
+			\Notes\AuthType::mode( $auth, $req->getMethod() );
 		$data			= 
 		match( $this->auth_type ) {
 			\Notes\AuthType::Basic		=> static::paramFilter( $auth, 'basic' ),
@@ -198,6 +221,7 @@ class HeaderLoginProvider extends IDProvider {
 		
 		// Nothing to use?
 		if ( empty( $data ) ) {
+			$log->createLog( 'header login error', 'No data' );
 			return static::sendFailed( $status, $this );
 		}
 		
@@ -211,6 +235,7 @@ class HeaderLoginProvider extends IDProvider {
 		};
 		
 		if ( empty( $user ) ) {
+			$log->createLog( 'header login error', 'Empty user' );
 			return static::sendFailed( $status, $this );
 		}
 		
