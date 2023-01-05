@@ -85,7 +85,7 @@ HTML;
 	const SubmitRender	=<<<HTML
 <p class="{input_wrap_classes}">
 {input_before}{input_submit_before}<input type="{type}" id="{id}" 
-	name="{name}" value="{value}" class="{submit_classes}" 
+	name="{name}" value="{value}" class="{input_classes}" 
 	{extra}>{input_submit_after}{input_after}</p>
 HTML;
 	
