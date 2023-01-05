@@ -110,6 +110,7 @@ enum FormType {
 			'text'		=> \Notes\InputType::Text,
 			'email'		=> \Notes\InputType::Email,
 			'radio'		=> \Notes\InputType::Radio,
+			'search'	=> \Notes\InputType::Search,
 			'select'	=> \Notes\InputType::Select,
 			'checkbox'	=> \Notes\InputType::Checkbox,
 			'password'	=> \Notes\InputType::Password,
@@ -117,7 +118,8 @@ enum FormType {
 			
 			'hidden'	=> \Notes\InputType::Hidden,
 			'button'	=> \Notes\InputType::Button,
-			'Submit'	=> \Notes\InputType::Submit,
+			'reset'		=> \Notes\InputType::Button,
+			'submit'	=> \Notes\InputType::Submit,
 			
 			default		=> \Notes\InputType::Other
 		}
