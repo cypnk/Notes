@@ -2,19 +2,7 @@
 
 namespace Notes;
 
-abstract class Form {
-	
-	/**
-	 *  Form unique label
-	 *  @var string
-	 */
-	public readonly string $name;
-	
-	/**
-	 *  Form on-page locator
-	 *  @var string
-	 */
-	public readonly string $id;
+abstract class Form extends Controllable {
 	
 	/**
 	 *  Submission type
