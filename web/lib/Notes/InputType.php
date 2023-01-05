@@ -207,7 +207,7 @@ HTML;
 	/**
 	 *  Set default placeholder values
 	 */
-	public static baseDefaults( array &$data ) {
+	public static function baseDefaults( array &$data ) {
 		
 		// Application
 		$data['{id}']			??= '';
@@ -248,7 +248,7 @@ HTML;
 	/**
 	 *  Default styling from tachyons.css
 	 */
-	public static baseStyling( array &$data ) {
+	public static function baseStyling( array &$data ) {
 		$data['{input_wrap_classes}']	??= 'pa4 black-80';
 		$data['{label_classes}']	??= 
 		match( $this ) { 
@@ -285,10 +285,10 @@ HTML;
 	/**
 	 *  Select box options
 	 */
-	public static renderOptions( array $options ) {
+	public static function renderOptions( array $options ) {
 		$opt = '';
 		foreach ( $options as $o ) {
-			$data = static::placeholders( $o );
+			$data = \Notes\Util::placeholders( $o );
 			
 			// Base defaults
 			$data = static::baseDefaults( $data );
@@ -298,23 +298,6 @@ HTML;
 		}
 		
 		return $opt;
-	}
-	
-	/**
-	 *  Template placeholders in {value} format
-	 */
-	public static placeholders( array $input ) {
-		$data = [];
-		
-		// Format data to placeholders
-		\array_walk( $input, function( $v, $k ) use ( &$data ) {
-			// Skip arrays
-			if ( \is_array( $v ) ) { return; }
-			
-			$data['{' . $k . '}'] = $v ?? '';
-		} );
-		
-		return $data;
 	}
 }
 
