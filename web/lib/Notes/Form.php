@@ -17,6 +17,12 @@ abstract class Form extends Controllable {
 	public readonly string $enctype;
 	
 	/**
+	 *  Current form definition type
+	 *  @var \Notes\FormType
+	 */
+	public readonly \Notes\FormType $form_type;
+	
+	/**
 	 *  List of inputs
 	 *  @var array
 	 */
