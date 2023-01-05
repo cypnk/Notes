@@ -46,7 +46,7 @@ abstract class Form {
 	 *  @param string	$_id		Optional, on-page identifier
 	 */
 	public function __construct( 
-		array	$_inputs.
+		array	$_inputs,
 		string	$_name, 
 		string	$_method,
 		string	$_enc, 
