@@ -50,7 +50,7 @@ JSON;
 		$this->form_type = \Notes\FormType::FormLegend;
 		
 		// Override action
-		$this->params['form']['action']  = $action;
+		$this->_params['form']['action']  = $action;
 		
 		// TODO: Add meta key and anti-XSRF tokens
 		// TODO: Replace language placeholders with definitions in config
