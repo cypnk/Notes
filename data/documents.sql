@@ -161,6 +161,24 @@ BEGIN
 		WHERE is_default IS NOT 0 AND id IS NOT NEW.id;
 END;-- --
 
+-- Language definitions/translations
+CREATE TABLE language_defs (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	lang_id INTEGER DEFAULT NULL,
+	
+	content TEXT NOT NULL DEFAULT '{ "label" : "unknown" }' COLLATE NOCASE, 
+	label TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.label' ), "unknown" )
+	) STORED NOT NULL,
+	
+	CONSTRAINT fk_definition_lang 
+		FOREIGN KEY ( lang_id ) 
+		REFERENCES languages ( id )
+		ON DELETE RESTRICT
+);-- --
+CREATE UNIQUE INDEX idx_translation_label ON language_defs ( label );-- --
+
+
 -- User profiles
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
