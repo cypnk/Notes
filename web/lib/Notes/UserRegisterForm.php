@@ -39,6 +39,10 @@ class UserRegisterForm extends Form {
 			"type"		: "checkbox",
 			"label"		: "{lang:forms:register:rem}"
 		}, {
+			"name"		: "terms",
+			"type"		: "checkbox",
+			"label"		: "{lang:forms:register:terms}"
+		}, {
 			"name"		: "register",
 			"type"		: "submit",
 			"value"		: "{lang:forms:register:submit}"
