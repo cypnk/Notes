@@ -376,7 +376,7 @@ HTML;
 			// Clickable
 			InputType::Button,
 			InputType::Submit	=> 
-			'f6 link dim ph3 pv2 mb2 dib white bg-dark-blue',
+			'f6 input-reset pointer dim pa2 mb2 dib white bg-dark-blue',
 			
 			// Multiline
 			InputType::Textarea,
