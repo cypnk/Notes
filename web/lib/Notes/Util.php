@@ -244,13 +244,15 @@ class Util {
 		bool		$flat		= true
 	) {
 		// Convert data to phrase:sub_phrase... format if true
-		$terms	= $flat ? static::flatten( $data ) : $data;
+		$terms	= 
+		static::placeholders( 
+			$flat ? static::flatten( $definition ) : $definition 
+		);
 		
 		// Format variable placeholders before returning
 		return 
 		\preg_replace( 
-			'/\s*__(\w+)__\s*/', ' {\1} ', 
-			\strtr( $tpl, static::placeholders( $terms ) ) 
+			'/\s*__(\w+)__\s*/', ' {\1} ', \strtr( $tpl, $terms ) 
 		);
 	}
 	
