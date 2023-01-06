@@ -199,6 +199,62 @@ class Util {
 	}
 	
 	/**
+	 *  Flatten a multi-dimensional array into a path map
+	 *  
+	 *  @link https://stackoverflow.com/a/2703121
+	 *  
+	 *  @param array	$items		Raw item map E.G. parsed JSON
+	 *  @param string	$delim		Phrase separator in E.G. ":" in {lang:value}
+	 *  @return array
+	 */ 
+	public static function flatten(
+		array		$items, 
+		string		$delim	= ':'
+	) : array {
+		$it	= 
+		new \RecursiveIteratorIterator( 
+			new \RecursiveArrayIterator( $items )
+		);
+		
+		$out	= [];
+		foreach ( $it as $leaf ) {
+			$path = '';
+			foreach ( \range( 0, $it->getDepth() ) as $depth ) {
+				$path = 
+				\ltrim( $path, $delim ) . $delim . 
+					$it->getSubIterator( $depth )->key();
+			}
+			$out[$path] = $leaf;
+		}
+		
+		return $out;
+	}
+	
+	/**
+	 *  Scan and replace phrase placeholders in a given template
+	 *  
+	 *  @param string	$tpl		Loaded template data
+	 *  @param array	$definition	Loaded terms to replace placeholders
+	 *  @param bool 	$flat		Flatten definition before use if true
+	 *  @return string
+	 */
+	public static function templatePlaceholders( 
+		string		$tpl, 
+		array		$definition,
+		bool		$flat		= true
+	) {
+		// Convert data to phrase:sub_phrase... format if true
+		$terms	= $flat ? static::flatten( $data ) : $data;
+		
+		// Format variable placeholders before returning
+		return 
+		\preg_replace( 
+			'/\s*__(\w+)__\s*/', ' {\1} ', 
+			\strtr( $tpl, static::placeholders( $terms ) ) 
+		);
+	}
+	
+	/**
 	 *  Format template placeholders to {value} format
 	 *  
 	 *  @param array	$input	Original data
@@ -212,7 +268,7 @@ class Util {
 			// Skip arrays (sub definitions)
 			if ( \is_array( $v ) ) { return; }
 			
-			$data['{' . $k . '}'] = $v ?? '';
+			$data['{' . $k . '}'] = ( string ) ( $v ?? '' );
 		} );
 		
 		return $data;
