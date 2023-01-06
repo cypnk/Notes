@@ -363,6 +363,86 @@ INSERT INTO configs ( settings )
 	       		"table_td_center_classes"	: "tc",
 	       		"table_td_left_classes"		: "tl",
 	       		"table_td_right_classes"	: "tr"
+		}, 
+		"forms" : {
+			"userlogin" : {
+				"legend"	: "{lang:forms:login:legend}",
+				"name"		: "login",
+				"method"	: "post",
+				"enctype"	: "application\/x-www-form-urlencoded",
+				"action"	: "{action}",
+				"inputs" : [ {
+					"name"		: "username",
+					"type"		: "text",
+					"label"		: "{lang:forms:login:name}",
+					"special"	: "{lang:forms:login:namespecial}",
+					"desc"		: "{lang:forms:login:namedesc}",
+					"extra"		: " data-validation=\"{lang:forms:login:nameinv}\" data-required=\"{lang:forms:login:namereq}\"",
+					"required"	: "required"
+				}, {
+					"name" 		: "password",
+					"type"		: "password",
+					"label"		: "{lang:forms:login:pass}",
+					"special"	: "{lang:forms:login:passspecial}",
+					"desc"		: "{lang:forms:login:passdesc}",
+					"extra"		: " data-validation=\"{lang:forms:login:passinv}\" data-required=\"{lang:forms:login:passreq}\"",
+					"required"	: "required"
+				}, {
+					"name"		: "rem",
+					"type"		: "checkbox",
+					"label"		: "{lang:forms:login:rem}"
+				}, {
+					"name"		: "login",
+					"type"		: "submit",
+					"value"		: "{lang:forms:login:submit}"
+				} ]
+			},
+			"userregister" : {
+				"legend"	: "{lang:forms:register:legend}",
+				"name"		: "register",
+				"method"	: "post",
+				"enctype"	: "application\/x-www-form-urlencoded",
+				"action"	: "{action}",
+				"inputs" : [ {
+					"name"		: "username",
+					"type"		: "text",
+					"label"		: "{lang:forms:register:name}",
+					"special"	: "{lang:forms:register:namespecial}",
+					"desc"		: "{lang:forms:register:namedesc}",
+					"extra"		: " data-validation=\"{lang:forms:register:nameinv}\" data-required=\"{lang:forms:register:namereq}\"",
+					"required"	: "required"
+				}, {
+					"name" 		: "password",
+					"type"		: "password",
+					"label"		: "{lang:forms:register:pass}",
+					"special"	: "{lang:forms:register:passspecial}",
+					"desc"		: "{lang:forms:register:passdesc}",
+					"extra"		: " data-validation=\"{lang:forms:register:passinv}\" data-required=\"{lang:forms:register:passreq}\"",
+					"required"	: "required"
+				}, {
+					"name" 		: "password-repeat",
+					"type"		: "password",
+					"label"		: "{lang:forms:register:passrpt}",
+					"special"	: "{lang:forms:register:passrptpecial}",
+					"desc"		: "{lang:forms:register:passrptdesc}",
+					"extra"		: " data-validation=\"{lang:forms:register:passrptinv}\" data-required=\"{lang:forms:register:passrptreq}\"",
+					"required"	: "required"
+				}, {
+					"name"		: "rem",
+					"type"		: "checkbox",
+					"label"		: "{lang:forms:register:rem}"
+				}, {
+					"name"		: "terms",
+					"type"		: "checkbox",
+					"extra"		: " data-validation=\"{lang:forms:register:termsinv}\" data-required=\"{lang:forms:register:termsreq}\"",
+					"label"		: "{lang:forms:register:terms}",
+					"reqired"	: "required"
+				}, {
+					"name"		: "register",
+					"type"		: "submit",
+					"value"		: "{lang:forms:register:submit}"
+				} ]
+			}
 		}
 	}' ) );-- --
 
@@ -431,6 +511,158 @@ INSERT INTO languages (
 ( 'uz', 'oʻzbek tili', 'Uzbek' ),
 ( 'vi', 'Tiếng Việt', 'Vietnamese' ),
 ( 'zh', '中文', 'Chinese' );-- --
+
+INSERT INTO language_defs ( lang_id, content ) 
+	VALUES ( 1, json( '
+{
+	"label"		: "English",
+	"date_nice"	: "l, F j, Y",
+	"nav"		: {
+		"previous"	: "Previous",
+		"next"		: "Next",
+		"home"		: "Home",
+		"search"	: "Search",
+		"archive"	: "Archive",
+		"feed"		: "Feed",
+		"help"		: "Help"
+	},
+	"forms" : {
+		"search"	: {
+			"placeholder"	: "Find by title or body",
+			"label"		: "Search",
+			"submit"	: "Go"
+		}, 
+		"doctype"	: {
+			"legend"	: "Document type",
+			"label"		: "Label",
+			"labelspecial"	: "required",
+			"labeldesc"	: "Between 1 and 255 characters. Letters, numbers, and spaces supported.",
+			"labelreq"	: "Label is required",
+			"labelinv"	: "Entered label is invalid",
+			"description"	: "Description",
+			"descriptdesc"	: "Optional plain text description.",
+			"descriptioninv": "Entered description is invalid",
+			"submit"	: "Save"
+		},
+		"document"	: {
+			"legend"	: "Document",
+			"summary"	: "Summary",
+			"summaryspecial": "required",
+			"summarydesc"	: "Description in plain text.",
+			"summaryreq"	: "Summary is required",
+			"summaryinv"	: "Entered summary is invalid",
+			"submit"	: "Save"
+		},
+		"blocktype"	: {
+			"legend"	: "Page block type",
+			"label"		: "Title",
+			"labelspecial"	: "required",
+			"labeldesc"	: "Between 1 and 255 characters. Letters, numbers, and spaces supported.",
+			"labelreq"	: "Label is required",
+			"labelinv"	: "Entered label is invalid",
+			"view"		: "Viewing template",
+			"viewspecial"	: "required",
+			"viewdesc"	: "Rendered view in HTML.",
+			"viewreq"	: "Viewing template is required",
+			"viewinv"	: "Entered viewing template is invalid",
+			"create"	: "Creating form",
+			"createspecial"	: "required",
+			"createdesc"	: "Form template definition.",
+			"cratereq"	: "Creating form is required",
+			"createinv"	: "Entered creating form is invalid or unacceptable",
+			"edit"		: "Editing form",
+			"editspecial"	: "required",
+			"editdesc"	: "Form template definition.",
+			"editreq"	: "Editing form is required",
+			"editinv"	: "Entered editing form is invalid or unacceptable",
+			"submit"	: "Save"
+		},
+		"login"		: {
+			"legend"	: "Login",
+			"name"		: "Name",
+			"namespecial"	: "required",
+			"namedesc"	: "Between __name_min__ and __name_max__ characters. Letters, numbers, and spaces supported.",
+			"namereq"	: "Name is required",
+			"nameinv"	: "Entered name is invalid or unacceptable",
+			"pass"		: "Password",
+			"passspecial"	: "required",
+			"passdesc"	: "Minimum __pass_min__ characters.",
+			"passreq"	: "Password is required",
+			"passinv"	: "Entered password is invalid or unacceptable",
+			"rem"		: "Remember me",
+			"submit"	: "Login"
+		},
+		"register"	: {
+			"legend"	: "Register",
+			"name"		: "Name",
+			"namespecial"	: "required",
+			"namedesc"	: "Between __name_min__ and __name_max__ characters. Letters, numbers, and spaces supported.",
+			"namereq"	: "Name is required",
+			"nameinv"	: "Entered name is invalid or unacceptable",
+			"pass"		: "Password",
+			"passspecial"	: "required",
+			"passreq"	: "Password is required",
+			"passinv"	: "Entered password is invalid or unacceptable",
+			"passdesc"	: "Minimum __pass_min__ characters.",
+			"passrpt"	: "Repeat password",
+			"passrptspecial": "required",
+			"passrptdesc"	: "Must match password entered above",
+			"passrptreq"	: "Password must be entered again",
+			"passrptinv"	: "Entered passwords must match",
+			"rem"		: "Remember me",
+			"terms"		: "Agree to the <a href=\"__terms__\" target=\"_blank\">site terms</a>",
+			"termsreq"	: "Terms must be read and accepted to continue",
+			"submit"	: "Register"
+		},
+		"profile"	: {
+			"legend"	: "Profile",
+			"name"		: "Name",
+			"display"	: "Display name",
+			"displayspecial": "optinal",
+			"displaydesc"	: "Between __display_min__ and __display_max__ characters. Letters, numbers, and spaces supported.",
+			"displayinv"	: "Entered display name is invalid or unacceptable",
+			"bio"		: "Bio",
+			"biospecial"	: "optional",
+			"biodesc"	: "Simple HTML and a subset of <a href=\"__formatting__\">Markdown<\/a> supported.",
+			"bioinv"	: "Entered bio is invalid or unacceptable",
+			"submit"	: "Save"
+		},
+		"password"	: {
+			"legend"	: "Change password",
+			"old"		: "Old Password",
+			"oldspecial"	: "required",
+			"olddesc"	: "Must match current password.",
+			"oldreq"	: "Old password is required",
+			"oldinv"	: "Entered password is invalid or unacceptable",
+			"new"		: "New password",
+			"newspecial"	: "required",
+			"newdesc"	: "Minimum __pass_min__ characters. Must be different from old password.",
+			"newreq"	: "New password is required",
+			"newinv"	: "Entered password is invalid or unacceptable",
+			"submit"	: "Change"
+		}
+	},
+	"errors"	: {
+		"error"		: "Error",
+		"generic"	: "An error has occured",
+		"returnhome"	: "<a href=\"__home__\">Return home<\/a>",
+		"nodocuments"	: "No more documents. Return <a href=\"__home__\">home<\/a>.",
+		"nopages"	: "No more pages. Return to <a href=\"__document__\">document<\/a>.",
+		"notfound"	: "Not found",
+		"noroute"	: "No route defined",
+		"badmethod"	: "Method not allowed",
+		"nomethod"	: "Method not implemented",
+		"upload"	: "File uploading failed",
+		"denied"	: "Access denied",
+		"invalid"	: "Invalid request",
+		"codedetect"	: "Server-side code detected",
+		"expired"	: "This form has expired",
+		"toomany"	: "Too many requests",
+		"loginwait"	: "Login unsuccessful, please wait a few minutes before trying again",
+		"registerwait"	: "Please wait a few minutes before trying to register again"
+	}
+}') );-- --
+
 
 
 INSERT INTO document_types( content ) VALUES ( json( '{ "label" : "document" }' ) );
