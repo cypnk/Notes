@@ -100,6 +100,35 @@ HTML;
 	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
 HTML;
 	
+	// No label, no description
+	const InputWrapNDNL	=<<<HTML
+<p class="{input_wrap_classes}">{input_before}{input}{input_after}</p>
+HTML;
+
+	// Description, but no label
+	const InputWrapNL	=<<<HTML
+<p class="{input_wrap_classes}">{input_before}
+{input}
+{desc_before}<small id="{id}-desc" class="{desc_classes}" 
+	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
+HTML;
+
+	// No description, has label, but no special
+	const InputWrapNDNS	=<<<HTML
+<p class="{input_wrap_classes}">{input_before}
+{label_before}<label for="{id}" 
+	class="{label_classes}">{label}</label>{label_after} {input}</p>
+HTML;
+	
+	// No description
+	const InputWrapND	=<<<HTML
+<p class="{input_wrap_classes}">{input_before}
+{label_before}<label for="{id}" class="{label_classes}">{label}
+	{special_before}<span class="{special_classes}"
+	>{special}</span>{special_after}</label>{label_after} 
+{input}</p>
+HTML;
+	
 	/**
 	 *  Render the current input type in the above templates
 	 */
@@ -124,14 +153,23 @@ HTML;
 			InputType::Email,
 			InputType::Search, 
 			InputType::Password	=> 
-				\strtr( static::InputTypeRender, $data ),
+			\strtr( 
+				$input['template'] ?? 
+					static::InputTypeRender, 
+				$data 
+			),
 			
 			// Datetime
 			InputType::DateTime	=> ( function() use ( $data ) {
 				// Override type
 				$data['{type}']	= 'datetime-local';
 				
-				return \strtr( static::InputTypeRender, $data )
+				return 
+				\strtr( 
+					$input['template'] ?? 
+						static::InputTypeRender, 
+					$data
+				);
 			} )(),
 			
 			// Select
@@ -145,13 +183,21 @@ HTML;
 				static::renderOptions( $input['options'] ?? [] );
 				
 				return 
-				\strtr( static::SelectRender, $data ),
+				\strtr( 
+					$input['template'] ?? 
+						static::SelectRender, 
+					$data
+				);
 			} )(),
 			
 			// Option
 			InputType::Radio,
 			InputType::Checkbox	=> 
-				\strtr( static::TickRender, $data ),
+			\strtr( 
+				$input['template'] ?? 
+					static::TickRender, 
+				$data
+			),
 			
 			// Multiline
 			InputType::Textarea	=> ( function() use ( $data ) {
@@ -159,7 +205,11 @@ HTML;
 				$data['{cols}']	??= 50;
 				
 				return 
-				\strtr( static::TextareaRender, $data );
+				\strtr( 
+					$input['template'] ?? 
+						static::TextareaRender, 
+					$data
+				);
 			} )(),
 			
 			// Multiline formatted
@@ -168,7 +218,11 @@ HTML;
 				$data['{cols}']	??= 50;
 				
 				return 
-				\strtr( static::WysiwygRender, $data );
+				\strtr( 
+					$input['template'] ?? 
+						static::WysiwygRender, 
+					$data
+				);
 			} )(),
 			
 			// Hidden inputs
@@ -178,24 +232,34 @@ HTML;
 			// Buttons
 			InputType::Button,
 			InputType::Submit	=>
-				\strtr( static::SubmitRender, $data ), 
-				
-			// Everything else
+			\strtr( 
+				$input['template'] ?? 
+					static::SubmitRender, 
+				$data
+			), 
+			
+			// Prepare input wrap template
 			default		=> 
-				\strtr( static::InputRender, $data )
+			\strtr( 
+				$input['template'] ?? 
+					static::InputRender, 
+				$data
+			)
 		};
-		
 		
 		return 
 		match( $this ) {
-			// Send bare
+			// Send bare for inline types
 			InputType::Submit,
 			InputType::Button,
 			InputType::Hidden	=> $data['{input}'],
 			
 			// Send wrapped
 			default			=> 
-				\strtr( static::InputWrap, $data )
+			\strtr( 
+				static::baseWrapTemplate( $data ), 
+				$data 
+			)
 		};
 	}
 	
@@ -242,7 +306,49 @@ HTML;
 		$data['{special_extras}']	??= '';
 		$data['{desc_extras}']		??= '';
 		$data['{label_extras}']		??= '';
-		
+	}
+	
+	/**
+	 *  Select base input wrap template
+	 */
+	public static function baseWrapTemplate( array $data ) : string {
+		return 
+		match( true ) {
+			// Skip if there's already a wrap template set
+			( 
+				!empty( $data['{wrap}'] )	|| 
+				!empty( $data['{wrap_template}'] 
+			)	=> '',
+			
+			// No label, no description
+			( 
+				empty( $data['{desc}'] )	&& 
+				empty( $data['{label}'] )
+			)	=> static::InputWrapNDNL,
+			
+			// Description, but no label
+			( 
+				!empty( $data['{desc}'] )	&& 
+				empty( $data['{label}'] )
+			)	=> static::InputWrapNL,
+			
+			// No description, has label, but no special
+			( 
+				empty( $data['{desc}'] )	&& 
+				empty( $data['{special}'] )	&& 
+				!empty( $data['{label}']
+			)	=> static::InputWrapNDNS,
+			
+			// No description, but has label and special
+			( 
+				empty( $data['{desc}'] )	&& 
+				!empty( $data['{special}']	&& 
+				!empty( $data['{label}']
+			)	=> static::InputWrapND,
+			
+			// Everything else gets wrapped
+			default	=> static::InputWrap
+		};
 	}
 	
 	/**
