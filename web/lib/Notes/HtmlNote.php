@@ -6,23 +6,29 @@ class HtmlNote extends Controllable {
 	
 	public readonly \DOMDocument $dom;
 	
-	public function __construct( \Notes\Controller $ctrl, string $html ) {
+	/**
+	 *  Build an HTML segment note
+	 *  
+	 *  @param \Notes\Controller	$ctrl		Current event controller
+	 */
+	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
-		$this->dom		= new \DOMDocument();
-		$this->dom->loadHTML( 
-			$html, 
-			\LIBXML_HTML_NODEFDTD | \LIBXML_NOERROR | 
-			\LIBXML_NOWARNING | \LIBXML_NOXMLDECL | 
-			\LIBXML_COMPACT | \LIBXML_NOCDATA | \LIBXML_NONET
-		);
+		$this->dom	= new \DOMDocument();
 	}
 	
+	/**
+	 *  Extract note body
+	 *  
+	 *  @return string
+	 */
 	public function render() : string {
+		if ( empty( $this->dom->childNodes ) ) {
+			return '';
+		}
+		
 		$temp	= new \DOMDocument();
-		$body	= 
-		$this->dom->getElementsByTagName('body')->item(0);
-		foreach ( $body->childNodes as $child ){
+		foreach ( $this->dom->childNodes as $child ) {
    			$temp->appendChild( $temp->importNode( $child, true ) );
   		}
 		
