@@ -18,8 +18,8 @@ enum InputType {
 	case Hidden;
 	case Other;
 	
-	// TODO
 	case Submit;
+	case Reset;
 	case Button;
 	
 	// Generic input
@@ -95,20 +95,20 @@ HTML;
 {label_before}<label for="{id}" class="{label_classes}">{label}
 	{special_before}<span class="{special_classes}"
 	>{special}</span>{special_after}</label>{label_after} 
-{input}
+{input}{input_message}
 {desc_before}<small id="{id}-desc" class="{desc_classes}" 
 	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
 HTML;
 	
 	// No label, no description
 	const InputWrapNDNL	=<<<HTML
-<p class="{input_wrap_classes}">{input_before}{input}{input_after}</p>
+<p class="{input_wrap_classes}">{input_before}{input}{input_message}{input_after}</p>
 HTML;
 
 	// Description, but no label
 	const InputWrapNL	=<<<HTML
 <p class="{input_wrap_classes}">{input_before}
-{input}
+{input}{input_message}
 {desc_before}<small id="{id}-desc" class="{desc_classes}" 
 	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
 HTML;
@@ -117,7 +117,8 @@ HTML;
 	const InputWrapNDNS	=<<<HTML
 <p class="{input_wrap_classes}">{input_before}
 {label_before}<label for="{id}" 
-	class="{label_classes}">{label}</label>{label_after} {input}</p>
+	class="{label_classes}">{label}</label>{label_after} 
+	{input}{input_message}</p>
 HTML;
 	
 	// No description
@@ -126,8 +127,20 @@ HTML;
 {label_before}<label for="{id}" class="{label_classes}">{label}
 	{special_before}<span class="{special_classes}"
 	>{special}</span>{special_after}</label>{label_after} 
-{input}</p>
+{input}{input_message}</p>
 HTML;
+	
+	/**
+	 *  Error/validity pseudo element message holder
+	 *  
+	 *  @example
+	 *  input:valid ~ .input-message { display:none; }
+	 *  input:required:invalid ~ .input-message::after { content: attr(data-required); }
+	 *  input:invalid:not(:placeholder-shown) ~ .input-message::after { content: attr(data-validation); }
+	 */
+	const InputMessage	= 
+	'<span class="{message_classes}" {messages}></span>';
+
 	
 	/**
 	 *  Render the current input type in the above templates
@@ -231,6 +244,7 @@ HTML;
 			
 			// Buttons
 			InputType::Button,
+			InputType::Reset,
 			InputType::Submit	=>
 			\strtr( 
 				$input['template'] ?? 
@@ -280,11 +294,22 @@ HTML;
 		$data['{placeholder}']		??= '';
 		$data['{required}']		??= '';
 		
+		$data['{extra}']		??= '';
+		
 		// Accessibility
 		$data['{label}']		??= '';
 		$data['{special}']		??= '';
 		$data['{description}']		??= '';
-		$data['{extra}']		??= '';
+		$data['{messages}']		??= '';
+		
+		// Append validation message holder, if needed
+		$data['{input_message}']	??= (
+			empty( $data['{messages}'] ) ? 
+			'' : 
+			\strtr( static::InputMessage, [ 
+				'{messages}' => ( string ) $data['{messages}'] 
+			] )
+		);
 		
 		// Reset selected if not set
 		$data['{selected}']  		??= '';
@@ -367,6 +392,9 @@ HTML;
 		
 		$data['{special_classes}']	??= 'normal black-80';
 		$data['{desc_classes}']		??= 'f6 black-80';
+		$data['{message_classes}']	??= 
+			'input-message f6 measure-narrow bg-washed-red dark-red';
+		
 		$data['{input_classes}']	??= 
 		match( $this ) {
 			// Ticks
@@ -376,7 +404,7 @@ HTML;
 			// Clickable
 			InputType::Button,
 			InputType::Submit	=> 
-			'f6 input-reset pointer dim pa2 mb2 dib white bg-dark-blue',
+			'f6 button-reset pointer dim pa2 mb2 dib white bg-dark-blue',
 			
 			// Multiline
 			InputType::Textarea,
