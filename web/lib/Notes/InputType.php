@@ -406,6 +406,9 @@ HTML;
 			InputType::Submit	=> 
 			'f6 button-reset pointer dim pa2 mb2 dib white bg-dark-blue',
 			
+			InputType::Reset	=> 
+			'f6 button-reset pointer dim pa2 mb2 dib white bg-dark-red',
+			
 			// Multiline
 			InputType::Textarea,
 			InputType::Wysiwyg	=> 
