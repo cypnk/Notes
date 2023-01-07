@@ -72,7 +72,11 @@ class IDProvider extends Provider {
 		return 
 		match( true ) {
 			// Basic auth only?
-			( false === \strpos( $auth, '=' ) )	=> ( function() use ( $auth ) {
+			( 
+				!\Notes\Util::textHas( $auth, '=' )	|| 
+				!\Notes\Util::textHas( $auth, '[]' )
+			) 
+				=> ( function() use ( $auth ) {
 				$data = \base64_decode( $auth );
 				if ( false === $data || empty( $data ) ) {
 					return [];
@@ -81,7 +85,8 @@ class IDProvider extends Provider {
 			} )(),
 			
 			// PHP type (non-CGI) multiples?
-			( false !== \strpos( $auth, '[]' ) )	=> ( function() use ( $auth ) {
+			\Notes\Util::textHas( $auth, '[]' )	
+				=> ( function() use ( $auth ) {
 				$matched = [];
 				
 				// Unquote, trim, and parse
@@ -94,7 +99,7 @@ class IDProvider extends Provider {
 			} )(),
 			
 			// Everything else
-			default					=> ( function() use ( $auth ) {
+			default	=> ( function() use ( $auth ) {
 				$matched	= [];
 				$parts		= explode( ',', $auth );
 				
