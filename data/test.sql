@@ -377,7 +377,7 @@ INSERT INTO configs ( settings )
 					"label"		: "{lang:forms:login:name}",
 					"special"	: "{lang:forms:login:namespecial}",
 					"desc"		: "{lang:forms:login:namedesc}",
-					"extra"		: " data-validation=\"{lang:forms:login:nameinv}\" data-required=\"{lang:forms:login:namereq}\"",
+					"messages"	: "data-validation=\"{lang:forms:login:nameinv}\" data-required=\"{lang:forms:login:namereq}\"",
 					"required"	: "required"
 				}, {
 					"name" 		: "password",
@@ -385,7 +385,7 @@ INSERT INTO configs ( settings )
 					"label"		: "{lang:forms:login:pass}",
 					"special"	: "{lang:forms:login:passspecial}",
 					"desc"		: "{lang:forms:login:passdesc}",
-					"extra"		: " data-validation=\"{lang:forms:login:passinv}\" data-required=\"{lang:forms:login:passreq}\"",
+					"messages"	: "data-validation=\"{lang:forms:login:passinv}\" data-required=\"{lang:forms:login:passreq}\"",
 					"required"	: "required"
 				}, {
 					"name"		: "rem",
@@ -409,7 +409,7 @@ INSERT INTO configs ( settings )
 					"label"		: "{lang:forms:register:name}",
 					"special"	: "{lang:forms:register:namespecial}",
 					"desc"		: "{lang:forms:register:namedesc}",
-					"extra"		: " data-validation=\"{lang:forms:register:nameinv}\" data-required=\"{lang:forms:register:namereq}\"",
+					"messages"	: "data-validation=\"{lang:forms:register:nameinv}\" data-required=\"{lang:forms:register:namereq}\"",
 					"required"	: "required"
 				}, {
 					"name" 		: "password",
@@ -417,7 +417,7 @@ INSERT INTO configs ( settings )
 					"label"		: "{lang:forms:register:pass}",
 					"special"	: "{lang:forms:register:passspecial}",
 					"desc"		: "{lang:forms:register:passdesc}",
-					"extra"		: " data-validation=\"{lang:forms:register:passinv}\" data-required=\"{lang:forms:register:passreq}\"",
+					"messages"	: "data-validation=\"{lang:forms:register:passinv}\" data-required=\"{lang:forms:register:passreq}\"",
 					"required"	: "required"
 				}, {
 					"name" 		: "password-repeat",
@@ -434,7 +434,7 @@ INSERT INTO configs ( settings )
 				}, {
 					"name"		: "terms",
 					"type"		: "checkbox",
-					"extra"		: " data-validation=\"{lang:forms:register:termsinv}\" data-required=\"{lang:forms:register:termsreq}\"",
+					"messages"	: "data-validation=\"{lang:forms:register:termsinv}\" data-required=\"{lang:forms:register:termsreq}\"",
 					"label"		: "{lang:forms:register:terms}",
 					"reqired"	: "required"
 				}, {
