@@ -169,7 +169,7 @@ abstract class Form extends Controllable {
 		}
 		
 		// Token parameters are intact?
-		if ( false === \strpos( $token, ':' ) ) {
+		if ( !\Notes\Util::textHas( $token, ':' ) ) {
 			return \Notes\FormStatus::Invalid;
 		}
 		
