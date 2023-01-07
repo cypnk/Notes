@@ -362,7 +362,7 @@ class Util {
 	public static function textHas( $source, string $term ) : bool {
 		return 
 		( empty( $source ) || empty( $term ) ) ? 
-			false : ( false !== \strpos( ( string ) $source, $term ) );
+			false : \str_contains( ( string ) $source, $term );
 	}
 
 	/**
