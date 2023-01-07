@@ -7,16 +7,20 @@ enum FormType {
 	case Validated;		// Should include nonce/token pairs
 	case UnValidated;
 	
-	const FormLegend	= 
-	'<form name="{name}" id="{id}" ' . 
-		'class="{form_classes}" action="{action}" ' . 
-		'method="{method}" enctype="{enctype}" {extras}>' . 
-	'<legend class="{legend_classes}">{legend}</legend>{body} {more}</form>';
+	const FormLegend	=<<<HTML
+{form_before}<form name="{name}" id="{id}"
+	class="{form_classes}" action="{action}" 
+		method="{method}" enctype="{enctype}" {extras}>
+	<legend class="{legend_classes}">{legend}</legend>{body} {more}
+	</form>{form_after}
+HTML;
 	
-	const FormNoLegend	= 
-	'<form  name="{name}" id="{id}" ' . 
-		'class="{form_classes}" action="{action}" ' . 
-		'method="{method}" enctype="{enctype}" {extras}>{body} {more}</form>';
+	const FormNoLegend	=<<<HTML
+{form_before}<form  name="{name}" id="{id}" 
+	class="{form_classes}" action="{action}" 
+	method="{method}" enctype="{enctype}" {extras}>{body} {more}
+	</form>{form_after};
+HTML;
 	
 	/**
 	 *  Render current form in HTML with given inputs
@@ -58,6 +62,10 @@ enum FormType {
 		// Extras
 		$data['{extras}']		??= '';
 		$data['{more}']			??= '';
+		
+		// Event content
+		$data['{form_after}'		??= '';
+		$data['{form_before}'		??= '';
 		
 		// Default styling
 		$data['{form_classes}']		??= 'pa4 black-80 measure';
@@ -118,7 +126,7 @@ enum FormType {
 			
 			'hidden'	=> \Notes\InputType::Hidden,
 			'button'	=> \Notes\InputType::Button,
-			'reset'		=> \Notes\InputType::Button,
+			'reset'		=> \Notes\InputType::Reset,
 			'submit'	=> \Notes\InputType::Submit,
 			
 			default		=> \Notes\InputType::Other
