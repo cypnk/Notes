@@ -119,10 +119,20 @@ enum FormType {
 	
 	public static function addExtras( \DOMElement $el, array $content ) {
 		// Nothing to add?
-		if ( empty( $content['extras'] ) ) {
+		if ( 
+			empty( $content['extras'] )	&& 
+			empty( $content['extra'] )
+		) {
 			return;
 		}
 		
+		// Apply single extra parameter
+		if ( !\is_array( $content['extra'] ) ) {
+			$v = ( string ) $content['extra'];
+			$el->setAttribute( $v, $v );
+		}
+		
+		// Apply extra group
 		if  ( !\is_array( $content['extras'] ) ) {
 			return;
 		}
