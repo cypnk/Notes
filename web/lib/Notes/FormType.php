@@ -7,43 +7,140 @@ enum FormType {
 	case Validated;		// Should include nonce/token pairs
 	case UnValidated;
 	
-	const FormLegend	=<<<HTML
-{form_before}<form name="{name}" id="{id}"
-	class="{form_classes}" action="{action}" 
-		method="{method}" enctype="{enctype}" {extras}>
-	<legend class="{legend_classes}">{legend}</legend>{body} {more}
-	</form>{form_after}
-HTML;
-	
-	const FormNoLegend	=<<<HTML
-{form_before}<form  name="{name}" id="{id}" 
-	class="{form_classes}" action="{action}" 
-	method="{method}" enctype="{enctype}" {extras}>{body} {more}
-	</form>{form_after};
-HTML;
-	
 	/**
 	 *  Render current form in HTML with given inputs
 	 */
-	public function render( array $form ) : string {
+	public function render(
+		\Notes\Controller	$ctrl,
+		array			$content
+	) : string {
+		// Ensure inputs
+		$form['inputs']	??= [];
+		
+		// Ensure extras
+		$form['extras']	??= [];
+		
 		// Prepare placeholders
-		$data = \Notes\Util::placeholders( $form );
+		$data	= \Notes\Util::placeholders( $content );
 		
 		// Default placeholders
 		static::baseDefaults( $data );
 		
-		// Ensure inputs
-		$form['inputs']	??= [];
+		// Build note
+		$note	= \Notes\HtmlNote( $ctrl );
 		
-		// Append
-		foreach( $form['inputs'] as $input ) {
-			$data['{body}'] .= 
-				static::inputRender( $input );
+		// Pre-form event content placeholder
+		$note->dom->appendChild(
+			$note->dom->createTextNode( '{form_before}' )
+		);
+		
+		// Base element and common attributes
+		$form = $note->dom->createElement( 'form' );
+		$form->setAttribute( 'id', $data['{id}'] );
+		$form->setAttribute( 'name', $data['{name}'] );
+		$form->setAttribute( 'class', $data['{form_classes}'] );
+		$form->setAttribute( 'action', $data['{action}'] );
+		$form->setAttribute( 'enctype', $data['{enctype}'] );
+		$form->setAttribute( 'method', $data['{method}'] );
+		
+		// Add tokens if this is a validation type 
+		$this->addTokens( $form, $data );
+		
+		// Any extra parameters
+		$this->addExtras( $form, $content );
+		
+		// Append legend, if given
+		$this->addLegend( $form, $data );
+		
+		// Append inputs
+		foreach( $content['inputs'] as $input ) {
+			static::buildInputs( $form, $input );
 		}
 		
-		return empty( $data['{legend}'] ) ? 
-			\strtr( static::FormNoLegend, $data ) : 
-			\strtr( static::FormLegend, $data );
+		// "More" content
+		$form->appendChild(
+			$note->dom->createTextNode( '{more}' )
+		);
+		
+		// Add to note
+		$note->dom->appendChild( $form );
+		
+		// Post-form event content placeholder
+		$note->dom->appendChild(
+			$note->dom->createTextNode( '{form_after}' )
+		);
+		
+		// Send back with remaining placeholders replaced
+		return \strtr( $note->render(), $data );
+	}
+	
+	/**
+	 *  Add form validation hidden fields or set unvalidated marker
+	 *  
+	 *  @param \DOMElement		$form		Current form element
+	 *  @param array		$data		Placeholder content
+	 */
+	protected function addTokens( \DOMElement $form, array $data ) {
+		match( $this ) {
+			// Validated forms get a nonce and token
+			FormType::Validalidated	=> ( function() use ( $form ) {
+				$token = \Notes\InputType::Hidden;
+				$form->appendChild( 
+					$token->buildInput( $form, [ 
+						'name'	=> 'token',
+						'value'	=> $data['{token}']
+					] ) 
+				);
+				$nonce = \Notes\InputType::Hidden;
+				$form->appendChild( 
+					$nonce->buildInput( $form, [ 
+						'name'	=> 'nonce',
+						'value'	=> $data['{nonce}']
+					] ) 
+				);
+			} )(),
+			
+			// Unvalidated forms get a unique identifier with generated date
+			FormType::Unvalidated	=> ( function() use ( $form ) {
+				$id = \Notes\InputType::Hidden;
+				$form->appendChild( 
+					$id->buildInput( $form, [ 
+						'name'	=> 'identifier',
+						'value'	=> 
+						\base64_encode( 
+							\Notes\Util::genId() . '|' . 
+							\Notes\Util::utc()
+						)
+					] ) 
+				);
+			} )()
+		};
+	}
+	
+	public static function addExtras( \DOMElement $el, array $content ) {
+		// Nothing to add?
+		if ( empty( $content['extras'] ) ) {
+			return;
+		}
+		
+		if  ( !\is_array( $content['extras'] ) ) {
+			return;
+		}
+		
+		foreach( $content['extras'] as $i => $j ) {
+			// Add sub elements if nested
+			if ( \is_array( $j ) ) {
+				foreach ( $j as $k = $v ) {
+					$el->setAttribute( $k, $v );
+				}
+				continue;
+			}
+			
+			// Set element to be itself
+			$el->setAttribute( 
+				$i, empty( $j ) ? $i : $j 
+			);
+		}
 	}
 	
 	/**
@@ -59,13 +156,16 @@ HTML;
 		$data['{enctype}']		??= '';
 		$data['{method}']		??= 'get';
 		
-		// Extras
-		$data['{extras}']		??= '';
-		$data['{more}']			??= '';
+		// Validation
+		$data['{token}']		??= '';
+		$data['{nonce}']		??= '';
 		
 		// Event content
 		$data['{form_after}'		??= '';
 		$data['{form_before}'		??= '';
+		$data['{legend_after}'		??= '';
+		$data['{legend_before}'		??= '';
+		$data['{more}']			??= '';
 		
 		// Default styling
 		$data['{form_classes}']		??= 'pa4 black-80 measure';
@@ -110,7 +210,40 @@ HTML;
 			$v : 'application/x-www-form-urlencoded';
 	}
 	
-	public static function inputRender( array $input ) : string {
+	/**
+	 *  Append a form legend if that content is available
+	 */
+	public function addLegend( 
+		\DOMElement	$form, 
+		array		$data
+	) {
+		if ( empty( $data['{legend}'] ) ) {
+			return;
+		}
+		
+		// Pre-legend event content placeholder
+		$form->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{legend_before}' 
+			)
+		);
+		
+		$legend = 
+		$form->ownerDocument->createElement( 'legend', $data['legend'] );
+		
+		$legend->setAttribute( 'class', $data['{legend_classes}'] );
+		
+		$form->appendChild( $legend );
+		
+		// Post-legend event content placeholder
+		$form->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{legend_after}' 
+			)
+		);
+	}
+	
+	public static function buildInputs( \DOMElement $form, array $input ) {
 		$input['type'] ??= '';
 		
 		$out = 
@@ -131,9 +264,9 @@ HTML;
 			
 			default		=> \Notes\InputType::Other
 		}
-		$out->render( $input );
+		
+		$form->appendChild( $out->buildInput( $form, $input ) );
 	}
-	
 }
 
 	
