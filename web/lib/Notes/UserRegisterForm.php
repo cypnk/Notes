@@ -4,64 +4,36 @@ namespace Notes;
 
 class UserRegisterForm extends Form {
 	
-	// TODO: Pull form definition stored in database
-	const Definition	=<<<JSON
-{ 
-	"form" : {
-		"legend"	: "{lang:forms:register:legend}",
-		"name"		: "register",
-		"method"	: "post",
-		"enctype"	: "application\/x-www-form-urlencoded",
-		"action"	: "{action}",
-		"inputs" : [ {
-			"name"		: "username",
-			"type"		: "text",
-			"label"		: "{lang:forms:register:name}",
-			"special"	: "{lang:forms:register:namespecial}",
-			"desc"		: "{lang:forms:register:namedesc}",
-			"required"	: "required"
-		}, {
-			"name" 		: "password",
-			"type"		: "password",
-			"label"		: "{lang:forms:register:pass}",
-			"special"	: "{lang:forms:register:passspecial}",
-			"desc"		: "{lang:forms:register:passdesc}",
-			"required"	: "required"
-		}, {
-			"name" 		: "password-repeat",
-			"type"		: "password",
-			"label"		: "{lang:forms:register:passrpt}",
-			"special"	: "{lang:forms:register:passrptpecial}",
-			"desc"		: "{lang:forms:register:passrptdesc}",
-			"required"	: "required"
-		}, {
-			"name"		: "rem",
-			"type"		: "checkbox",
-			"label"		: "{lang:forms:register:rem}"
-		}, {
-			"name"		: "terms",
-			"type"		: "checkbox",
-			"label"		: "{lang:forms:register:terms}"
-		}, {
-			"name"		: "register",
-			"type"		: "submit",
-			"value"		: "{lang:forms:register:submit}"
-		} ]
-	}
-}
-JSON;
-
-	public function __construct( \Notes\Controller $ctrl, string $action ) {
+	public function __construct( \Notes\Controller $ctrl, string $action = '' ) {
 		parent::__construct( $ctrl );
 		
-		// Load current definition
-		$this->params = static::Definition;
+		// Load form definition from database
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		
-		// Labeled type
-		$this->form_type = \Notes\FormType::FormLegend;
+		$form	= 
+		$db->dataExec( 
+			'SELECT content FROM forms WHERE label = :label' 
+			[ ':label' => 'web user register' ], 
+			'result', 
+			\DATA
+		);
+		
+		if ( empty( $form ) ) {
+			return;
+		}
+		
+		$this->params	= $form[0];
+		
+		// Form type
+		$this->form_type = 
+		( $this->params['form']['validated'] ?? true ) ? 
+			\Notes\FormType::Validated : 
+			\Notes\FormType::UnValidated;
 		
 		// Override action
-		$this->_params['form']['action']  = $action;
+		if ( !empty( $action ) ) {
+			$this->_params['form']['action']  = $action;
+		}
 		
 		// TODO: Add meta key and anti-XSRF tokens
 		// TODO: Replace language placeholders with definitions in config
