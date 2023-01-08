@@ -68,7 +68,9 @@ JSON;
 	}
 	
 	public function render() : string {
-		return $this->form_type->render( $this->params['form'] );
+		return $this->form_type->render( 
+			$this->controller, $this->params['form'] 
+		);
 	}
 }
 
