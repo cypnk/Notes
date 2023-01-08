@@ -3,54 +3,37 @@
 namespace Notes;
 
 class UserLoginForm extends Form {
-	
-	// TODO: Pull form definition stored in database
-	const Definition	=<<<JSON
-{ 
-	"form" : {
-		"legend"	: "{lang:forms:login:legend}",
-		"name"		: "login",
-		"method"	: "post",
-		"enctype"	: "application\/x-www-form-urlencoded",
-		"action"	: "{action}",
-		"inputs" : [ {
-			"name"		: "username",
-			"type"		: "text",
-			"label"		: "{lang:forms:login:name}",
-			"special"	: "{lang:forms:login:namespecial}",
-			"desc"		: "{lang:forms:login:namedesc}",
-			"required"	: "required"
-		}, {
-			"name" 		: "password",
-			"type"		: "password",
-			"label"		: "{lang:forms:login:pass}",
-			"special"	: "{lang:forms:login:passspecial}",
-			"desc"		: "{lang:forms:login:passdesc}",
-			"required"	: "required"
-		}, {
-			"name"		: "rem",
-			"type"		: "checkbox",
-			"label"		: "{lang:forms:login:rem}"
-		}, {
-			"name"		: "login",
-			"type"		: "submit",
-			"value"		: "{lang:forms:login:submit}"
-		} ]
-	}
-}
-JSON;
 
-	public function __construct( \Notes\Controller $ctrl, string $action ) {
+	public function __construct( \Notes\Controller $ctrl, string $action = '' ) {
 		parent::__construct( $ctrl );
 		
-		// Load current definition
-		$this->params = static::Definition;
+		// Load form definition from database
+		$db	= $this->getControllerParam( '\\\Notes\\Data' );
 		
-		// Labeled type
-		$this->form_type = \Notes\FormType::FormLegend;
+		$form	= 
+		$db->dataExec( 
+			'SELECT content FROM forms WHERE label = :label' 
+			[ ':label' => 'web user login' ], 
+			'result', 
+			\DATA
+		);
+		
+		if ( empty( $form ) ) {
+			return;
+		}
+		
+		$this->params	= $form[0];
+		
+		// Form type
+		$this->form_type = 
+		( $this->params['form']['validated'] ?? true ) ? 
+			\Notes\FormType::Validated : 
+			\Notes\FormType::UnValidated;
 		
 		// Override action
-		$this->_params['form']['action']  = $action;
+		if ( !empty( $action ) ) {
+			$this->_params['form']['action']  = $action;
+		}
 		
 		// TODO: Add meta key and anti-XSRF tokens
 		// TODO: Replace language placeholders with definitions in config
