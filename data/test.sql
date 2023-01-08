@@ -360,9 +360,9 @@ INSERT INTO configs ( settings )
 			"table_row_even_classes"	: "table-row-even",
 			"table_th_classes"		: "fw6 tl pa2 table-th",
 			"table_td_classes"		: "pa2 table-td",
-	       		"table_td_center_classes"	: "tc",
-	       		"table_td_left_classes"		: "tl",
-	       		"table_td_right_classes"	: "tr"
+			"table_td_center_classes"	: "tc",
+			"table_td_left_classes"		: "tl",
+			"table_td_right_classes"	: "tr"
 		}, 
 		"forms" : {
 			"userlogin" : {
@@ -425,7 +425,7 @@ INSERT INTO configs ( settings )
 					"label"		: "{lang:forms:register:passrpt}",
 					"special"	: "{lang:forms:register:passrptpecial}",
 					"desc"		: "{lang:forms:register:passrptdesc}",
-					"extra"		: " data-validation=\"{lang:forms:register:passrptinv}\" data-required=\"{lang:forms:register:passrptreq}\"",
+					"messages"	: "data-validation=\"{lang:forms:register:passrptinv}\" data-required=\"{lang:forms:register:passrptreq}\"",
 					"required"	: "required"
 				}, {
 					"name"		: "rem",
@@ -675,6 +675,174 @@ INSERT INTO documents ( summary, type_id, settings )
 
 INSERT INTO history ( content, user_id ) VALUES ( json( '{ "label":"insert" }' ), 1 );-- --
 
+INSERT INTO forms( id, content ) 
+	VALUES
+	( 1, json( 
+	'{ 
+		"label"	: "web user register",
+		"form"	: {
+			"legend"	: "{lang:forms:register:legend}",
+			"name"		: "register",
+			"type"		: "validated",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs" : [ {
+				"name"		: "username",
+				"type"		: "text",
+				"label"		: "{lang:forms:register:name}",
+				"special"	: "{lang:forms:register:namespecial}",
+				"desc"		: "{lang:forms:register:namedesc}",
+				"required"	: "required"
+			}, {
+				"name" 		: "password",
+				"type"		: "password",
+				"label"		: "{lang:forms:register:pass}",
+				"special"	: "{lang:forms:register:passspecial}",
+				"desc"		: "{lang:forms:register:passdesc}",
+				"required"	: "required"
+			}, {
+				"name" 		: "password-repeat",
+				"type"		: "password",
+				"label"		: "{lang:forms:register:passrpt}",
+				"special"	: "{lang:forms:register:passrptpecial}",
+				"desc"		: "{lang:forms:register:passrptdesc}",
+				"required"	: "required"
+			}, {
+				"name"		: "rem",
+				"type"		: "checkbox",
+				"label"		: "{lang:forms:register:rem}"
+			}, {
+				"name"		: "terms",
+				"type"		: "checkbox",
+				"label"		: "{lang:forms:register:terms}"
+			}, {
+				"name"		: "register",
+				"type"		: "submit",
+				"value"		: "{lang:forms:register:submit}"
+			} ]
+		}
+	}' ) ),
+	( 2, json(
+	'{
+		"label"	: "web user login",
+		"form"	: {
+			"legend"	: "{lang:forms:login:legend}",
+			"name"		: "login",
+			"type"		: "validated",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs" : [ {
+				"name"		: "username",
+				"type"		: "text",
+				"label"		: "{lang:forms:login:name}",
+				"special"	: "{lang:forms:login:namespecial}",
+				"desc"		: "{lang:forms:login:namedesc}",
+				"required"	: "required"
+			}, {
+				"name" 		: "password",
+				"type"		: "password",
+				"label"		: "{lang:forms:login:pass}",
+				"special"	: "{lang:forms:login:passspecial}",
+				"desc"		: "{lang:forms:login:passdesc}",
+				"required"	: "required"
+			}, {
+				"name"		: "rem",
+				"type"		: "checkbox",
+				"label"		: "{lang:forms:login:rem}"
+			}, {
+				"name"		: "login",
+				"type"		: "submit",
+				"value"		: "{lang:forms:login:submit}"
+			} ]
+		}
+	}' ) ), 
+	
+	( 3, json( 
+	'{
+		"label"	: "web create page block",
+		"form"	: {
+			"name"		: "newblock",
+			"type"		: "validated",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "\/pageblocks\/new",
+			"inputs"	: [
+			{
+				"name"		: "body",
+				"type"		: "wysiwyg",
+				"label"		: "{lang:forms:page_block:create_label}",
+				"special"	: "{lang:forms:page_block:create_special}",
+				"desc"		: "{lang:forms:page_block:create_desc}",
+				"rows"		: 10,
+				"cols"		: 60,
+				"required"	: "required"
+			},
+			{
+				"type"		: "submit",
+				"name"		: "create",
+				"value"		: "{lang:forms:page_block:create_submit}"
+			}]
+		}
+	}' ) ), 
+	
+	( 4, json( 
+	'{
+		"label"	: "web edit page block",
+		"form" : {
+			"name"		: "editblock",
+			"type"		: "validated",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "\/pageblocks\/edit",
+			"inputs"	: [
+			{
+				"name"		: "block_id",
+				"type"		: "hidden",
+				"value"		: "{block_id}"
+			},
+			{
+				"name"		: "body",
+				"type"		: "wysiwyg",
+				"label"		: "{lang:forms:page_block:edit_label}",
+				"special"	: "{lang:forms:page_block:edit_special}",
+				"desc"		: "{lang:forms:page_block:edit_desc}",
+				"rows"		: 10,
+				"cols"		: 60,
+				"required"	: "required"
+			},
+			{
+				"type"		: "submit",
+				"name"		: "edit",
+				"value"		: "{lang:forms:page_block:edit_submit}"
+			}]
+		}
+	}' ) ), 
+	
+	( 5, json( '{
+		"label"	: "web delete page block",
+		"form"	: {
+			"name"		: "blockdelete",
+			"type"		: "validated",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "\/pageblocks\/delete",
+			"inputs"	: [
+			{
+				"type"		: "checkbox",
+				"name"		: "confirm",
+				"value"		: 1,
+				"label"		: "{lang:forms:page_block:delete_label}",
+				"required"	: "required"
+			},
+			{
+				"type"		: "submit",
+				"value"		: "{lang:forms:page_block:delete_submit}"
+			}]
+		}
+	}' ) );-- --
+
 UPDATE document_types SET content = json( '{ "label" : "historical", "lang" : "en" }' ) WHERE id = 1;-- --
 
 INSERT INTO pages ( document_id, sort_order ) VALUES ( 1, 0 );-- --
@@ -682,58 +850,49 @@ INSERT INTO pages ( document_id, sort_order ) VALUES ( 1, 0 );-- --
 INSERT INTO block_types( content, view_template, create_template, edit_template, delete_template ) 
 	VALUES (
 	json( '{ 
-		"label"			: "textarea", 
-		"id"			: "block-text", 
-		"name"			: "block-text", 
-		"rows"			: 10,
-		"cols"			: 60,
-		"required"		: "required",
-		"value"			: "",
-		"extra"			: " data-feature=\"autoheight, droppable\"",
+		"label"		: "Simple multiline content block", 
+		"id"		: "block-text", 
+		"name"		: "block-text",
+		"extras"	: {
+			"data-feature" : "autoheight, droppable"
+		},
 		
 		"create_template"	: {
 			"input_before"		: "{event:input_before}",
 			"input_multiline_before": "{event:input_multiline_before}",
 			"label_before"		: "{event:label_before}",
-			"label"			: "{lang:forms:page_block:create_label}",
 			"label_after"		: "{event:label_after}",
 			"input_field_before"	: "{event:input_before}",
 			"special_before"	: "{event:special_before}",
-		     	"special"		: "{lang:forms:page_block:create_special}",
-		     	"special_after"		: "{event:special_after}",
-		     	"input_before"		: "{event:input_before}",
-		     	"input_field_before"	: "{event:input_field_before}",
-		     	"input_field_after"	: "{event:input_field_after}",
-		     	"desc_before"		: "{event:desc_before}",
-		     	"desc"			: "{lang:forms:page_block:create_desc}",
-		     	"desc_after"		: "{event:desc_after}",
-		     	"input_multiline_after"	: "{event:input_multiline_after}",
-		     	"input_after"		: "{event:input_after}"
+			"special_after"		: "{event:special_after}",
+			"input_before"		: "{event:input_before}",
+			"input_field_before"	: "{event:input_field_before}",
+			"input_field_after"	: "{event:input_field_after}",
+			"desc_before"		: "{event:desc_before}",
+			"desc_after"		: "{event:desc_after}",
+			"input_multiline_after"	: "{event:input_multiline_after}",
+			"input_after"		: "{event:input_after}"
 		},
 		"edit_template"		: {
 			"input_before"		: "{event:input_before}",
 			"input_multiline_before": "{event:input_multiline_before}",
 			"label_before"		: "{event:label_before}",
-			"label"			: "{lang:forms:page_block:edit_label}",
 			"label_after"		: "{event:label_after}",
 			"input_field_before"	: "{event:input_before}",
 			"special_before"	: "{event:special_before}",
-		     	"special"		: "{lang:forms:page_block:edit_special}",
-		     	"special_after"		: "{event:special_after}",
-		     	"input_before"		: "{event:input_before}",
-		     	"input_field_before"	: "{event:input_field_before}",
-		     	"input_field_after"	: "{event:input_field_after}",
-		     	"desc_before"		: "{event:desc_before}",
-		     	"desc"			: "{lang:forms:page_block:edit_desc}",
-		     	"desc_after"		: "{event:desc_after}",
-		     	"input_multiline_after"	: "{event:input_multiline_after}",
-		     	"input_after"		: "{event:input_after}"
+			"special_after"		: "{event:special_after}",
+			"input_before"		: "{event:input_before}",
+			"input_field_before"	: "{event:input_field_before}",
+			"input_field_after"	: "{event:input_field_after}",
+			"desc_before"		: "{event:desc_before}",
+			"desc_after"		: "{event:desc_after}",
+			"input_multiline_after"	: "{event:input_multiline_after}",
+			"input_after"		: "{event:input_after}"
 		},
 		"delete_template"	: {
 			"input_before"		: "{event:input_before}",
-			"input_warn_before"	: "{event:input_warn_before}",
-			"value"			: "{lang:forms:page_block:delete_warn}",
-			"input_warn_after"	: "{event:input_warn_after}",
+			"input_before"		: "{event:input_warn_before}",
+			"input_after"		: "{event:input_warn_after}",
 			"input_after"		: "{event:input_after}"
 		},
 		"view_template"		: {
@@ -743,8 +902,9 @@ INSERT INTO block_types( content, view_template, create_template, edit_template,
 			"after_block_body"	: "{event:after_block_body}", 
 			"after_full_block"	: "{event:after_full_block}", 
 			"after_block"		: "{event:after_block}"
-	     }
-	}' ), 
+		}
+	}' ),
+	 
 	'{before_block}
 <article class="{block_classes}">{before_full_block}
 	{before_block_body}
@@ -753,36 +913,84 @@ INSERT INTO block_types( content, view_template, create_template, edit_template,
 	</div>{after_block_body}
 	</div>{after_full_block}
 </article>{after_block}', 
-	'{input_before}{input_multiline_before}
-{label_before}<label for="{id}" class="{label_classes}">{label}
-	{special_before}<span class="{special_classes}"
-	>{special}</span>{special_after}</label>{label_after} 
-{input_field_before}<textarea id="{id}" name="{name}" rows="{rows} cols="{cols}" 
-	placeholder="{placeholder}" aria-describedby="{id}-desc"
-	 class="{input_classes}" {required}{extra}></textarea>{input_field_after}
-{desc_before}<small id="{id}-desc" class="{desc_classes}" 
-	{desc_extra}>{desc}</small>{desc_after}{input_after}
-{input_multiline_after}{input_after}',
+
+	json( '{
+		"form" : {
+			"name"		: "newblock",
+			"method"	: "post",
+			"legend"	: "Simple multiline content block", 
+			"action"	: "\/pageblocks\/new",
+			"inputs"	: [
+			{
+				"name"		: "body",
+				"type"		: "wysiwyg",
+				"label"		: "{lang:forms:page_block:create_label}",
+				"special"	: "{lang:forms:page_block:create_special}",
+				"desc"		: "{lang:forms:page_block:create_desc}",
+				"rows"		: 10,
+				"cols"		: 60,
+				"required"	: "required"
+			},
+			{
+				"type"		: "submit",
+				"name"		: "create",
+				"value"		: "{lang:forms:page_block:create_submit}"
+			}]
+		}
+	}' ),
 	
-	'{input_before}{input_multiline_before}
-{label_before}<label for="{id}" class="{label_classes}">{label}
-	{special_before}<span class="{special_classes}"
-	>{special}</span>{special_after}</label>{label_after} 
-{input_field_before}<textarea id="{id}" name="{name}" rows="{rows} cols="{cols}" 
-	placeholder="{placeholder}" aria-describedby="{id}-desc"
-		class="{input_classes}" {required}{extra}>{value}</textarea>{input_field_after}
-{desc_before}<small id="{id}-desc" class="{desc_classes}" 
-	{desc_extra}>{desc}</small>{desc_after}{input_after}
-{input_multiline_after}{input_after}', 
-	'{input_before}{input_warn_before}<input type="submit" id="{id}", 
-	name="{name}" value="{value}" class="{warn_classes}" 
-	{extra}>{input_warn_after}{input_after}'
-	),
-	(json( '{ 
-		"label"			: "app-multiline", 
-		"id"			: "block-text", 
-		"name"			: "block-text"
-	}' ), '', '', '', '' );-- --
+	json( '{
+		"form" : {
+			"name"		: "editblock",
+			"method"	: "post",
+			"legend"	: "Simple multiline content block", 
+			"action"	: "\/pageblocks\/edit",
+			"inputs"	: [
+			{
+				"name"		: "block_id",
+				"type"		: "hidden",
+				"value"		: "{block_id}"
+			},
+			{
+				"name"		: "body",
+				"type"		: "wysiwyg",
+				"label"		: "{lang:forms:page_block:edit_label}",
+				"special"	: "{lang:forms:page_block:edit_special}",
+				"desc"		: "{lang:forms:page_block:edit_desc}",
+				"rows"		: 10,
+				"cols"		: 60,
+				"required"	: "required"
+			},
+			{
+				"type"		: "submit",
+				"name"		: "edit",
+				"value"		: "{lang:forms:page_block:edit_submit}"
+			}]
+		}
+	}' ), 
+	
+	json( '{
+		"form"	: {
+			"name"		: "blockdelete",
+			"method"	: "post",
+			"legend"	: "Confirm deleting block", 
+			"action"	: "\/pageblocks\/delete",
+			"inputs"	: [
+			{
+				"type"		: "checkbox",
+				"name"		: "confirm",
+				"value"		: 1,
+				"label"		: "{lang:forms:page_block:delete_label}",
+				"required"	: "required"
+			},
+			{
+				"type"		: "submit",
+				"value"		: "{lang:forms:page_block:delete_submit}"
+			}]
+		}
+	}' )
+	
+	);-- --
 
 INSERT INTO page_blocks ( type_id, page_id, content, sort_order ) 
 	VALUES ( 1, 1, json( '{ "body": "Test content heading", "render" : [ "heading" ], "lang" : "en" }' ), 0 );-- --
