@@ -22,136 +22,17 @@ enum InputType {
 	case Reset;
 	case Button;
 	
-	// Generic input
-	const InputRender	=<<<HTML
-{input_field_before}<input id="{id}" name="{name}" type="text" 
-	aria-describedby="{id}-desc" placeholder="{placeholder}" 
-	class="{input_classes}" value="{value}" 
-	{required}{extra}>{input_field_after}
-HTML;
-	
-	// Typed text input
-	const InputTypeRender	=<<<HTML
-{input_field_before}<input id="{id}" name="{name}" type="{type}" 
-	aria-describedby="{id}-desc" placeholder="{placeholder}" 
-	class="{input_classes}" value="{value}" 
-	{required}{extra}>{input_field_after}
-HTML;
-	
-	// Checkbox and radio button
-	const TickRender	=<<<HTML
-{input_field_before}<input id="{id}" name="{name}" value="{value}" 
-	type="{type}" class="{input_classes}" aria-describedby="{id}-desc" 
-	{required}{extra}>{input_field_after}
-HTML;
-	
-	// Multiline
-	const TextareaRender	=<<<HTML
-{input_field_before}<textarea id="{id}" name="{name}" 
-	aria-describedby="{id}-desc" placeholder="{placeholder}" 
-	rows="{rows} cols="{cols}" class="{input_classes}" 
-	{required}{extra}>{value}</textarea>{input_field_after} 
-HTML;
-	
-	// HTML Formatted multiline
-	const WysiwygRender	=<<<HTML
-{input_field_before}<div class="{wysiwyg-classes}" rel="{id}-wysiwyg"></div>
-<textarea id="{id}" name="{name}" 
-	aria-describedby="{id}-desc" placeholder="{placeholder}" 
-	rows="{rows} cols="{cols}" class="{input_classes}" 
-	data-wysiwyg="{id}" {required}{extra}
-	>{value}</textarea>{input_field_after} 
-HTML;
-	
-	// Multiple options
-	const SelectRender	=<<<HTML
-{input_field_before} 
-<select id="{id}" name="{name}" aria-describedby="{id}-desc"
-	class="{input_classes}" {required}{extra}>
-	{unselect_option}{options}</select>{input_field_after} 
-HTML;
-	
-	// Single option in above
-	const OptionRender	= 
-	'<option value="{value}" {selected}>{label}</option>';
-	
-	// Unselected option
-	const UnselectRender	= '<option value="">--</option>';
-	
-	// Hidden input template
-	const HiddenRender	= 
-	'<input type="hidden" name="{name}" value="{value}">';
-	
-	const SubmitRender	=<<<HTML
-<p class="{input_wrap_classes}">
-{input_before}{input_submit_before}<input type="{type}" id="{id}" 
-	name="{name}" value="{value}" class="{input_classes}" 
-	{extra}>{input_submit_after}{input_after}</p>
-HTML;
-	
-	// Field wrapper
-	const InputWrap		=<<<HTML
-<p class="{input_wrap_classes}">{input_before}
-{label_before}<label for="{id}" class="{label_classes}">{label}
-	{special_before}<span class="{special_classes}"
-	>{special}</span>{special_after}</label>{label_after} 
-{input}{input_message}
-{desc_before}<small id="{id}-desc" class="{desc_classes}" 
-	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
-HTML;
-	
-	// No label, no description
-	const InputWrapNDNL	=<<<HTML
-<p class="{input_wrap_classes}">{input_before}{input}{input_message}{input_after}</p>
-HTML;
-
-	// Description, but no label
-	const InputWrapNL	=<<<HTML
-<p class="{input_wrap_classes}">{input_before}
-{input}{input_message}
-{desc_before}<small id="{id}-desc" class="{desc_classes}" 
-	{desc_extra}>{desc}</small>{desc_after}{input_after}</p>
-HTML;
-
-	// No description, has label, but no special
-	const InputWrapNDNS	=<<<HTML
-<p class="{input_wrap_classes}">{input_before}
-{label_before}<label for="{id}" 
-	class="{label_classes}">{label}</label>{label_after} 
-	{input}{input_message}</p>
-HTML;
-	
-	// No description
-	const InputWrapND	=<<<HTML
-<p class="{input_wrap_classes}">{input_before}
-{label_before}<label for="{id}" class="{label_classes}">{label}
-	{special_before}<span class="{special_classes}"
-	>{special}</span>{special_after}</label>{label_after} 
-{input}{input_message}</p>
-HTML;
-	
-	/**
-	 *  Error/validity pseudo element message holder
-	 *  
-	 *  @example
-	 *  input:valid ~ .input-message { display:none; }
-	 *  input:required:invalid ~ .input-message::after { content: attr(data-required); }
-	 *  input:invalid:not(:placeholder-shown) ~ .input-message::after { content: attr(data-validation); }
-	 */
-	const InputMessage	= 
-	'<span class="{message_classes}" {messages}></span>';
-
-	
 	/**
 	 *  Render the current input type in the above templates
 	 */
-	public function render( array $input ) : string {
-		
+	public function buildInput( \DOMElement $form, array $input ) {
 		// Default to text type if not given
 		$input['type'] ??= 'text';
 		$input['type'] = \strtolower( $input['type'] );
 		
-		$data = static::placeholders( $input );
+		$input['value'] ??= '';
+		
+		$data = \Notes\Util::placeholders( $input );
 		
 		// Default settings
 		static::baseDefaults( $data );
@@ -159,127 +40,311 @@ HTML;
 		// Default styling
 		static::baseStyling( $data );
 		
-		$data['{input}'} = 
-		match( $this ) {
-			// Flat text
-			InputType::Text, 
-			InputType::Email,
-			InputType::Search, 
-			InputType::Password	=> 
-			\strtr( 
-				$input['template'] ?? 
-					static::InputTypeRender, 
-				$data 
-			),
-			
-			// Datetime
-			InputType::DateTime	=> ( function() use ( $data ) {
-				// Override type
-				$data['{type}']	= 'datetime-local';
-				
-				return 
-				\strtr( 
-					$input['template'] ?? 
-						static::InputTypeRender, 
-					$data
-				);
-			} )(),
-			
-			// Select
-			InputType::Select	=> ( function() use ( $data, $input ) {
-				// Set unselected (empty) option
-				$data['{unselect_option}']	= 
-				empty( $input['unselect'] ) ? '' : 
-					static::UnselectRender;
-				
-				$data['{options}']		= 
-				static::renderOptions( $input['options'] ?? [] );
-				
-				return 
-				\strtr( 
-					$input['template'] ?? 
-						static::SelectRender, 
-					$data
-				);
-			} )(),
-			
-			// Option
-			InputType::Radio,
-			InputType::Checkbox	=> 
-			\strtr( 
-				$input['template'] ?? 
-					static::TickRender, 
-				$data
-			),
-			
-			// Multiline
-			InputType::Textarea	=> ( function() use ( $data ) {
-				$data['{rows}']	??= 5;
-				$data['{cols}']	??= 50;
-				
-				return 
-				\strtr( 
-					$input['template'] ?? 
-						static::TextareaRender, 
-					$data
-				);
-			} )(),
-			
-			// Multiline formatted
-			InputType::Wysiwyg	=> ( function() use ( $data ) { 
-				$data['{rows}']	??= 5;
-				$data['{cols}']	??= 50;
-				
-				return 
-				\strtr( 
-					$input['template'] ?? 
-						static::WysiwygRender, 
-					$data
-				);
-			} )(),
-			
-			// Hidden inputs
-			InputType::Hidden	=>
-				\strtr( static::HiddenRender, $data ), 
-			
-			// Buttons
-			InputType::Button,
-			InputType::Reset,
-			InputType::Submit	=>
-			\strtr( 
-				$input['template'] ?? 
-					static::SubmitRender, 
-				$data
-			), 
-			
-			// Prepare input wrap template
-			default		=> 
-			\strtr( 
-				$input['template'] ?? 
-					static::InputRender, 
-				$data
-			)
-		};
+		$node	= $this->buildNode( $form, $input, $data );
+		$node->setAttribute( 'id', $data['{id}'] );
+		$node->setAttribute( 'name', $data['{name}'] );
 		
 		return 
 		match( $this ) {
 			// Send bare for inline types
 			InputType::Submit,
 			InputType::Button,
-			InputType::Hidden	=> $data['{input}'],
+			InputType::Hidden	=> $node,
 			
-			// Send wrapped
-			default			=> 
-			\strtr( 
-				static::baseWrapTemplate( $data ), 
-				$data 
-			)
+			// Wrap everything else
+			default			=>
+			$this->wrapInput( $node, $form, $data )
+		}
+	}
+	
+	protected function buildNode( \DOMElement $form, array $input, array $data ) {
+		$node = 
+		match( $this ) {
+			// Flat text
+			InputType::Text, 
+			InputType::Email,
+			InputType::Search, 
+			InputType::Password	=> ( function() use ( $form, $data ) {
+				$e = $form->ownerDocument->createElement( 'input' );
+				$e->setAttribute( 'type', $data['{type}'] );
+				$e->setAttribute( 'value', $data['{value}'] );
+				$e->setAttribute( 'placeholder', $data['{placeholder}'] );
+				
+				return $e;
+			} )(),
+			
+			// Datetime
+			InputType::DateTime	=> ( function() use ( $form, $data ) {
+				$e = $form->ownerDocument->createElement( 'input' );
+				
+				// Override type
+				$e->setAttribute( 'type', 'datetime-local' );
+				$e->setAttribute( 'value', $data['{value}'] );
+				$e->setAttribute( 'placeholder', $data['{placeholder}'] );
+				
+				return $e;
+			} )(),
+			
+			// Select
+			InputType::Select	=> ( function() use ( $form, $data, $input ) {
+				$e = $form->ownerDocument->createElement( 'select' );
+				
+				// Set unselected (empty) option
+				if ( !empty( $data['{unselect_option}'] ) ) {
+					$u = $form->ownerDocument->createElement( 'option', '--' );
+					$e->appendChild( $u );
+				} 
+				$this->addOptions( $e, $form, $input['options'] ?? [] );
+				return $e;
+			} )(),
+			
+			// Option
+			InputType::Radio,
+			InputType::Checkbox	=> ( function() use ( $form, $data, $input ) {
+				$e = $form->ownerDocument->createElement( 'input' );
+				$e->setAttribute( 'type', $input['type'] );
+				$e->setAttribute( 'value', $input['value'] );
+				return $e;
+			} )(),
+			
+			// Multiline, formatted start with a textarea
+			InputType::Textarea,
+			InputType::Wysiwyg	=> ( function() use ( $form, $data, $input ) { 
+				$e = $form->ownerDocument->createElement( 
+					'textarea', $input['{value}']
+				);
+				
+				$e->setAttribute( 'rows', $input['rows'] ?? 5 );
+				$e->setAttribute( 'cols', $input['cols'] ?? 50 );
+				$e->setAttribute( 'placeholder', $data['{placeholder}'] );
+				return $e;
+			} )(),
+			
+			// Hidden inputs
+			InputType::Hidden	=> ( function() use ( $form, $data, $input ) {
+				$e = $form->ownerDocument->createElement( 'input' );
+				$e->setAttribute( 'type', 'hidden' );
+				$e->setAttribute( 'value', $data['{value}'] );
+				return $e;
+			} )(),
+			
+			// Buttons
+			InputType::Button,
+			InputType::Reset,
+			InputType::Submit	=> ( function() use ( $form, $data, $input ) {
+				$e = $form->ownerDocument->createElement( 'input' );
+				$e->setAttribute( 'value', $data['{value}'] );
+				$e->setAttribute( 'type', $input['type'] );
+				
+				return $e;
+			} )(), 
+			
+			// Default input type
+			default		=>  ( function() use ( $form, $input ) {
+				$e = $form->ownerDocument->createElement( 'input' );
+				$e->setAttribute( 'type', $data['{type}'] );
+				$e->setAttribute( 'value', $data['{value}'] );
+				return $e;
+			} )()
 		};
+		
+		$class = 
+		match( $input['type'] ) {
+			'hidden'	=> '',
+			'submit'	=> $data['{submit_classes}'],
+			'reset'		=> $data['{reset_classes}'],
+			default		=> $data['{input_classes}']
+		};
+		$e->setAttribute( 'class', $class );
+		
+		$node->setAttribute( 'id', $data['{id}'] );
+		$node->setAttribute( 'name', $data['{name}'] );
+		
+		// Has a description?
+		if ( !empty( $data['{desc}'] ) ) {
+			$node->setAttribute( 
+				'aria-described-by', 
+				$data['{id}'] . '-desc' 
+			);
+		}
+		return $node;
 	}
 	
 	// TODO
 	public function validate( array $input ) {
 		
+	}
+	
+	/**
+	 *  Form field wrapper
+	 */
+	protected function wrapInput( \DOMElement $node, \DOMElement $form, array $data ) {
+		$wrap = $form->ownderDocument->createElement( 'p' );
+		$wrap->setAttribute( 'class', $data['{input_wrap_classes}'] );
+		
+		$this->addLabel( $wrap, $node, $form, $data );
+		
+		// Pre-input event content
+		$wrap->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{input_field_before}' 
+			)
+		);
+		
+		match( $this ) {
+			// Wysiwyg needs an extra element inside the wrap
+			InputType::Wysiwyg	=> ( function() use ( $form, $node ) { 
+				$w = $form->ownderDocument->createElement( 'div', '' );
+				$w->setAttribute( 'rel', $node->getAttribute( 'id' ) . '-wysiwyg' );
+				$w->setAttribute( 'class', '{wysiwyg_classes}' );
+				$wrap->appendChild( $w );
+				$wrap->appendChild( $node );
+			} )(),
+			
+			InputType::Radio,
+			InputType::Checkbox	=> null,	// Already added
+			
+			default => $wrap->appendChild( $node )
+		};
+		
+		// Append validation message holder, if needed
+		$this->addMessages( $wrap, $form, $data );
+		
+		// Post-input event content
+		$wrap->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{input_field_after}' 
+			)
+		);
+		
+		// Add description if given
+		$this->addDescription( $wrap, $form, $data );
+		
+		return $wrap;
+	}
+	
+	/**
+	 *  Brief input description
+	 */
+	protected function addLabel( 
+		\DOMElement	$wrap, 
+		\DOMElement	$node, 
+		\DOMElement	$form, 
+		array		$data 
+	) {
+		if ( empty( $data['{label}'] ) ) {
+			return;
+		}
+		
+		// Pre-label event content
+		$wrap->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{label_before}' 
+			)
+		);
+		
+		$label = $form->ownderDocument->createElement( 'label', $data['{label}'] );
+		$label->setAttribute( 'for', $data['{id}'] );
+		$label->setAttribute( 'class', $data['{label_classes}'] );
+		
+		$this->addSpecial( $label, $form, $data );
+		
+		match( $this ) {
+			// Options handled differently
+			InputType::Radio,
+			InputType::Checkbox	=> ( function() use ( $label, $wrap, $node ) {
+				$label->appendChild( $node );
+				$wrap->appendChild( $label );
+			} )(),
+			
+			// Add input label
+			default			=> $wrap->appendChild( $label )
+		};
+		
+		// Post-label event content
+		$wrap->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{label_after}' 
+			)
+		);
+	}
+	
+	/**
+	 *  Special validation parameters E.G. "required" or "optional"
+	 */
+	protected function addSpecial( \DOMElement $label, \DOMElement $form, array $data ) {
+		if ( empty( $data['{special}'] ) ) {
+			return;
+		}
+		// Pre-special event content
+		$label->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{special_before}' 
+			)
+		);
+		
+		$special = $form->ownderDocument->createElement( 'span', $data['{special}'] );
+		$special->setAttribute( 'class', $data['{special_classes}'] );
+		
+		$label->appendChild( $special );
+		
+		// Post-special event content
+		$label->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{special_after}' 
+			)
+		);
+	}
+	
+	/**
+	 *  Input content instructions
+	 */
+	protected function addDescription( \DOMElement $wrap, \DOMElement $form, array $data ) {
+		if ( empty( $data['{desc}'] ) ) {
+			return;
+		}
+		// Pre-descriptipon event content
+		$wrap->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{desc_before}' 
+			)
+		);
+		
+		$desc = $form->ownderDocument->createElement( 'small', $data['{desc}'] );
+		$label->setAttribute( 'id', $data['{id}'] . '-desc' );
+		$label->setAttribute( 'class', $data['{desc_classes}'] );
+		$wrap->appendChild( $desc );
+		
+		// Post-descriptipon event content
+		$wrap->appendChild(
+			$form->ownerDocument->createTextNode( 
+				'{desc_after}' 
+			)
+		);
+	}
+	
+	/**
+	 *  Error/validity pseudo element message holder
+	 *   
+	 *  @param 
+	 *  @example
+	 *  input:valid ~ .input-message { display:none; }
+	 *  input:required:invalid ~ .input-message::after { content: attr(data-required); }
+	 *  input:invalid:not(:placeholder-shown) ~ .input-message::after { content: attr(data-validation); }
+	 */
+	public function addMessages(
+		\DOMElement	$wrap, 
+		\DOMElement	$form, 
+		array		$data 
+	) {
+		if ( empty( $data['{messages}'] ) ) {
+			return;
+		}
+		$msg = 
+		$form->ownerDocument->createElement( 'span', $data['{messages}'] );
+		
+		$msg->setAttribute( 'class', $data['{message_classes}'] );
+		$wrap->appendChild( $msg );
 	}
 	
 	/**
@@ -334,49 +399,6 @@ HTML;
 	}
 	
 	/**
-	 *  Select base input wrap template
-	 */
-	public static function baseWrapTemplate( array $data ) : string {
-		return 
-		match( true ) {
-			// Skip if there's already a wrap template set
-			( 
-				!empty( $data['{wrap}'] )	|| 
-				!empty( $data['{wrap_template}'] 
-			)	=> '',
-			
-			// No label, no description
-			( 
-				empty( $data['{desc}'] )	&& 
-				empty( $data['{label}'] )
-			)	=> static::InputWrapNDNL,
-			
-			// Description, but no label
-			( 
-				!empty( $data['{desc}'] )	&& 
-				empty( $data['{label}'] )
-			)	=> static::InputWrapNL,
-			
-			// No description, has label, but no special
-			( 
-				empty( $data['{desc}'] )	&& 
-				empty( $data['{special}'] )	&& 
-				!empty( $data['{label}']
-			)	=> static::InputWrapNDNS,
-			
-			// No description, but has label and special
-			( 
-				empty( $data['{desc}'] )	&& 
-				!empty( $data['{special}']	&& 
-				!empty( $data['{label}']
-			)	=> static::InputWrapND,
-			
-			// Everything else gets wrapped
-			default	=> static::InputWrap
-		};
-	}
-	
-	/**
 	 *  Default styling from tachyons.css
 	 */
 	public static function baseStyling( array &$data ) {
@@ -419,22 +441,38 @@ HTML;
 		};
 	}
 	
-	/**
-	 *  Select box options
-	 */
-	public static function renderOptions( array $options ) {
-		$opt = '';
+	public function addOptions( 
+		\DOMElement	$e, 
+		\DOMElement	$form, 
+		array		$options 
+	) {
 		foreach ( $options as $o ) {
+			// Option placeholders
 			$data = \Notes\Util::placeholders( $o );
 			
 			// Base defaults
 			$data = static::baseDefaults( $data );
+			$data['{text}'] ??= '';
 			
-			$opt .= 
-			\strtr( static::OptionRender, $data );
+			$p = $form->ownerDocument->createElement( 'option', $data['{text}'] );
+			foreach( $data as $k => $v ) {
+				match( $k ) {
+					'{selected}'	=> ( function() use ( $v, $p ) {
+						if ( !empty( $v ) ) {
+							$p->setAttribute( 'selected', 'selected' );
+						}
+					})(),
+					
+					'{id}'		=>
+					$p->setAttribute( 'id', $data['{id}'] ),
+					
+					// Skip everything else
+					default		=> null
+				};
+			}
+			
+			$e->appendChild( $p );
 		}
-		
-		return $opt;
 	}
 }
 
