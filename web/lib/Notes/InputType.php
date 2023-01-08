@@ -65,24 +65,6 @@ enum InputType {
 	protected function buildNode( \DOMElement $form, array $input, array $data ) {
 		$node = 
 		match( $this ) {
-			// Flat text
-			InputType::Text, 
-			InputType::Email,
-			InputType::Search, 
-			InputType::Password	=> ( function() use ( $form, $data ) {
-				$e = $form->ownerDocument->createElement( 'input' );
-				$e->setAttribute( 'type', $data['{type}'] );
-				$e->setAttribute( 'value', $data['{value}'] );
-				$e->setAttribute( 'placeholder', $data['{placeholder}'] );
-				
-				// HTML5 validation pattern
-				if ( !empty( $data['{pattern}'] ) ) {
-					$e->setAttribute( 'pattern', $data['{pattern}'] );
-				}
-				
-				return $e;
-			} )(),
-			
 			// Datetime
 			InputType::DateTime	=> ( function() use ( $form, $data ) {
 				$e = $form->ownerDocument->createElement( 'input' );
@@ -154,6 +136,29 @@ enum InputType {
 				$e = $form->ownerDocument->createElement( 'input' );
 				$e->setAttribute( 'type', $data['{type}'] );
 				$e->setAttribute( 'value', $data['{value}'] );
+				
+				if ( !empty( $data['{placeholder}'] ) ) {
+					$e->setAttribute( 'placeholder', $data['{placeholder}'] );
+				}
+				
+				// HTML5 validation pattern
+				if ( !empty( $data['{pattern}'] ) ) {
+					$e->setAttribute( 'pattern', $data['{pattern}'] );
+				}
+				
+				// Allow multiple
+				if ( !empty( $data['{multiple}'] ) ) {
+					$e->setAttribute( 'multiple', 'multiple' );
+				}
+				
+				// Has a description?
+				if ( !empty( $data['{desc}'] ) ) {
+					$node->setAttribute( 
+						'aria-described-by', 
+						$data['{id}'] . '-desc' 
+					);
+				}
+				
 				return $e;
 			} )()
 		};
@@ -161,8 +166,6 @@ enum InputType {
 		$class = 
 		match( $input['type'] ) {
 			'hidden'	=> '',
-			'submit'	=> $data['{submit_classes}'],
-			'reset'		=> $data['{reset_classes}'],
 			default		=> $data['{input_classes}']
 		};
 		$e->setAttribute( 'class', $class );
@@ -170,19 +173,6 @@ enum InputType {
 		$node->setAttribute( 'id', $data['{id}'] );
 		$node->setAttribute( 'name', $data['{name}'] );
 		
-		// Has a description?
-		if ( !empty( $data['{desc}'] ) ) {
-			$node->setAttribute( 
-				'aria-described-by', 
-				$data['{id}'] . '-desc' 
-			);
-		}
-		
-		// Allow multiple
-		if ( !empty( $data['{multiple}'] ) ) {
-			$e->setAttribute( 'multiple', 'multiple' );
-		}
-				
 		return $node;
 	}
 	
