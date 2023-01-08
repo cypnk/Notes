@@ -14,6 +14,7 @@ enum InputType {
 	case Password;
 	case Textarea;
 	case DateTime;
+	case Datalist;
 	
 	case Hidden;
 	case Other;
@@ -54,7 +55,8 @@ enum InputType {
 			// Send bare for inline types
 			InputType::Submit,
 			InputType::Button,
-			InputType::Hidden	=> $node,
+			InputType::Hidden,
+			InputType::Datalist	=> $node,
 			
 			// Wrap everything else
 			default			=>
@@ -66,98 +68,27 @@ enum InputType {
 		$node = 
 		match( $this ) {
 			// Datetime
-			InputType::DateTime	=> ( function() use ( $form, $data ) {
-				$e = $form->ownerDocument->createElement( 'input' );
-				
-				// Override type
-				$e->setAttribute( 'type', 'datetime-local' );
-				$e->setAttribute( 'value', $data['{value}'] );
-				$e->setAttribute( 'placeholder', $data['{placeholder}'] );
-				
-				return $e;
-			} )(),
+			InputType::DateTime	=> 
+			static::buildDatetime( $form, $data ),
 			
 			// Select
-			InputType::Select	=> ( function() use ( $form, $data, $input ) {
-				$e = $form->ownerDocument->createElement( 'select' );
-				
-				// Set unselected (empty) option
-				if ( !empty( $data['{unselect_option}'] ) ) {
-					$u = $form->ownerDocument->createElement( 'option', '--' );
-					$e->appendChild( $u );
-				} 
-				$this->addOptions( $e, $form, $input['options'] ?? [] );
-				return $e;
-			} )(),
-			
-			// Option
-			InputType::Radio,
-			InputType::Checkbox	=> ( function() use ( $form, $data, $input ) {
-				$e = $form->ownerDocument->createElement( 'input' );
-				$e->setAttribute( 'type', $input['type'] );
-				$e->setAttribute( 'value', $input['value'] );
-				return $e;
-			} )(),
+			InputType::Select	=> 
+			static::buildSelect( $form, $data, $input ),
 			
 			// Multiline, formatted start with a textarea
 			InputType::Textarea,
-			InputType::Wysiwyg	=> ( function() use ( $form, $data, $input ) { 
-				$e = $form->ownerDocument->createElement( 
-					'textarea', $input['{value}']
-				);
-				
-				$e->setAttribute( 'rows', $input['rows'] ?? 5 );
-				$e->setAttribute( 'cols', $input['cols'] ?? 50 );
-				$e->setAttribute( 'placeholder', $data['{placeholder}'] );
-				return $e;
-			} )(),
+			InputType::Wysiwyg	=> 
+			static::buildMultiline( $form, $data, $input ),
 			
-			// Hidden inputs
-			InputType::Hidden	=> ( function() use ( $form, $data, $input ) {
-				$e = $form->ownerDocument->createElement( 'input' );
-				$e->setAttribute( 'type', 'hidden' );
-				$e->setAttribute( 'value', $data['{value}'] );
-				return $e;
-			} )(),
-			
-			// Buttons
-			InputType::Button,
-			InputType::Reset,
-			InputType::Submit	=> ( function() use ( $form, $data, $input ) {
-				$e = $form->ownerDocument->createElement( 'input' );
-				$e->setAttribute( 'value', $data['{value}'] );
-				$e->setAttribute( 'type', $input['type'] );
-				
-				return $e;
-			} )(), 
+			// Selection list
+			InputType::Datalist	=>
+			static::buildDatalist( $form, $data, $input ),
 			
 			// Default input type
-			default		=>  ( function() use ( $form, $input ) {
+			default		=>  ( function() use ( $form, $data ) {
 				$e = $form->ownerDocument->createElement( 'input' );
 				$e->setAttribute( 'type', $data['{type}'] );
 				$e->setAttribute( 'value', $data['{value}'] );
-				
-				if ( !empty( $data['{placeholder}'] ) ) {
-					$e->setAttribute( 'placeholder', $data['{placeholder}'] );
-				}
-				
-				// HTML5 validation pattern
-				if ( !empty( $data['{pattern}'] ) ) {
-					$e->setAttribute( 'pattern', $data['{pattern}'] );
-				}
-				
-				// Allow multiple
-				if ( !empty( $data['{multiple}'] ) ) {
-					$e->setAttribute( 'multiple', 'multiple' );
-				}
-				
-				// Has a description?
-				if ( !empty( $data['{desc}'] ) ) {
-					$node->setAttribute( 
-						'aria-described-by', 
-						$data['{id}'] . '-desc' 
-					);
-				}
 				
 				return $e;
 			} )()
@@ -173,6 +104,12 @@ enum InputType {
 		$node->setAttribute( 'id', $data['{id}'] );
 		$node->setAttribute( 'name', $data['{name}'] );
 		
+		// Append additional attributes
+		static::addAttributes( $node, $data );
+		
+		// Apply any extra parameters
+		\Notes\FormType::addExtras( $node, $input );
+		
 		return $node;
 	}
 	
@@ -184,8 +121,12 @@ enum InputType {
 	/**
 	 *  Form field wrapper
 	 */
-	protected function wrapInput( \DOMElement $node, \DOMElement $form, array $data ) {
-		$wrap = $form->ownderDocument->createElement( 'p' );
+	protected function wrapInput( 
+		\DOMElement	$node, 
+		\DOMElement	$form, 
+		array		$data 
+	) {
+		$wrap = $form->ownerDocument->createElement( 'p' );
 		$wrap->setAttribute( 'class', $data['{input_wrap_classes}'] );
 		
 		$this->addLabel( $wrap, $node, $form, $data );
@@ -200,7 +141,7 @@ enum InputType {
 		match( $this ) {
 			// Wysiwyg needs an extra element inside the wrap
 			InputType::Wysiwyg	=> ( function() use ( $form, $node ) { 
-				$w = $form->ownderDocument->createElement( 'div', '' );
+				$w = $form->ownerDocument->createElement( 'div', '' );
 				$w->setAttribute( 'rel', $node->getAttribute( 'id' ) . '-wysiwyg' );
 				$w->setAttribute( 'class', '{wysiwyg_classes}' );
 				$wrap->appendChild( $w );
@@ -214,7 +155,7 @@ enum InputType {
 		};
 		
 		// Append validation message holder, if needed
-		$this->addMessages( $wrap, $form, $data );
+		static::addMessages( $wrap, $form, $data );
 		
 		// Post-input event content
 		$wrap->appendChild(
@@ -224,7 +165,7 @@ enum InputType {
 		);
 		
 		// Add description if given
-		$this->addDescription( $wrap, $form, $data );
+		static::addDescription( $wrap, $form, $data );
 		
 		return $wrap;
 	}
@@ -249,11 +190,11 @@ enum InputType {
 			)
 		);
 		
-		$label = $form->ownderDocument->createElement( 'label', $data['{label}'] );
+		$label = $form->ownerDocument->createElement( 'label', $data['{label}'] );
 		$label->setAttribute( 'for', $data['{id}'] );
 		$label->setAttribute( 'class', $data['{label_classes}'] );
 		
-		$this->addSpecial( $label, $form, $data );
+		static::addSpecial( $label, $form, $data );
 		
 		match( $this ) {
 			// Options handled differently
@@ -278,7 +219,11 @@ enum InputType {
 	/**
 	 *  Special validation parameters E.G. "required" or "optional"
 	 */
-	protected function addSpecial( \DOMElement $label, \DOMElement $form, array $data ) {
+	public static function addSpecial( 
+		\DOMElement	$label, 
+		\DOMElement	$form, 
+		array		$data 
+	) {
 		if ( empty( $data['{special}'] ) ) {
 			return;
 		}
@@ -289,7 +234,7 @@ enum InputType {
 			)
 		);
 		
-		$special = $form->ownderDocument->createElement( 'span', $data['{special}'] );
+		$special = $form->ownerDocument->createElement( 'span', $data['{special}'] );
 		$special->setAttribute( 'class', $data['{special_classes}'] );
 		
 		$label->appendChild( $special );
@@ -303,9 +248,67 @@ enum InputType {
 	}
 	
 	/**
+	 *  Add common input elements
+	 */
+	public static addAttributes( \DOMElement $node, array $data ) {
+		
+		foreach ( $data as $k => $v ) {
+			$success = 
+			match( $k ) {
+				// Has a placeholder
+				'{placeholder}'	=>
+				$node->setAttribute( 
+					'placeholder', ( string ) $v 
+				),
+				
+				// Required?
+				'{required}'	=>
+				$node->setAttribute( 'required', 'required' ),
+				
+				// Has a description?
+				'{desc}'	=>
+				$node->setAttribute( 
+					'aria-described-by', 
+					( string ) $data['{id}'] . '-desc' 
+				),
+				
+				// HTML5 validation pattern?
+				'{pattern}'	=>
+				$node->setAttribute( 
+					'pattern', ( string ) $data['{pattern}'] 
+				),
+				
+				// Allow multiple?
+				'{multiple}'	=>
+				$node->setAttribute( 'multiple', 'multiple' ),
+				
+				// Autocomplete list?
+				'{list}'	=>
+				$node->setAttribute( 
+					'list', 
+					\Notes\Util::bland( 
+						( string ) $data['list'] 
+					)
+				),
+				
+				default		=> true
+			};
+			
+			if ( !$success ) {
+				// Error setting attributes, skip rest
+				break;
+			}
+		}
+	}
+	
+	/**
 	 *  Input content instructions
 	 */
-	protected function addDescription( \DOMElement $wrap, \DOMElement $form, array $data ) {
+	protected static function addDescription( 
+		\DOMElement	$wrap, 
+		\DOMElement	$form, 
+		array		$data 
+	) {
 		if ( empty( $data['{desc}'] ) ) {
 			return;
 		}
@@ -316,7 +319,7 @@ enum InputType {
 			)
 		);
 		
-		$desc = $form->ownderDocument->createElement( 'small', $data['{desc}'] );
+		$desc = $form->ownerDocument->createElement( 'small', $data['{desc}'] );
 		$label->setAttribute( 'id', $data['{id}'] . '-desc' );
 		$label->setAttribute( 'class', $data['{desc_classes}'] );
 		$wrap->appendChild( $desc );
@@ -338,16 +341,19 @@ enum InputType {
 	 *  input:required:invalid ~ .input-message::after { content: attr(data-required); }
 	 *  input:invalid:not(:placeholder-shown) ~ .input-message::after { content: attr(data-validation); }
 	 */
-	public function addMessages(
+	public static function addMessages(
 		\DOMElement	$wrap, 
 		\DOMElement	$form, 
-		array		$data 
+		array		$data,
+		string		$wtype	= 'span'
 	) {
 		if ( empty( $data['{messages}'] ) ) {
 			return;
 		}
 		$msg = 
-		$form->ownerDocument->createElement( 'span', $data['{messages}'] );
+		$form->ownerDocument->createElement( 
+			$wtype, $data['{messages}'] 
+		);
 		
 		$msg->setAttribute( 'class', $data['{message_classes}'] );
 		$wrap->appendChild( $msg );
@@ -366,6 +372,7 @@ enum InputType {
 		$data['{required}']		??= '';
 		
 		$data['{extra}']		??= '';
+		$data['{extras}']		??= [];
 		
 		// Accessibility
 		$data['{label}']		??= '';
@@ -447,7 +454,7 @@ enum InputType {
 		};
 	}
 	
-	public function addOptions( 
+	public static function addOptions( 
 		\DOMElement	$e, 
 		\DOMElement	$form, 
 		array		$options 
@@ -458,14 +465,20 @@ enum InputType {
 			
 			// Base defaults
 			$data = static::baseDefaults( $data );
-			$data['{text}'] ??= '';
 			
-			$p = $form->ownerDocument->createElement( 'option', $data['{text}'] );
+			$p = 
+			$form->ownerDocument->createElement( 
+				'option', $data['{text}'] ?? ''
+			);
 			foreach( $data as $k => $v ) {
 				match( $k ) {
-					'{selected}'	=> ( function() use ( $v, $p ) {
+					'{selected}'	=> 
+					( function() use ( $v, $p ) {
 						if ( !empty( $v ) ) {
-							$p->setAttribute( 'selected', 'selected' );
+							$p->setAttribute( 
+								'selected', 
+								'selected' 
+							);
 						}
 					})(),
 					
@@ -479,6 +492,91 @@ enum InputType {
 			
 			$e->appendChild( $p );
 		}
+	}
+	
+	/**
+	 *  Dropdown select
+	 */
+	public static function buildSelect( 
+		\DOMElement	$form, 
+		array		$data, 
+		array		$input 
+	) : \DOMElement {
+		$e = $form->ownerDocument->createElement( 'select' );
+		
+		// Set unselected (empty) option
+		if ( !empty( $data['{unselect_option}'] ) ) {
+			$u = $form->ownerDocument->createElement( 'option', '--' );
+			$e->appendChild( $u );
+		} 
+		static::addOptions( $e, $form, $input['options'] ?? [] );
+		return $e;
+	}
+	
+	/**
+	 *  Specific date selection
+	 */
+	public static function buildDatetime( 
+		\DOMElement	$form, 
+		array		$data 
+	) : \DOMElement {
+		$e = $form->ownerDocument->createElement( 'input' );
+		
+		// Override type
+		$e->setAttribute( 'type', 'datetime-local' );
+		$e->setAttribute( 'value', $data['{value}'] );
+		
+		return $e;
+	}
+	
+	/**
+	 *  Textareas and wysiwyg
+	 */
+	public static function buildMultiline( 
+		\DOMElement	$form, 
+		array		$data, 
+		array		$input 
+	) : \DOMElement { 
+		$e = $form->ownerDocument->createElement( 
+			'textarea', $input['{value}']
+		);
+		
+		$e->setAttribute( 'rows', $input['rows'] ?? 5 );
+		$e->setAttribute( 'cols', $input['cols'] ?? 50 );
+		return $e;
+	}
+	
+	/**
+	 *  Background data retrieval for autocomplete types
+	 */
+	public static function builDatalist( 
+		\DOMElement	$form, 
+		array		$data, 
+		array		$input 
+	) : \DOMElement {
+		// Background autocomplete URL
+		$input['url']	??= '';
+		$input['url']	= \Notes\Util::cleanUrl( $input['url'] );
+		
+		$e = $form->ownerDocument->createElement( 'datalist' );
+		
+		// Default options, if any
+		static::addOptions( $e, $form, $input['options'] ?? [] );
+		
+		// Set auto-complete URL, if given
+		if ( !empty( $input['ur'] ) ) {
+			$e->setAttribute( 'data-url', $input['url'] );
+		}
+		
+		// Refresh interval or event E.G. 10 for seconds or 'keyup'
+		if ( !empty( $input['refresh'] ) ) {
+			$e->setAttribute( 
+				'data-refresh', 
+				\Notes\Util::bland( $input['refresh'] )
+			);
+		}
+		
+		return $e;
 	}
 }
 
