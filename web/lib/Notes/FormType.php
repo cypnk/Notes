@@ -132,11 +132,11 @@ enum FormType {
 			$el->setAttribute( $v, $v );
 		}
 		
-		// Apply extra group
 		if  ( !\is_array( $content['extras'] ) ) {
 			return;
 		}
 		
+		// Apply extra group
 		foreach( $content['extras'] as $i => $j ) {
 			// Add sub elements if nested
 			if ( \is_array( $j ) ) {
@@ -266,12 +266,20 @@ enum FormType {
 			'checkbox'	=> \Notes\InputType::Checkbox,
 			'password'	=> \Notes\InputType::Password,
 			'textarea'	=> \Notes\InputType::Textarea,
+			'wysiwyg'	=> \Notes\InputType::Wysiwyg,
 			
+			'date', 'datetime', 'datetime-local'
+					=> \Notes\InputType::Datetime,
+			
+			'list', 'datalist', 'autofilldata'
+					=> \Notes\InputType::Datalist,
+					
 			'hidden'	=> \Notes\InputType::Hidden,
 			'button'	=> \Notes\InputType::Button,
 			'reset'		=> \Notes\InputType::Reset,
 			'submit'	=> \Notes\InputType::Submit,
 			
+			// TODO: Calendar, Upload, Range
 			default		=> \Notes\InputType::Other
 		}
 		
