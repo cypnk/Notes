@@ -159,11 +159,94 @@ INSERT INTO configs ( settings )
 		"jobs" : "{jobs}localhost\/",
 		"stylesheets": [ "\/css\/tachyons.min.css", "\/localhost\/style.css" ],
 		"scripts": [ "\/js\/squire.js" ], 
+		"metatags": [ 
+			{ 
+				"params"	: { "charset" : "UTF-8" },
+				"scope"		: "global"
+			}, { 
+				"params"	: { 
+					"name"		: "generator", 
+					"content"	: "Notes"
+				},
+				"scope"		: "global"
+			}, { 
+				"params"	: {
+					"name"		: "viewport",
+					"content"	: "width=device-width, initial-scale=1.0"
+				},
+				"scope"		: "global"
+			}, {
+				"params"	:  {
+					"name"		: "description",
+					"content"	: "{summary}"
+				},
+				"scope"		: "document"
+			}, {
+				"params"	: {
+					"name"		: "author",
+					"content"	: "{authors}"
+				},
+				"scope"		: "document"
+			}, {
+				"params"	: {
+					"property"	: "og:description",
+					"content"	: "{summary}"
+				}, 
+				"scope"		: "page"
+			}, {
+				"params"	: {
+					"property"	: "og:title",
+					"content"	: "{title}"
+				}, 
+				"scope"		: "page"
+			}, {
+				"params"	: {
+					"property"	: "og:type",
+					"content"	: "{block_type}"
+				}, 
+				"scope"		: "page_block"
+			}
+		],
 		"cookie_path" : "\/",
 		"cache_ttl" : 7200,
 		"mail_from" : "admin@localhost",
 		"timezone" : "America\/New_York",
 		"allow_upload" : 1,
+		"captcha_length": 5,
+		"captcha_hash": "tiger160,4",
+		"captcha_font": "VeraMono.ttf",
+		"captcha_mime": "image\/png",
+		"captcha_name": "captcha.png",
+		"captcha_height": 35,
+		"captcha_fsize": 30,
+		"captcha_bg": "255, 255, 255",
+		"captcha_lines": "150, 200, 150, 200, 150, 200",
+		"captcha_colors": "0, 150, 10, 150, 10, 150", 
+		"parser_idx_item": 3,
+		"parser_idx_param": 5,
+		"parser_idx_skip": 4,
+		"parser_max_depth": 5,
+		"markers" : {
+			"*"	: "(?<all>.+)",
+			":id"	: "(?<id>[1-9][0-9]*)",
+			":ids"	: "(?<ids>[1-9][0-9,]*)",
+			":page"	: "(?<page>[1-9][0-9]*)",
+			":label": "(?<label>[\\pL\\pN\\s_\\-]{1,30})",
+			":nonce": "(?<nonce>[a-z0-9]{10,30})",
+			":token": "(?<token>[a-z0-9\\+\\=\\-\\%]{10,255})",
+			":meta"	: "(?<meta>[a-z0-9\\+\\=\\-\\%]{7,255})",
+			":tag"	: "(?<tag>[\\pL\\pN\\s_\\,\\-]{1,30})",
+			":tags"	: "(?<tags>[\\pL\\pN\\s_\\,\\-]{1,255})",
+			":year"	: "(?<year>[2][0-9]{3})",
+			":month": "(?<month>[0-3][0-9]{1})",
+			":day"	: "(?<day>[0-9][0-9]{1})",
+			":user"	: "(?<user>[\\pL\\pN\\s_\\-]{1,80})",
+			":slug"	: "(?<slug>[\\pL\\-\\d]{1,100})",
+			":tree"	: "(?<tree>[\\pL\\/\\-\\d]{1,255})",
+			":file"	: "(?<file>[\\pL_\\-\\d\\.\\s]{1,120})",
+			":find"	: "(?<find>[\\pL\\pN\\s\\-_,\\.\\:\\+]{2,255})",
+			":redir": "(?<redir>[a-z_\\:\\/\\-\\d\\.\\s]{1,120})"
+		},
 		"ext_whitelist" : {
 			"text"		: "css, js, txt, html, vtt",
 			"images"	: "ico, jpg, jpeg, gif, bmp, png, tif, tiff, svg, webp", 
@@ -443,7 +526,23 @@ INSERT INTO configs ( settings )
 					"value"		: "{lang:forms:register:submit}"
 				} ]
 			}
-		}
+		}, 
+		"configurable": [ 
+			"timezone", "language", "locale", "frame_whitelist", 
+			"skip_local", "name_min", "name_max", "pass_min", 
+			"display_min", "display_max", "enable_register", 
+			"auto_approve_reg", "title_min", "title_max", 
+			"cache_ttl", "max_search_words", 
+			"tag_white", "ext_whitelist", "stylesheets", 
+			"scripts", "metatags", "security_secpolicy", 
+			"session_exp", "session_bytes", "default_modules", 
+			"cookie_exp", "cookie_path", "cookie_restrict", 
+			"form_delay", "form_expire", "login_delay", 
+			"login_attempts", "captcha_length", 
+			"captcha_hash", "captcha_font", "captcha_mime", 
+			"captcha_name", "captcha_height", "captcha_fsize", 
+			"captcha_bg", "captcha_lines", "captcha_colors" 
+		]
 	}' ) );-- --
 
 
