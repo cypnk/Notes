@@ -1337,6 +1337,7 @@ CREATE INDEX idx_history_created ON history ( created );-- --
 
 -- Function execution
 CREATE TABLE operations (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	label TEXT NOT NULL COLLATE NOCASE,
 	pattern TEXT NOT NULL DEFAULT "" COLLATE NOCASE,
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
