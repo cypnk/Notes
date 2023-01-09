@@ -5,6 +5,12 @@ namespace Notes;
 abstract class Form extends Controllable {
 	
 	/**
+	 *  Unique form identifier
+	 *  @var string
+	 */
+	public string $label;
+	
+	/**
 	 *  Current form definition type
 	 *  @var \Notes\FormType
 	 */
@@ -12,6 +18,46 @@ abstract class Form extends Controllable {
 	
 	
 	abstract public function render( array $data ) : string;
+	
+	protected static function loadForm( 
+		\Notes\Controller	$ctrl,
+		string			$label,
+		string			$ft,
+		string			$action = ''
+	) {
+		
+		// Load form definition from database
+		$db	= $ctrl->getParam( '\\\Notes\\Data' );
+		
+		$res	= 
+		$db->dataExec( 
+			'SELECT label, params FROM forms WHERE label = :label' 
+			[ ':label' => $label ], 
+			'controllable|' . $ft, 
+			\DATA
+		);
+		
+		if ( empty( $res ) ) {
+			return null;
+		}
+		
+		$form	= $res[0];
+		
+		// Form type
+		$form->form_type = 
+		( $form->params['form']['validated'] ?? true ) ? 
+			\Notes\FormType::Validated : 
+			\Notes\FormType::UnValidated;
+		
+		// Override action
+		if ( !empty( $action ) ) {
+			$form->_params['form']['action']  = $action;
+		}
+		
+		// TODO: Replace language placeholders with definitions in config
+		
+		return $form;
+	}
 	
 	/**
 	 *  Initiate field token or reset existing
