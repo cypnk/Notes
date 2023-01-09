@@ -525,24 +525,178 @@ INSERT INTO configs ( settings )
 					"type"		: "submit",
 					"value"		: "{lang:forms:register:submit}"
 				} ]
+			},
+			"configuration" : {
+				"legend"	: "{lang:forms:config:legend}",
+				"name"		: "configuration",
+				"method"	: "post",
+				"enctype"	: "application\/x-www-form-urlencoded",
+				"action"	: "{action}",
+				"inputs"	: [ {
+					"name"		: "timezone",
+					"type"		: "text",
+					"list"		: "timezone-list"
+				}, {
+					"name"		: "language",
+					"type"		: "text"
+				}, {
+					"name"		: "frame_whitelist",
+					"type"		: "textarea"
+				}, {
+					"name"		: "skip_local",
+					"type"		: "checkbox",
+					"value"		: 1
+				}, {
+					"name"		: "name_minmax",
+					"type"		: "text",
+					"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
+				}, {
+					"name"		: "display_minmax",
+					"type"		: "text",
+					"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
+				}, {
+					"name"		: "enable_register",
+					"type"		: "checkbox",
+					"value"		: 1
+				}, {
+					"name"		: "auto_approve_reg",
+					"type"		: "checkbox",
+					"value"		: 1
+				}, {
+					"name"		: "title_minmax",
+					"type"		: "text",
+					"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
+				}, {
+					"name"		: "cache_ttl",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{2,5}$"
+				}, {
+					"name"		: "max_search_words",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{1,2}$"
+				}, {
+					"name"		: "tag_white",
+					"type"		: "textarea"
+				}, {
+					"name"		: "ext_whitelist",
+					"type"		: "textarea"
+				}, {
+					"name"		: "stylesheets",
+					"type"		: "textarea"
+				}, {
+					"name"		: "scripts",
+					"type"		: "textarea"
+				}, {
+					"name"		: "metatags",
+					"type"		: "textarea"
+				}, {
+					"name"		: "security_secpolicy",
+					"type"		: "textarea"
+				}, {
+					"name"		: "session_exp",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{2,3}$"
+				}, {
+					"name"		: "session_bytes",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{1}$"
+				}, {
+					"name"		: "default_modules",
+					"type"		: "textarea"
+				}, {
+					"name"		: "cookie_exp",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{2,5}$"
+				}, {
+					"name"		: "cookie_path",
+					"type"		: "text"
+				}, {
+					"name"		: "cookie_restrict",
+					"type"		: "checkbox",
+					"value"		: 1
+				}, {
+					"name"		: "form_delay",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+				}, {
+					"name"		: "form_expire",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+				}, {
+					"name"		: "login_delay",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+				}, {
+					"name"		: "login_attempts",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+				}, {
+					"name"		: "captcha_length",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{0,1}$"
+				}, {
+					"name"		: "captcha_hash",
+					"type"		: "text",
+					"list"		: "hashlist"
+				}, {
+					"name"		: "captcha_font",
+					"type"		: "text",
+					"list"		: "fontlist"
+				}, {
+					"name"		: "captcha_mime",
+					"type"		: "text"
+				}, {
+					"name"		: "captcha_name",
+					"type"		: "text"
+				}, {
+					"name"		: "captcha_height",
+					"type"		: "text",
+					"pattern"	: "^[2-9]{1}[0-9]{1}$"
+				}, {
+					"name"		: "captcha_fsize",
+					"type"		: "text",
+					"pattern"	: "^[1-9]{1}[0-9]{1}$"
+				}, {
+					"name"		: "captcha_bg",
+					"type"		: "color"
+				}, {
+					"name"		: "captcha_lines",
+					"type"		: "color",
+					"extras"	: {
+						"min_range" : 150,
+						"max_range" : 200
+					}
+				}, {
+					"name"		: "captcha_colors",
+					"type"		: "color",
+					"extras"	: {
+						"min_range" : 0,
+						"max_range" : 150
+					}
+				}, {
+					"name"		: "timezone-list",
+					"type"		: "datalist",
+					"url"		: "\/config\/timezones"
+				}, {
+					"name"		: "hashlist",
+					"type"		: "datalist",
+					"options"	: [
+						"sha256", 
+						"sha384", 
+						"sha512", 
+						"tiger160,4", 
+						"tiger192,4"
+					]
+				}, {
+					"name"		: "fontlist",
+					"type"		: "datalist",
+					"options"	: [
+						"VeraMono.ttf",
+						"Tuffy.ttf"
+					]
+				}  ]
 			}
-		}, 
-		"configurable": [ 
-			"timezone", "language", "locale", "frame_whitelist", 
-			"skip_local", "name_min", "name_max", "pass_min", 
-			"display_min", "display_max", "enable_register", 
-			"auto_approve_reg", "title_min", "title_max", 
-			"cache_ttl", "max_search_words", 
-			"tag_white", "ext_whitelist", "stylesheets", 
-			"scripts", "metatags", "security_secpolicy", 
-			"session_exp", "session_bytes", "default_modules", 
-			"cookie_exp", "cookie_path", "cookie_restrict", 
-			"form_delay", "form_expire", "login_delay", 
-			"login_attempts", "captcha_length", 
-			"captcha_hash", "captcha_font", "captcha_mime", 
-			"captcha_name", "captcha_height", "captcha_fsize", 
-			"captcha_bg", "captcha_lines", "captcha_colors" 
-		]
+		}
 	}' ) );-- --
 
 
