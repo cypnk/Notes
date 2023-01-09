@@ -639,7 +639,7 @@ CREATE TABLE forms(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	params TEXT NOT NULL DEFAULT '{ "label" : "generic" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.label' ), "generic" )
+		COALESCE( json_extract( params, '$.label' ), "generic" )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_form_label ON forms ( label );-- --
