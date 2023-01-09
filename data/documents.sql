@@ -634,6 +634,16 @@ SELECT
 	LEFT JOIN permission_providers pr ON rp.permission_id = pr.id;-- --
 
 
+-- JSON Formatted universal content forms
+CREATE TABLE forms(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	params TEXT NOT NULL DEFAULT '{ "label" : "generic" }' COLLATE NOCASE, 
+	label TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( content, '$.label' ), "generic" )
+	) STORED NOT NULL
+);-- --
+CREATE UNIQUE INDEX idx_form_label ON forms ( label );-- --
+
 -- Structured content types
 CREATE TABLE document_types (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
