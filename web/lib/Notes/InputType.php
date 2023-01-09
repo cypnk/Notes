@@ -470,6 +470,13 @@ enum InputType {
 			$form->ownerDocument->createElement( 
 				'option', $data['{text}'] ?? ''
 			);
+			
+			// Set value or option text itself
+			$p->setAttribute( 
+				'value', 
+				$o['value'] ?? ( \is_array( $o ) ? '' : $o )
+			);
+			
 			foreach( $data as $k => $v ) {
 				match( $k ) {
 					'{selected}'	=> 
