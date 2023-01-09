@@ -446,256 +446,6 @@ INSERT INTO configs ( settings )
 			"table_td_center_classes"	: "tc",
 			"table_td_left_classes"		: "tl",
 			"table_td_right_classes"	: "tr"
-		}, 
-		"forms" : {
-			"userlogin" : {
-				"legend"	: "{lang:forms:login:legend}",
-				"name"		: "login",
-				"method"	: "post",
-				"enctype"	: "application\/x-www-form-urlencoded",
-				"action"	: "{action}",
-				"inputs" : [ {
-					"name"		: "username",
-					"type"		: "text",
-					"label"		: "{lang:forms:login:name}",
-					"special"	: "{lang:forms:login:namespecial}",
-					"desc"		: "{lang:forms:login:namedesc}",
-					"messages"	: "data-validation=\"{lang:forms:login:nameinv}\" data-required=\"{lang:forms:login:namereq}\"",
-					"required"	: "required"
-				}, {
-					"name" 		: "password",
-					"type"		: "password",
-					"label"		: "{lang:forms:login:pass}",
-					"special"	: "{lang:forms:login:passspecial}",
-					"desc"		: "{lang:forms:login:passdesc}",
-					"messages"	: "data-validation=\"{lang:forms:login:passinv}\" data-required=\"{lang:forms:login:passreq}\"",
-					"required"	: "required"
-				}, {
-					"name"		: "rem",
-					"type"		: "checkbox",
-					"label"		: "{lang:forms:login:rem}"
-				}, {
-					"name"		: "login",
-					"type"		: "submit",
-					"value"		: "{lang:forms:login:submit}"
-				} ]
-			},
-			"userregister" : {
-				"legend"	: "{lang:forms:register:legend}",
-				"name"		: "register",
-				"method"	: "post",
-				"enctype"	: "application\/x-www-form-urlencoded",
-				"action"	: "{action}",
-				"inputs" : [ {
-					"name"		: "username",
-					"type"		: "text",
-					"label"		: "{lang:forms:register:name}",
-					"special"	: "{lang:forms:register:namespecial}",
-					"desc"		: "{lang:forms:register:namedesc}",
-					"messages"	: "data-validation=\"{lang:forms:register:nameinv}\" data-required=\"{lang:forms:register:namereq}\"",
-					"required"	: "required"
-				}, {
-					"name" 		: "password",
-					"type"		: "password",
-					"label"		: "{lang:forms:register:pass}",
-					"special"	: "{lang:forms:register:passspecial}",
-					"desc"		: "{lang:forms:register:passdesc}",
-					"messages"	: "data-validation=\"{lang:forms:register:passinv}\" data-required=\"{lang:forms:register:passreq}\"",
-					"required"	: "required"
-				}, {
-					"name" 		: "password-repeat",
-					"type"		: "password",
-					"label"		: "{lang:forms:register:passrpt}",
-					"special"	: "{lang:forms:register:passrptpecial}",
-					"desc"		: "{lang:forms:register:passrptdesc}",
-					"messages"	: "data-validation=\"{lang:forms:register:passrptinv}\" data-required=\"{lang:forms:register:passrptreq}\"",
-					"required"	: "required"
-				}, {
-					"name"		: "rem",
-					"type"		: "checkbox",
-					"label"		: "{lang:forms:register:rem}"
-				}, {
-					"name"		: "terms",
-					"type"		: "checkbox",
-					"messages"	: "data-validation=\"{lang:forms:register:termsinv}\" data-required=\"{lang:forms:register:termsreq}\"",
-					"label"		: "{lang:forms:register:terms}",
-					"reqired"	: "required"
-				}, {
-					"name"		: "register",
-					"type"		: "submit",
-					"value"		: "{lang:forms:register:submit}"
-				} ]
-			},
-			"configuration" : {
-				"legend"	: "{lang:forms:config:legend}",
-				"name"		: "configuration",
-				"method"	: "post",
-				"enctype"	: "application\/x-www-form-urlencoded",
-				"action"	: "{action}",
-				"inputs"	: [ {
-					"name"		: "timezone",
-					"type"		: "text",
-					"list"		: "timezone-list"
-				}, {
-					"name"		: "language",
-					"type"		: "text"
-				}, {
-					"name"		: "frame_whitelist",
-					"type"		: "textarea"
-				}, {
-					"name"		: "skip_local",
-					"type"		: "checkbox",
-					"value"		: 1
-				}, {
-					"name"		: "name_minmax",
-					"type"		: "text",
-					"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
-				}, {
-					"name"		: "display_minmax",
-					"type"		: "text",
-					"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
-				}, {
-					"name"		: "enable_register",
-					"type"		: "checkbox",
-					"value"		: 1
-				}, {
-					"name"		: "auto_approve_reg",
-					"type"		: "checkbox",
-					"value"		: 1
-				}, {
-					"name"		: "title_minmax",
-					"type"		: "text",
-					"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
-				}, {
-					"name"		: "cache_ttl",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{2,5}$"
-				}, {
-					"name"		: "max_search_words",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{1,2}$"
-				}, {
-					"name"		: "tag_white",
-					"type"		: "textarea"
-				}, {
-					"name"		: "ext_whitelist",
-					"type"		: "textarea"
-				}, {
-					"name"		: "stylesheets",
-					"type"		: "textarea"
-				}, {
-					"name"		: "scripts",
-					"type"		: "textarea"
-				}, {
-					"name"		: "metatags",
-					"type"		: "textarea"
-				}, {
-					"name"		: "security_secpolicy",
-					"type"		: "textarea"
-				}, {
-					"name"		: "session_exp",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{2,3}$"
-				}, {
-					"name"		: "session_bytes",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{1}$"
-				}, {
-					"name"		: "default_modules",
-					"type"		: "textarea"
-				}, {
-					"name"		: "cookie_exp",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{2,5}$"
-				}, {
-					"name"		: "cookie_path",
-					"type"		: "text"
-				}, {
-					"name"		: "cookie_restrict",
-					"type"		: "checkbox",
-					"value"		: 1
-				}, {
-					"name"		: "form_delay",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
-				}, {
-					"name"		: "form_expire",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
-				}, {
-					"name"		: "login_delay",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
-				}, {
-					"name"		: "login_attempts",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
-				}, {
-					"name"		: "captcha_length",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{0,1}$"
-				}, {
-					"name"		: "captcha_hash",
-					"type"		: "text",
-					"list"		: "hashlist"
-				}, {
-					"name"		: "captcha_font",
-					"type"		: "text",
-					"list"		: "fontlist"
-				}, {
-					"name"		: "captcha_mime",
-					"type"		: "text"
-				}, {
-					"name"		: "captcha_name",
-					"type"		: "text"
-				}, {
-					"name"		: "captcha_height",
-					"type"		: "text",
-					"pattern"	: "^[2-9]{1}[0-9]{1}$"
-				}, {
-					"name"		: "captcha_fsize",
-					"type"		: "text",
-					"pattern"	: "^[1-9]{1}[0-9]{1}$"
-				}, {
-					"name"		: "captcha_bg",
-					"type"		: "color"
-				}, {
-					"name"		: "captcha_lines",
-					"type"		: "color",
-					"extras"	: {
-						"min_range" : 150,
-						"max_range" : 200
-					}
-				}, {
-					"name"		: "captcha_colors",
-					"type"		: "color",
-					"extras"	: {
-						"min_range" : 0,
-						"max_range" : 150
-					}
-				}, {
-					"name"		: "timezone-list",
-					"type"		: "datalist",
-					"url"		: "\/config\/timezones"
-				}, {
-					"name"		: "hashlist",
-					"type"		: "datalist",
-					"options"	: [
-						"sha256", 
-						"sha384", 
-						"sha512", 
-						"tiger160,4", 
-						"tiger192,4"
-					]
-				}, {
-					"name"		: "fontlist",
-					"type"		: "datalist",
-					"options"	: [
-						"VeraMono.ttf",
-						"Tuffy.ttf"
-					]
-				}  ]
-			}
 		}
 	}' ) );-- --
 
@@ -928,10 +678,203 @@ INSERT INTO documents ( summary, type_id, settings )
 
 INSERT INTO history ( content, user_id ) VALUES ( json( '{ "label":"insert" }' ), 1 );-- --
 
-INSERT INTO forms( id, params ) 
+INSERT INTO forms( params ) 
 	VALUES
-	( 1, json( 
-	'{ 
+	( json( '{
+		"label"	: "configuration",
+		"form"	: {
+			"legend"	: "{lang:forms:config:legend}",
+			"name"		: "configuration",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs"	: [ {
+				"name"		: "timezone",
+				"type"		: "text",
+				"list"		: "timezone-list"
+			}, {
+				"name"		: "language",
+				"type"		: "text"
+			}, {
+				"name"		: "frame_whitelist",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "skip_local",
+				"type"		: "checkbox",
+				"value"		: 1
+			}, {
+				"name"		: "name_minmax",
+				"type"		: "text",
+				"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
+			}, {
+				"name"		: "display_minmax",
+				"type"		: "text",
+				"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
+			}, {
+				"name"		: "enable_register",
+				"type"		: "checkbox",
+				"value"		: 1
+			}, {
+				"name"		: "auto_approve_reg",
+				"type"		: "checkbox",
+				"value"		: 1
+			}, {
+				"name"		: "title_minmax",
+				"type"		: "text",
+				"pattern"	: "^([1-9]{1})([0-9]{0,2})(?:,(\\s+)?)([1-9]{1})([0-9]{0,2})$"
+			}, {
+				"name"		: "cache_ttl",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{2,5}$"
+			}, {
+				"name"		: "max_search_words",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{1,2}$"
+			}, {
+				"name"		: "tag_white",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "ext_whitelist",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "stylesheets",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "scripts",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "metatags",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "security_secpolicy",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "session_exp",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{2,3}$"
+			}, {
+				"name"		: "session_bytes",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{1}$"
+			}, {
+				"name"		: "default_modules",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50
+			}, {
+				"name"		: "cookie_exp",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{2,5}$"
+			}, {
+				"name"		: "cookie_path",
+				"type"		: "text"
+			}, {
+				"name"		: "cookie_restrict",
+				"type"		: "checkbox",
+				"value"		: 1
+			}, {
+				"name"		: "form_delay",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+			}, {
+				"name"		: "form_expire",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+			}, {
+				"name"		: "login_delay",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+			}, {
+				"name"		: "login_attempts",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{0,2}$"
+			}, {
+				"name"		: "captcha_length",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{0,1}$"
+			}, {
+				"name"		: "captcha_hash",
+				"type"		: "text",
+				"list"		: "hashlist"
+			}, {
+				"name"		: "captcha_font",
+				"type"		: "text",
+				"list"		: "fontlist"
+			}, {
+				"name"		: "captcha_mime",
+				"type"		: "text"
+			}, {
+				"name"		: "captcha_name",
+				"type"		: "text"
+			}, {
+				"name"		: "captcha_height",
+				"type"		: "text",
+				"pattern"	: "^[2-9]{1}[0-9]{1}$"
+			}, {
+				"name"		: "captcha_fsize",
+				"type"		: "text",
+				"pattern"	: "^[1-9]{1}[0-9]{1}$"
+			}, {
+				"name"		: "captcha_bg",
+				"type"		: "color"
+			}, {
+				"name"		: "captcha_lines",
+				"type"		: "color",
+				"extras"	: {
+					"min_range"	: 150,
+					"max_range"	: 200,
+					"format"	: "rgb",
+					"count"		: 3
+				}
+			}, {
+				"name"		: "captcha_colors",
+				"type"		: "color",
+				"extras"	: {
+					"min_range" 	: 0,
+					"max_range"	: 150,
+					"format"	: "rgb",
+					"count"		: 3
+				}
+			}, {
+				"name"		: "timezone-list",
+				"type"		: "datalist",
+				"url"		: "{action_timezones}"
+			}, {
+				"name"		: "hashlist",
+				"type"		: "datalist",
+				"options"	: [
+					"sha256", 
+					"sha384", 
+					"sha512", 
+					"tiger160,4", 
+					"tiger192,4"
+				]
+			}, {
+				"name"		: "fontlist",
+				"type"		: "datalist",
+				"options"	: [
+					"VeraMono.ttf",
+					"Tuffy.ttf"
+				]
+			}  ]
+		}
+	}' ) ),
+	
+	( json( '{ 
 		"label"	: "web user register",
 		"form"	: {
 			"legend"	: "{lang:forms:register:legend}",
@@ -946,6 +889,7 @@ INSERT INTO forms( id, params )
 				"label"		: "{lang:forms:register:name}",
 				"special"	: "{lang:forms:register:namespecial}",
 				"desc"		: "{lang:forms:register:namedesc}",
+				"messages"	: "data-validation=\"{lang:forms:register:nameinv}\" data-required=\"{lang:forms:register:namereq}\"",
 				"required"	: "required"
 			}, {
 				"name" 		: "password",
@@ -953,6 +897,7 @@ INSERT INTO forms( id, params )
 				"label"		: "{lang:forms:register:pass}",
 				"special"	: "{lang:forms:register:passspecial}",
 				"desc"		: "{lang:forms:register:passdesc}",
+				"messages"	: "data-validation=\"{lang:forms:register:passinv}\" data-required=\"{lang:forms:register:passreq}\"",
 				"required"	: "required"
 			}, {
 				"name" 		: "password-repeat",
@@ -960,6 +905,7 @@ INSERT INTO forms( id, params )
 				"label"		: "{lang:forms:register:passrpt}",
 				"special"	: "{lang:forms:register:passrptpecial}",
 				"desc"		: "{lang:forms:register:passrptdesc}",
+				"messages"	: "data-validation=\"{lang:forms:register:passrptinv}\" data-required=\"{lang:forms:register:passrptreq}\"",
 				"required"	: "required"
 			}, {
 				"name"		: "rem",
@@ -968,7 +914,9 @@ INSERT INTO forms( id, params )
 			}, {
 				"name"		: "terms",
 				"type"		: "checkbox",
-				"label"		: "{lang:forms:register:terms}"
+				"messages"	: "data-validation=\"{lang:forms:register:termsinv}\" data-required=\"{lang:forms:register:termsreq}\"",
+				"label"		: "{lang:forms:register:terms}",
+				"reqired"	: "required"
 			}, {
 				"name"		: "register",
 				"type"		: "submit",
@@ -976,7 +924,7 @@ INSERT INTO forms( id, params )
 			} ]
 		}
 	}' ) ),
-	( 2, json(
+	( json(
 	'{
 		"label"	: "web user login",
 		"form"	: {
@@ -992,6 +940,7 @@ INSERT INTO forms( id, params )
 				"label"		: "{lang:forms:login:name}",
 				"special"	: "{lang:forms:login:namespecial}",
 				"desc"		: "{lang:forms:login:namedesc}",
+				"messages"	: "data-validation=\"{lang:forms:login:nameinv}\" data-required=\"{lang:forms:login:namereq}\"",
 				"required"	: "required"
 			}, {
 				"name" 		: "password",
@@ -999,6 +948,7 @@ INSERT INTO forms( id, params )
 				"label"		: "{lang:forms:login:pass}",
 				"special"	: "{lang:forms:login:passspecial}",
 				"desc"		: "{lang:forms:login:passdesc}",
+				"messages"	: "data-validation=\"{lang:forms:login:passinv}\" data-required=\"{lang:forms:login:passreq}\"",
 				"required"	: "required"
 			}, {
 				"name"		: "rem",
@@ -1012,7 +962,7 @@ INSERT INTO forms( id, params )
 		}
 	}' ) ), 
 	
-	( 3, json( 
+	( json( 
 	'{
 		"label"	: "web create page block",
 		"form"	: {
@@ -1040,7 +990,7 @@ INSERT INTO forms( id, params )
 		}
 	}' ) ), 
 	
-	( 4, json( 
+	( json( 
 	'{
 		"label"	: "web edit page block",
 		"form" : {
@@ -1073,7 +1023,7 @@ INSERT INTO forms( id, params )
 		}
 	}' ) ), 
 	
-	( 5, json( '{
+	( json( '{
 		"label"	: "web delete page block",
 		"form"	: {
 			"name"		: "blockdelete",
