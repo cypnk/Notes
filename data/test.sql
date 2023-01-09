@@ -675,7 +675,7 @@ INSERT INTO documents ( summary, type_id, settings )
 
 INSERT INTO history ( content, user_id ) VALUES ( json( '{ "label":"insert" }' ), 1 );-- --
 
-INSERT INTO forms( id, content ) 
+INSERT INTO forms( id, params ) 
 	VALUES
 	( 1, json( 
 	'{ 
