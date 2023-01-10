@@ -37,10 +37,10 @@ class RolePriviledge extends Provider {
 			
 			case 'actions':
 				static::settings_base['actions'] = 
-				\array_merge( 
-					static::settings_base['actions'],
-					static::formatSettings( $value )
-				);
+				[
+					...static::$settings_base['actions'],
+					...static::formatSettings( $value )
+				];
 				
 				return;
 				
