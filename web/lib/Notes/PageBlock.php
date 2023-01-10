@@ -64,7 +64,8 @@ class PageBlock extends Content {
 	
 	public function addFormatting( array $fmt ) {
 		$this->_content['formatting'] = 
-		\array_merge( $this->_content['formatting'] ?? [], $fmt );
+		[ ...new ArrayIterator( $this->_content['formatting'] ?? [] ), 
+			...$fmt ];
 	}
 	
 	public function resetFormatting( array $fmt ) {
