@@ -32,7 +32,10 @@ abstract class Form extends Controllable {
 		$res	= 
 		$db->dataExec( 
 			'SELECT label, params FROM forms WHERE label = :label' 
-			[ ':label' => $label ], 
+			[ 
+				':label' => 
+				\Notes\Util::labelName( $label, 255 ) 
+			], 
 			'controllable|' . $ft, 
 			\DATA
 		);
