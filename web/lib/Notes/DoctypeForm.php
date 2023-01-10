@@ -26,7 +26,7 @@ class DoctypeForm extends Form {
 	
 	public function render() : string {
 		// TODO: Load language defintions
-		$form = 
+		$this->rendered = 
 		$this->form_type->render( 
 			$this->controller, $this->params['form'] 
 		)
@@ -47,7 +47,7 @@ class DoctypeForm extends Form {
 		];
 		
 		// Apply placeholders to output
-		return \strtr( $form, $params );
+		return \strtr( $this->rendered, $params );
 	}
 }
 
