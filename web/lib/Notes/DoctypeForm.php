@@ -2,14 +2,13 @@
 
 namespace Notes;
 
-class DoctypeForm extends Form {
-	
-	public int $id;
+class DoctypeForm extends ContentForm {
 	
 	public string $label;
 	
 	public string $description;
 	
+	protected static string $form_name	= 'web_doctype';
 	
 	public static function newForm(
 		\Notes\Controller	$ctrl,
@@ -18,36 +17,19 @@ class DoctypeForm extends Form {
 		return 
 		static::loadForm( 
 			$ctrl, 
-			'web_doctype', 
+			static::$form_name, 
 			'\\Notes\\DoctypeForm', 
 			$action
 		); 
 	}
 	
 	public function render() : string {
-		// TODO: Load language defintions
-		if ( !isset( $this->rendered ) ) {
-			$this->rendered = 
-			$this->form_type->render( 
-				$this->controller, $this->params['form'] 
-			)
-		}
-		
-		// Gather event placeholder replacements
-		$this->controller->run( 
-			'doctype_form', [ 'form' => $this ] 
-		);
-		
-		// Apply placeholders to output
-		return 
-		\strtr( $this->rendered, [
-			...new ArrayIterator( [
-				'{id}'		=> ( string ) ( $this->id ?? '' ),
-				'{label}'	=> $this->label ?? '',
-				'{description}'	=> $this->description ?? ''
-			] ), 
-			...$this->controller->output( 'doctype_form' ) 
-		] );
+		$this->placeholders = [
+			'{id}'		=> ( string ) ( $this->id ?? '' ),
+			'{label}'	=> $this->label ?? '',
+			'{description}'	=> $this->description ?? ''
+		];
+		return parent::render();
 	}
 }
 
