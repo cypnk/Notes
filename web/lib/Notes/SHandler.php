@@ -363,14 +363,14 @@ class SHandler extends Controllable {
 		
 		$req	= $config->getRequest();
 		$opts	= 
-		\array_merge( $options, [
+		[ ...$options, ...new ArrayIterator( [
 			'expires'	=> 
 				( int ) ( $options['expires'] ?? time() + $cexp ),
 			'path'		=> $cpath,
 			'samesite'	=> $this->sameSiteCookie(),
 			'secure'	=> $req->isSecure(),
 			'httponly'	=> true
-		] );
+		] ) ];
 	
 		// Domain shouldn't be used when using '__Host-' prefixed cookies
 		$prefix = $this->cookiePrefix();
