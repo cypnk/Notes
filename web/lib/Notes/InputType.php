@@ -31,7 +31,11 @@ enum InputType {
 	/**
 	 *  Render the current input type in the above templates
 	 */
-	public function buildInput( \DOMElement $form, array $input ) {
+	public function buildInput( 
+		\Notes\Controller	$ctrl,
+		\DOMElement		$form, 
+		array			&$input 
+	) {
 		// Default to text type if not given
 		$input['type'] ??= 'text';
 		$input['type'] = \strtolower( $input['type'] );
@@ -46,7 +50,12 @@ enum InputType {
 		// Default styling
 		static::baseStyling( $data );
 		
-		$node	= $this->buildNode( $form, $input, $data );
+		// Input pre-build event
+		$ctrl->run( 'input_init', $input );
+		$input	= [ ...$input, $ctrl->output( 'input_init' ) ];
+		
+		$node	= 
+		$this->buildNode( $ctrl, $form, $input, $data );
 		$node->setAttribute( 'id', $data['{id}'] );
 		$node->setAttribute( 'name', $data['{name}'] );
 		
@@ -60,11 +69,16 @@ enum InputType {
 			
 			// Wrap everything else
 			default			=>
-			$this->wrapInput( $node, $form, $data )
+			$this->wrapInput( $ctrl, $node, $form, $data )
 		}
 	}
 	
-	protected function buildNode( \DOMElement $form, array $input, array $data ) {
+	protected function buildNode( 
+		\Notes\Controller	$ctrl,
+		\DOMElement		$form, 
+		array			$input, 
+		array			&$data 
+	) {
 		$node = 
 		match( $this ) {
 			// Datetime
@@ -122,9 +136,10 @@ enum InputType {
 	 *  Form field wrapper
 	 */
 	protected function wrapInput( 
-		\DOMElement	$node, 
-		\DOMElement	$form, 
-		array		$data 
+		\Notes\Controller	$ctrl,
+		\DOMElement		$node, 
+		\DOMElement		$form, 
+		array			&$data 
 	) {
 		$wrap = $form->ownerDocument->createElement( 'p' );
 		$wrap->setAttribute( 'class', $data['{input_wrap_classes}'] );
@@ -137,6 +152,10 @@ enum InputType {
 				'{input_field_before}' 
 			)
 		);
+		
+		$ctrl->run( 'input_field_before', $data );
+		$data	= 
+		[ ...$data, ...$ctrl->output( 'input_field_before' ) ];
 		
 		match( $this ) {
 			// Wysiwyg needs an extra element inside the wrap
@@ -164,8 +183,12 @@ enum InputType {
 			)
 		);
 		
+		$ctrl->run( 'input_field_after', $data );
+		$data	= 
+		[ ...$data, ...$ctrl->output( 'input_field_after' ) ];
+		
 		// Add description if given
-		static::addDescription( $wrap, $form, $data );
+		static::addDescription( $ctrl, $wrap, $form, $data );
 		
 		return $wrap;
 	}
@@ -174,10 +197,11 @@ enum InputType {
 	 *  Brief input description
 	 */
 	protected function addLabel( 
-		\DOMElement	$wrap, 
-		\DOMElement	$node, 
-		\DOMElement	$form, 
-		array		$data 
+		\Notes\Controller	$ctrl,
+		\DOMElement		$wrap, 
+		\DOMElement		$node, 
+		\DOMElement		$form, 
+		array			&$data 
 	) {
 		if ( empty( $data['{label}'] ) ) {
 			return;
@@ -190,22 +214,29 @@ enum InputType {
 			)
 		);
 		
-		$label = $form->ownerDocument->createElement( 'label', $data['{label}'] );
+		$ctrl->run( 'label_before', $data );
+		$data	= 
+		[ ...$data, ...$ctrl->output( 'label_before' ) ]; 
+		
+		$label	= 
+		$form->ownerDocument->createElement( 'label', $data['{label}'] );
 		$label->setAttribute( 'for', $data['{id}'] );
 		$label->setAttribute( 'class', $data['{label_classes}'] );
 		
-		static::addSpecial( $label, $form, $data );
+		static::addSpecial( $ctrl, $label, $form, $data );
 		
 		match( $this ) {
 			// Options handled differently
 			InputType::Radio,
-			InputType::Checkbox	=> ( function() use ( $label, $wrap, $node ) {
+			InputType::Checkbox	=> 
+			( function() use ( $label, $wrap, $node ) {
 				$label->appendChild( $node );
 				$wrap->appendChild( $label );
 			} )(),
 			
 			// Add input label
-			default			=> $wrap->appendChild( $label )
+			default			=> 
+				$wrap->appendChild( $label )
 		};
 		
 		// Post-label event content
@@ -214,15 +245,20 @@ enum InputType {
 				'{label_after}' 
 			)
 		);
+		
+		$ctrl->run( 'label_after', $data );
+		$data	= 
+		[ ...$data, ...$ctrl->output( 'label_after' ) ];
 	}
 	
 	/**
 	 *  Special validation parameters E.G. "required" or "optional"
 	 */
 	public static function addSpecial( 
-		\DOMElement	$label, 
-		\DOMElement	$form, 
-		array		$data 
+		\Notes\Controller	$ctrl,
+		\DOMElement		$label, 
+		\DOMElement		$form, 
+		array			&$data 
 	) {
 		if ( empty( $data['{special}'] ) ) {
 			return;
@@ -234,7 +270,13 @@ enum InputType {
 			)
 		);
 		
-		$special = $form->ownerDocument->createElement( 'span', $data['{special}'] );
+		$ctrl->run( 'special_before', $data );
+		$data		= 
+		[ ...$data, ...$ctrl->output( 'special_before' ) ];
+		
+		$special	= 
+		$form->ownerDocument->createElement( 'span', $data['{special}'] );
+		
 		$special->setAttribute( 'class', $data['{special_classes}'] );
 		
 		$label->appendChild( $special );
@@ -245,6 +287,10 @@ enum InputType {
 				'{special_after}' 
 			)
 		);
+		
+		$ctrl->run( 'special_after', $data );
+		$data	= 
+		[ ...$data, ...$ctrl->output( 'special_after' ) ];
 	}
 	
 	/**
@@ -305,9 +351,10 @@ enum InputType {
 	 *  Input content instructions
 	 */
 	protected static function addDescription( 
-		\DOMElement	$wrap, 
-		\DOMElement	$form, 
-		array		$data 
+		\Notes\Controller	$ctrl,
+		\DOMElement		$wrap, 
+		\DOMElement		$form, 
+		array			&$data 
 	) {
 		if ( empty( $data['{desc}'] ) ) {
 			return;
@@ -319,7 +366,12 @@ enum InputType {
 			)
 		);
 		
-		$desc = $form->ownerDocument->createElement( 'small', $data['{desc}'] );
+		$ctrl->run( 'desc_before', $data );
+		$data	= 
+		[ ...$data, ...$ctrl->output( 'desc_before' ) ];
+		
+		$desc	= 
+		$form->ownerDocument->createElement( 'small', $data['{desc}'] );
 		$label->setAttribute( 'id', $data['{id}'] . '-desc' );
 		$label->setAttribute( 'class', $data['{desc_classes}'] );
 		$wrap->appendChild( $desc );
@@ -330,6 +382,10 @@ enum InputType {
 				'{desc_after}' 
 			)
 		);
+		
+		$ctrl->run( '{desc_before}', $data );
+		$data	= 
+		[ ...$data, $ctrl->output( 'desc_before' ) ];
 	}
 	
 	/**
