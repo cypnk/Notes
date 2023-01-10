@@ -74,7 +74,7 @@ abstract class Content extends Entity {
 	public function __toString() {
 		return 
 		\Notes\Util::encode( 
-			\array_merge( [ 
+			[ ...new ArrayIterator( [ 
 				"id"		=> $this->id, 
 				"created"	=> $this->created,
 				"updated"	=> $this->updated,
@@ -84,7 +84,7 @@ abstract class Content extends Entity {
 				"sort_order"	=> $this->sort_order ?? 0,
 				"content"	=> $this->_content,
 				"authorship"	=> $this->_authorship
-			], $this->_settings );
+			] ), ...$this->_settings ] 
 		);
 	}
 }
