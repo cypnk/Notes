@@ -10,7 +10,6 @@ class Event implements \SplSubject extends NamedControllable  {
 	 */
 	protected array $handlers	= [];
 	
-	
 	/**
 	 *  Stored event data
 	 *  @var array
@@ -101,5 +100,14 @@ class Event implements \SplSubject extends NamedControllable  {
 				$h[1]->getOutput( $this->name )
 			);
 		}
+	}
+	
+	/**
+	 *  Return notify results from handlers
+	 *  
+	 *  @return array
+	 */
+	public function output() : array {
+		return $this->output;
 	}
 }
