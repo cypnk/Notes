@@ -244,7 +244,7 @@ class Config extends Entity {
 	 */
 	public function overrideDefaults( array $options ) {
 		$this->options = 
-		\array_merge( $this->options, $options );
+		[ ...$this->options, ...$options ];
 		
 		// Change static placeholders
 		foreach ( $this->options as $k => $v ) {
