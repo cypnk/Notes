@@ -11,7 +11,7 @@ class UserLoginForm extends Form {
 		return 
 		static::loadForm( 
 			$ctrl, 
-			'user login form', 
+			'web_user_login', 
 			'\\Notes\\UserLoginForm', 
 			$action
 		); 
