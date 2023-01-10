@@ -18,10 +18,10 @@ class PermissionProvider extends Provider {
 			case 'report':
 			case 'authority':
 				static::settings_base[$name] = 
-				\array_merge( 
-					static::settings_base[$name],
-					static::formatSettings( $value )
-				);
+				[
+					...static::$settings_base[$name],
+					...static::formatSettings( $value )
+				];
 				return;
 		}
 		
