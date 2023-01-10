@@ -123,7 +123,7 @@ class Response extends Message {
 				
 				$pjp = 
 				\is_array( $cfj ) ? 
-					\array_merge( $def, $cfj ) : $def;
+					[ ...$def, ...$cfj ] : $def;
 				
 				foreach ( $pjp as $k => $v ) {
 					$prm[]	= 
