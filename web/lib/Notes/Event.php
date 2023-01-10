@@ -95,10 +95,10 @@ class Event implements \SplSubject extends NamedControllable  {
 			$h[1]->update( $this, $this->params );
 			
 			$this->output = 
-			\array_merge( 
-				$this->output, 
-				$h[1]->getOutput( $this->name )
-			);
+			[
+				...$this->output, 
+				...$h[1]->getOutput( $this->name )
+			];
 		}
 	}
 	
