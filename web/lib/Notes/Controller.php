@@ -196,4 +196,15 @@ class Controller {
 			$this->events[$name]->notify( $params );
 		}
 	}
+	
+	/**
+	 *  Return compiled output from event execution, if it extists
+	 *  
+	 *  @param string	$name		Unique event name
+	 *  @return array
+	 */
+	public function output( string $name ) : array {
+		return ( \array_key_exists( $name, $this->events ) ) ?
+			$this->events[$name]->output() : [];
+	}
 }
