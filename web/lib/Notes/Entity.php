@@ -88,12 +88,12 @@ abstract class Entity implements Stringable extends Controllable {
 	public function __toString() {
 		return 
 		\Notes\Util::encode( 
-			\array_merge( [ 
+			[ ...new ArrayIterator( [ 
 				"id"		=> $this->id, 
 				"created"	=> $this->created,
 				"updated"	=> $this->updated,
 				"setting_id"	=> $this->setting_id
-			], $this->_settings );
+			] ), ...$this->_settings ];
 		);
 	}
 	
