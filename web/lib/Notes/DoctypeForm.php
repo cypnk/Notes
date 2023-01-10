@@ -26,28 +26,28 @@ class DoctypeForm extends Form {
 	
 	public function render() : string {
 		// TODO: Load language defintions
-		$this->rendered = 
-		$this->form_type->render( 
-			$this->controller, $this->params['form'] 
-		)
+		if ( !isset( $this->rendered ) ) {
+			$this->rendered = 
+			$this->form_type->render( 
+				$this->controller, $this->params['form'] 
+			)
+		}
 		
 		// Gather event placeholder replacements
 		$this->controller->run( 
 			'doctype_form', [ 'form' => $this ] 
 		);
 		
-		$params = 
-		\array_merge( 
-			[ 
+		// Apply placeholders to output
+		return 
+		\strtr( $this->rendered, [
+			...new ArrayIterator( [
 				'{id}'		=> ( string ) ( $this->id ?? '' ),
 				'{label}'	=> $this->label ?? '',
 				'{description}'	=> $this->description ?? ''
-			],
-			$this->controller->output( 'doctype_form' )
-		];
-		
-		// Apply placeholders to output
-		return \strtr( $this->rendered, $params );
+			] ), 
+			...$this->controller->output( 'doctype_form' ) 
+		] );
 	}
 }
 
