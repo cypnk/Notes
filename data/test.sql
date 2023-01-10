@@ -1068,6 +1068,17 @@ INSERT INTO forms( params )
 				"rows"		: 3,
 				"cols"		: 50,
 				"value"		: "__create_template__",
+				"label"		: "{lang:forms:blocktype:create}",
+				"special"	: "{lang:forms:blocktype:createspecial}",
+				"desc"		: "{lang:forms:blocktype:createdesc}",
+				"messages"	: "data-validation=\"{lang:forms:blocktype:createinv}\" data-required=\"{lang:forms:blocktype:createreq}\"",
+				"required"	: "required"
+			}, {
+				"name"		: "view_template",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50,
+				"value"		: "__view_template__",
 				"label"		: "{lang:forms:blocktype:view}",
 				"special"	: "{lang:forms:blocktype:viewspecial}",
 				"desc"		: "{lang:forms:blocktype:viewdesc}",
