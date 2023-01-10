@@ -36,7 +36,7 @@ class RolePriviledge extends Provider {
 				return;
 			
 			case 'actions':
-				static::settings_base['actions'] = 
+				static::$settings_base['actions'] = 
 				[
 					...static::$settings_base['actions'],
 					...static::formatSettings( $value )
