@@ -17,7 +17,7 @@ class PermissionProvider extends Provider {
 		switch ( $name ) {
 			case 'report':
 			case 'authority':
-				static::settings_base[$name] = 
+				static::$settings_base[$name] = 
 				[
 					...static::$settings_base[$name],
 					...static::formatSettings( $value )
@@ -32,7 +32,7 @@ class PermissionProvider extends Provider {
 		switch ( $name ) {
 			case 'report':
 			case 'authority':
-				return static::settings_base[$name] ?? [];
+				return static::$settings_base[$name] ?? [];
 		}
 		
 		return parent::__get( $name );
