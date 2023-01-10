@@ -11,7 +11,7 @@ class UserRegisterForm extends Form {
 		return 
 		static::loadForm( 
 			$ctrl, 
-			'user register form', 
+			'web_user_register', 
 			'\\Notes\\UserRegisterForm', 
 			$action
 		); 
