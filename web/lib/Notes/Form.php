@@ -16,6 +16,11 @@ abstract class Form extends Controllable {
 	 */
 	public readonly \Notes\FormType $form_type;
 	
+	/**
+	 *  Rendered form output
+	 *  @var string
+	 */
+	public readonly string $rendered;
 	
 	abstract public function render( array $data ) : string;
 	
