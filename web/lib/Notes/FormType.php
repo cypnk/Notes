@@ -34,6 +34,13 @@ enum FormType {
 			$note->dom->createTextNode( '{form_before}' )
 		);
 		
+		// Run placeholder event
+		$ctrl->run( 'form_before', $data );
+		$data	= [ 
+			...$data, 
+			...$ctrl->output( 'form_before' ) 
+		];
+		
 		// Base element and common attributes
 		$form = $note->dom->createElement( 'form' );
 		$form->setAttribute( 'id', $data['{id}'] );
@@ -54,7 +61,7 @@ enum FormType {
 		
 		// Append inputs
 		foreach( $content['inputs'] as $input ) {
-			static::buildInputs( $form, $input );
+			static::buildInputs( $ctrl, $form, $input );
 		}
 		
 		// "More" content
@@ -69,6 +76,11 @@ enum FormType {
 		$note->dom->appendChild(
 			$note->dom->createTextNode( '{form_after}' )
 		);
+		$ctrl->run( 'form_after', $data );
+		$data	= [ 
+			...$data, 
+			...$ctrl->output( 'form_after' ) 
+		];
 		
 		// Send back with remaining placeholders replaced
 		return \strtr( $note->render(), $data );
