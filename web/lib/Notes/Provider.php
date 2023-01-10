@@ -72,10 +72,10 @@ abstract class Provider extends Entity {
 			case 'settings':
 				// Configure settings format
 				$this->_settings		= 
-				\array_merge( 
-					static::settings_base, 
-					static::formatSettings( $value )
-				);
+				[ 
+					...static::$settings_base, 
+					...static::formatSettings( $value )
+				];
 				
 				// Reset setting ID as hash
 				$this->_setting_id		= 
