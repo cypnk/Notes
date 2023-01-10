@@ -2,7 +2,9 @@
 
 namespace Notes;
 
-class UserLoginForm extends Form {
+class UserLoginForm extends UserAuthForm {
+	
+	protected static string $form_name	= 'web_user_login';
 	
 	public static function newForm(
 		\Notes\Controller	$ctrl,
@@ -11,16 +13,10 @@ class UserLoginForm extends Form {
 		return 
 		static::loadForm( 
 			$ctrl, 
-			'web_user_login', 
+			static::$form_name, 
 			'\\Notes\\UserLoginForm', 
 			$action
 		); 
-	}
-	
-	public function render() : string {
-		return $this->form_type->render( 
-			$this->controller, $this->params['form'] 
-		);
 	}
 }
 
