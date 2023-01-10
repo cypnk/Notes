@@ -519,6 +519,7 @@ INSERT INTO language_defs ( lang_id, content )
 	VALUES ( 1, json( '
 {
 	"label"		: "English",
+	"prefix"	: "",
 	"date_nice"	: "l, F j, Y",
 	"nav"		: {
 		"previous"	: "Previous",
@@ -571,7 +572,7 @@ INSERT INTO language_defs ( lang_id, content )
 			"create"	: "Creating form",
 			"createspecial"	: "required",
 			"createdesc"	: "Form template definition.",
-			"cratereq"	: "Creating form is required",
+			"createreq"	: "Creating form is required",
 			"createinv"	: "Entered creating form is invalid or unacceptable",
 			"edit"		: "Editing form",
 			"editspecial"	: "required",
@@ -870,12 +871,16 @@ INSERT INTO forms( params )
 					"VeraMono.ttf",
 					"Tuffy.ttf"
 				]
-			}  ]
+			}, {
+				"name"		: "config",
+				"type"		: "submit",
+				"value"		: "{lang:forms:config:submit}"
+			} ]
 		}
 	}' ) ),
 	
 	( json( '{ 
-		"label"	: "web user register",
+		"label"	: "web_user_register",
 		"form"	: {
 			"legend"	: "{lang:forms:register:legend}",
 			"name"		: "register",
@@ -885,6 +890,7 @@ INSERT INTO forms( params )
 			"action"	: "{action}",
 			"inputs" : [ {
 				"name"		: "username",
+				"value"		: "__username__",
 				"type"		: "text",
 				"label"		: "{lang:forms:register:name}",
 				"special"	: "{lang:forms:register:namespecial}",
@@ -926,7 +932,7 @@ INSERT INTO forms( params )
 	}' ) ),
 	( json(
 	'{
-		"label"	: "web user login",
+		"label"	: "web_user_login",
 		"form"	: {
 			"legend"	: "{lang:forms:login:legend}",
 			"name"		: "login",
@@ -937,6 +943,7 @@ INSERT INTO forms( params )
 			"inputs" : [ {
 				"name"		: "username",
 				"type"		: "text",
+				"value"		: "__username__",
 				"label"		: "{lang:forms:login:name}",
 				"special"	: "{lang:forms:login:namespecial}",
 				"desc"		: "{lang:forms:login:namedesc}",
@@ -960,45 +967,168 @@ INSERT INTO forms( params )
 				"value"		: "{lang:forms:login:submit}"
 			} ]
 		}
+	}' ) ),
+	
+	( json('{
+		"label"	: "web_doctype",
+		"form"	: {
+			"name"		: "doctype_form",
+			"type"		: "validated",
+			"method"	: "post",
+			"legend"	: "{lang:forms:doctype:legend}",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs"	: [ {
+				"name"		: "id",
+				"type"		: "hidden",
+				"value"		: "__id__"
+			}, {
+				"name"		: "label",
+				"type"		: "text",
+				"value"		: "__label__",
+				"label"		: "{lang:forms:doctype:label}",
+				"special"	: "{lang:forms:doctype:labelspecial}",
+				"desc"		: "{lang:forms:doctype:labeldesc}",
+				"messages"	: "data-validation=\"{lang:forms:doctype:labelinv}\" data-required=\"{lang:forms:doctype:labelreq}\"",
+				"required"	: "required"
+			}, {
+				"name"		: "description",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50,
+				"value"		: "__description__",
+				"label"		: "{lang:forms:doctype:description}",
+				"desc"		: "{lang:forms:doctype:descriptdesc}",
+				"messages"	: "data-validation=\"{lang:forms:doctype:descrioptioninv}\""
+			}, {
+				"name"		: "doctype_save",
+				"type"		: "submit",
+				"value"		: "{lang:forms:doctype:submit}"
+			} ]
+		}
+	}') ), 
+	
+	( json( '{
+		"label"	: "web_document",
+		"form"	: {
+			"name"		: "document_form",
+			"type"		: "validated",
+			"method"	: "post",
+			"legend"	: "{lang:forms:document:legend}",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs"	: [ {
+				"name"		: "id",
+				"type"		: "hidden",
+				"value"		: "__id__"
+			}, {
+				"name"		: "summary",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50,
+				"value"		: "__summary__",
+				"label"		: "{lang:forms:document:summary}",
+				"special"	: "{lang:forms:document:summaryspecial}",
+				"desc"		: "{lang:forms:document:summarydesc}",
+				"messages"	: "data-validation=\"{lang:forms:document:summaryinv}\" data-required=\"{lang:forms:document:summaryreq}\"",
+				"required"	: "required"
+			}, {
+				"name"		: "document_save",
+				"type"		: "submit",
+				"value"		: "{lang:forms:document:submit}"
+			} ]
+		}
+	}' ) ), 
+	
+	( json( '{
+		"label"	: "web_blocktype",
+		"form"	: {
+			"name"		: "blocktype_form",
+			"type"		: "validated",
+			"method"	: "post",
+			"legend"	: "{lang:forms:blocktype:legend}",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs"	: [ {
+				"name"		: "id",
+				"type"		: "hidden",
+				"value"		: "__id__"
+			}, {
+				"name"		: "label",
+				"type"		: "text",
+				"value"		: "__label__",
+				"label"		: "{lang:forms:blocktype:label}",
+				"special"	: "{lang:forms:blocktype:labelspecial}",
+				"desc"		: "{lang:forms:blocktype:labeldesc}",
+				"messages"	: "data-validation=\"{lang:forms:blocktype:labelinv}\" data-required=\"{lang:forms:blocktype:labelreq}\"",
+				"required"	: "required"
+			}, {
+				"name"		: "create_template",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50,
+				"value"		: "__create_template__",
+				"label"		: "{lang:forms:blocktype:view}",
+				"special"	: "{lang:forms:blocktype:viewspecial}",
+				"desc"		: "{lang:forms:blocktype:viewdesc}",
+				"messages"	: "data-validation=\"{lang:forms:blocktype:viewinv}\" data-required=\"{lang:forms:blocktype:viewreq}\"",
+				"required"	: "required"
+			}, {
+				"name"		: "edit_template",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50,
+				"value"		: "__edit_template__",
+				"label"		: "{lang:external:forms:blocktype:edit}",
+				"special"	: "{lang:external:forms:blocktype:editspecial}",
+				"desc"		: "{lang:external:forms:blocktype:editdesc}",
+				"messages"	: "data-validation=\"{lang:forms:blocktype:editinv}\" data-required=\"{lang:forms:blocktype:editreq}\"",
+				"required"	: "required"
+			}, {
+				"name"		: "blocktype",
+				"type"		: "submit",
+				"value"		: "{lang:forms:blocktype:submit}"
+			} ]
+		}
 	}' ) ), 
 	
 	( json( 
 	'{
-		"label"	: "web create page block",
+		"label"	: "web_create_page_block",
 		"form"	: {
-			"name"		: "newblock",
+			"name"		: "new_block_form",
 			"type"		: "validated",
 			"method"	: "post",
 			"enctype"	: "application\/x-www-form-urlencoded",
-			"action"	: "\/pageblocks\/new",
+			"action"	: "{action}",
 			"inputs"	: [
 			{
 				"name"		: "body",
 				"type"		: "wysiwyg",
-				"label"		: "{lang:forms:page_block:create_label}",
-				"special"	: "{lang:forms:page_block:create_special}",
-				"desc"		: "{lang:forms:page_block:create_desc}",
+				"label"		: "{lang:external:forms:page_block:create_label}",
+				"special"	: "{lang:external:forms:page_block:create_special}",
+				"desc"		: "{lang:external:forms:page_block:create_desc}",
 				"rows"		: 10,
 				"cols"		: 60,
 				"required"	: "required"
 			},
 			{
 				"type"		: "submit",
-				"name"		: "create",
-				"value"		: "{lang:forms:page_block:create_submit}"
+				"name"		: "new_block",
+				"value"		: "{lang:external:forms:page_block:create_submit}"
 			}]
 		}
-	}' ) ), 
+	}' ) ),
 	
 	( json( 
 	'{
-		"label"	: "web edit page block",
+		"label"	: "web_edit_page_block",
 		"form" : {
-			"name"		: "editblock",
+			"name"		: "edit_block_form",
 			"type"		: "validated",
 			"method"	: "post",
 			"enctype"	: "application\/x-www-form-urlencoded",
-			"action"	: "\/pageblocks\/edit",
+			"action"	: "{action}",
 			"inputs"	: [
 			{
 				"name"		: "block_id",
@@ -1007,26 +1137,27 @@ INSERT INTO forms( params )
 			},
 			{
 				"name"		: "body",
+				"value"		: "__body__",
 				"type"		: "wysiwyg",
-				"label"		: "{lang:forms:page_block:edit_label}",
-				"special"	: "{lang:forms:page_block:edit_special}",
-				"desc"		: "{lang:forms:page_block:edit_desc}",
+				"label"		: "{lang:external:forms:page_block:edit_label}",
+				"special"	: "{lang:external:forms:page_block:edit_special}",
+				"desc"		: "{lang:external:forms:page_block:edit_desc}",
 				"rows"		: 10,
 				"cols"		: 60,
 				"required"	: "required"
 			},
 			{
 				"type"		: "submit",
-				"name"		: "edit",
-				"value"		: "{lang:forms:page_block:edit_submit}"
+				"name"		: "edit_block",
+				"value"		: "{lang:external:forms:page_block:edit_submit}"
 			}]
 		}
 	}' ) ), 
 	
 	( json( '{
-		"label"	: "web delete page block",
+		"label"	: "web_delete_page_block",
 		"form"	: {
-			"name"		: "blockdelete",
+			"name"		: "block_delete_form",
 			"type"		: "validated",
 			"method"	: "post",
 			"enctype"	: "application\/x-www-form-urlencoded",
@@ -1036,12 +1167,13 @@ INSERT INTO forms( params )
 				"type"		: "checkbox",
 				"name"		: "confirm",
 				"value"		: 1,
-				"label"		: "{lang:forms:page_block:delete_label}",
+				"label"		: "{lang:external:forms:page_block:delete_label}",
 				"required"	: "required"
 			},
 			{
 				"type"		: "submit",
-				"value"		: "{lang:forms:page_block:delete_submit}"
+				"name"		: "block_delete",
+				"value"		: "{lang:external:forms:page_block:delete_submit}"
 			}]
 		}
 	}' ) );-- --
@@ -1156,6 +1288,7 @@ INSERT INTO block_types( content, view_template, create_template, edit_template,
 			},
 			{
 				"name"		: "body",
+				"value"		: "__body__",
 				"type"		: "wysiwyg",
 				"label"		: "{lang:forms:page_block:edit_label}",
 				"special"	: "{lang:forms:page_block:edit_special}",
