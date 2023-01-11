@@ -220,6 +220,7 @@ enum InputType {
 		
 		$label	= 
 		$form->ownerDocument->createElement( 'label', $data['{label}'] );
+		$label->setAttribute( 'id', $data['{id}'] . '-label' );
 		$label->setAttribute( 'for', $data['{id}'] );
 		$label->setAttribute( 'class', $data['{label_classes}'] );
 		
@@ -311,11 +312,24 @@ enum InputType {
 				'{required}'	=>
 				$node->setAttribute( 'required', 'required' ),
 				
+				// Has a label?
+				'{label}'	=>
+				$node->setAttribute( 
+					'aria-labelledby', 
+					( string ) $data['{id}'] . '-label' 
+				),
+				
 				// Has a description?
 				'{desc}'	=>
 				$node->setAttribute( 
 					'aria-described-by', 
 					( string ) $data['{id}'] . '-desc' 
+				),
+				
+				// Has validation messages?
+				'{messages}'	=> 
+				$node->setAttribute( 'aria-controls', 
+					( string ) $data['{id}'] . '-messages' 
 				),
 				
 				// HTML5 validation pattern?
@@ -333,7 +347,7 @@ enum InputType {
 				$node->setAttribute( 
 					'list', 
 					\Notes\Util::bland( 
-						( string ) $data['list'] 
+						( string ) $data['{list}'] 
 					)
 				),
 				
@@ -401,7 +415,7 @@ enum InputType {
 		\DOMElement	$wrap, 
 		\DOMElement	$form, 
 		array		$data,
-		string		$wtype	= 'span'
+		string		$wtype	= 'output'
 	) {
 		if ( empty( $data['{messages}'] ) ) {
 			return;
@@ -411,6 +425,10 @@ enum InputType {
 			$wtype, $data['{messages}'] 
 		);
 		
+		$msg->setAttribute( 'id', $data['{id}'] . '-messages' );
+		$msg->setAttribute( 'for', $data['{id}'] );
+		$msg->setAttribute( 'aria-live', 'polite' );
+		$msg->setAttribute( 'role', 'region' );
 		$msg->setAttribute( 'class', $data['{message_classes}'] );
 		$wrap->appendChild( $msg );
 	}
