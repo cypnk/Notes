@@ -6,8 +6,6 @@ class ContentForm extends Form {
 	
 	public int $id;
 	
-	public array $placeholders		= [];
-	
 	protected static string $form_name	= 'web_content';
 	
 	public function render() : string {
