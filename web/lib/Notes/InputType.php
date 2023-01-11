@@ -37,12 +37,13 @@ enum InputType {
 		array			&$input 
 	) {
 		// Default to text type if not given
-		$input['type'] ??= 'text';
-		$input['type'] = \strtolower( $input['type'] );
+		$input['type']	??= 'text';
+		$input['type']	= \strtolower( $input['type'] );
 		
-		$input['value'] ??= '';
+		$input['value']	??= '';
 		
-		$data = \Notes\Util::placeholders( $input );
+		$parser		= $ctrl->getParam( '\\Notes\\Parser' );
+		$data		= $parser->placeholders( $input );
 		
 		// Default settings
 		static::baseDefaults( $data );
@@ -55,7 +56,7 @@ enum InputType {
 		$input	= [ ...$input, $ctrl->output( 'input_init' ) ];
 		
 		$node	= 
-		$this->buildNode( $ctrl, $form, $input, $data );
+		$this->buildNode( $parser, $form, $input, $data );
 		$node->setAttribute( 'id', $data['{id}'] );
 		$node->setAttribute( 'name', $data['{name}'] );
 		
@@ -74,12 +75,12 @@ enum InputType {
 	}
 	
 	protected function buildNode( 
-		\Notes\Controller	$ctrl,
+		\Notes\Parser		$parser,
 		\DOMElement		$form, 
 		array			$input, 
 		array			&$data 
 	) {
-		$node = 
+		$node	= 
 		match( $this ) {
 			// Datetime
 			InputType::DateTime	=> 
@@ -87,7 +88,7 @@ enum InputType {
 			
 			// Select
 			InputType::Select	=> 
-			static::buildSelect( $form, $data, $input ),
+			static::buildSelect( $parser, $form, $data, $input ),
 			
 			// Multiline, formatted start with a textarea
 			InputType::Textarea,
@@ -96,7 +97,7 @@ enum InputType {
 			
 			// Selection list
 			InputType::Datalist	=>
-			static::buildDatalist( $form, $data, $input ),
+			static::buildDatalist( $parser, $form, $data, $input ),
 			
 			// Default input type
 			default		=>  ( function() use ( $form, $data ) {
@@ -529,18 +530,19 @@ enum InputType {
 	}
 	
 	public static function addOptions( 
+		\Notes\Parser	$parser,
 		\DOMElement	$e, 
 		\DOMElement	$form, 
 		array		$options 
 	) {
 		foreach ( $options as $o ) {
 			// Option placeholders
-			$data = \Notes\Util::placeholders( $o );
+			$data	= $parser->placeholders( $o );
 			
 			// Base defaults
-			$data = static::baseDefaults( $data );
+			$data	= static::baseDefaults( $data );
 			
-			$p = 
+			$p	= 
 			$form->ownerDocument->createElement( 
 				'option', $data['{text}'] ?? ''
 			);
@@ -579,6 +581,7 @@ enum InputType {
 	 *  Dropdown select
 	 */
 	public static function buildSelect( 
+		\Notes\Parser	$parser,
 		\DOMElement	$form, 
 		array		$data, 
 		array		$input 
@@ -590,7 +593,7 @@ enum InputType {
 			$u = $form->ownerDocument->createElement( 'option', '--' );
 			$e->appendChild( $u );
 		} 
-		static::addOptions( $e, $form, $input['options'] ?? [] );
+		static::addOptions( $parser, $e, $form, $input['options'] ?? [] );
 		return $e;
 	}
 	
@@ -631,6 +634,7 @@ enum InputType {
 	 *  Background data retrieval for autocomplete types
 	 */
 	public static function builDatalist( 
+		\Notes\Parser	$parser,
 		\DOMElement	$form, 
 		array		$data, 
 		array		$input 
@@ -642,7 +646,7 @@ enum InputType {
 		$e = $form->ownerDocument->createElement( 'datalist' );
 		
 		// Default options, if any
-		static::addOptions( $e, $form, $input['options'] ?? [] );
+		static::addOptions( $parser, $e, $form, $input['options'] ?? [] );
 		
 		// Set auto-complete URL, if given
 		if ( !empty( $input['ur'] ) ) {
