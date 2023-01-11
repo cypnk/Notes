@@ -22,6 +22,12 @@ abstract class Form extends Controllable {
 	 */
 	public readonly string $rendered;
 	
+	/**
+	 *  Rendered template placeholders
+	 *  @var array
+	 */
+	public array $placeholders		= [];
+	
 	abstract public function render( array $data ) : string;
 	
 	protected static function loadForm( 
