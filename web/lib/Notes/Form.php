@@ -28,7 +28,47 @@ abstract class Form extends Controllable {
 	 */
 	public array $placeholders		= [];
 	
-	abstract public function render( array $data ) : string;
+	/**
+	 *  Caller form identifier
+	 *  @pvar string
+	 */
+	protected static $form_name		= 'web_form';
+	
+	public function render() : string {
+		// Generate HTML output
+		if ( !isset( $this->rendered ) ) {
+			$this->rendered = 
+			$this->form_type->render( 
+				$this->controller, $this->params['form'] 
+			)
+		}
+		
+		// Generate event placeholder content by current form name
+		$this->controller->run( 
+			static::$form_name, [ 'form' => $this ] 
+		);
+		
+		// Generate anti-XSRF tokens
+		$pair	= 
+		$this->genNoncePair( 
+			$this->getControllerParam( '\\Notes\\Config' ),
+			static::$form_name
+		);
+		
+		$xsrf	= [
+			'{token}'	=> $pair['token'],
+			'{nonce}'	=> $pair['nonce']
+		];
+		
+		// Return with placeholders replaced
+		// TODO: Load language definitions from databse
+		return 
+		\strtr( $this->rendered, [
+			...$this->placeholders, 
+			...$xsrf,
+			...$this->controller->output( static::$form_name )
+		] );
+	}
 	
 	protected static function loadForm( 
 		\Notes\Controller	$ctrl,
