@@ -21,7 +21,9 @@ enum FormType {
 		$form['extras']	??= [];
 		
 		// Prepare placeholders
-		$data	= \Notes\Util::placeholders( $content );
+		$data	= 
+		$ctrl->getParam( '\\Notes\\Parser' )
+			->placeholders( $content );
 		
 		// Default placeholders
 		static::baseDefaults( $data );
@@ -265,7 +267,11 @@ enum FormType {
 		);
 	}
 	
-	public static function buildInputs( \DOMElement $form, array $input ) {
+	public static function buildInputs( 
+		\Notes\Controller	$ctrl, 
+		\DOMElement		$form, 
+		array			$input 
+	) {
 		$input['type'] ??= '';
 		
 		$out = 
@@ -295,7 +301,7 @@ enum FormType {
 			default		=> \Notes\InputType::Other
 		}
 		
-		$form->appendChild( $out->buildInput( $form, $input ) );
+		$form->appendChild( $out->buildInput( $ctrl, $form, $input ) );
 	}
 }
 
