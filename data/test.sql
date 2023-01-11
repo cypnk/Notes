@@ -985,6 +985,42 @@ INSERT INTO forms( params )
 		}
 	}' ) ),
 	
+	( json(
+	'{
+		"label"	: "web_user_profile",
+		"form"	: {
+			"legend"	: "{lang:forms:profile:legend}",
+			"name"		: "profile",
+			"type"		: "validated",
+			"method"	: "post",
+			"enctype"	: "application\/x-www-form-urlencoded",
+			"action"	: "{action}",
+			"inputs" : [ {
+				"name"		: "display",
+				"type"		: "text",
+				"value"		: "__display__",
+				"label"		: "{lang:forms:profile:display}",
+				"special"	: "{lang:forms:profile:displayspecial}",
+				"desc"		: "{lang:forms:profile:displaydesc}",
+				"messages"	: "data-validation=\"{lang:forms:profile:displayinv}\""
+			}, {
+				"name" 		: "bio",
+				"type"		: "textarea",
+				"rows"		: 3,
+				"cols"		: 50,
+				"label"		: "{lang:forms:profile:bio}",
+				"special"	: "{lang:forms:profile:biopecial}",
+				"desc"		: "{lang:forms:profile:biodesc}",
+				"messages"	: "data-validation=\"{lang:forms:profile:bioinv}\""
+				"required"	: "required"
+			}, {
+				"name"		: "profile_save",
+				"type"		: "submit",
+				"value"		: "{lang:forms:profile:submit}"
+			} ]
+		}
+	}' ) ), 
+	
 	( json('{
 		"label"	: "web_doctype",
 		"form"	: {
