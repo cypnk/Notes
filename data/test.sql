@@ -323,12 +323,23 @@ INSERT INTO configs ( settings )
 			"strong"	: [ "style", "class" ],
 			"em"		: [ "style", "class" ],
 			"u"	 	: [ "style", "class" ],
+			"i"	 	: [ "style", "class" ],
 			"strike"	: [ "style", "class" ],
 			"del"		: [ "style", "class", "cite" ],
 			
 			"ol"		: [ "style", "class" ],
 			"ul"		: [ "style", "class" ],
 			"li"		: [ "style", "class" ],
+			
+			"dl"		: [ "style", "class" ],
+			"dt"		: [ "style", "class" ],
+			"dd"		: [ "style", "class" ],
+			
+			"dfn"		: [ "style", "class", "title" ],
+			"abbr"		: [ "style", "class" ],
+			"ins"		: [ "style", "class", "cite", "datetime" ],
+			"kbd"		: [ "style", "class" ],
+			"samp"		: [ "style", "class" ],
 			
 			"code"		: [ "style", "class" ],
 			"pre"		: [ "style", "class" ],
@@ -370,6 +381,11 @@ INSERT INTO configs ( settings )
 			"cite"		: [ "style", "class" ],
 			"abbr"		: [ "style", "class" ],
 			"blockquote"	: [ "style", "class", "cite" ],
+			
+			"ruby"		: [ "style", "class" ],
+			"rp"		: [ "style", "class" ],
+			"rt"		: [ "style", "class" ],
+			
 			"body"		: []
 		}, 
 		"classes" : {
