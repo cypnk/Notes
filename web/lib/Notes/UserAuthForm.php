@@ -17,9 +17,11 @@ abstract class UserAuthForm extends Form {
 	protected string $form_name	= 'web_user_auth';
 
 	public function render() : string {
+		
 		$this->placeholders = 
 		[ 
-			'{username}'	=> $this->username ?? ''
+			'{username}'	=> $this->username ?? '',
+			...$this->placeholders
 		];
 		return parent::render();	
 	}
