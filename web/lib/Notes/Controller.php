@@ -99,7 +99,6 @@ class Controller {
 	 *  Load 'web_start' event handlers
 	 */
 	public function loadWebStartHandlers() {
-		$this->addParams( ['\\Notes\\Data'] );
 		$db = $this->getParam( '\\Notes\\Data' );
 		$hd = 
 		$db->getResults( 
@@ -116,7 +115,7 @@ class Controller {
 		}
 		
 		// Apply load start events
-		$this->addParam( $hd );
+		$this->addParams( [ $hd ] );
 		foreach ( $hd as $h ) {
 			$this->listen( 'web_start', $this->getParam( $h ) );
 		}
@@ -129,6 +128,7 @@ class Controller {
 	 *  @return mixed
 	 */
 	public function getParam( string $name ) {
+		$this->addParams( [ $name ] );
 		return $this->params[$name] ?? null;
 	}
 	
