@@ -117,8 +117,6 @@ abstract class Controllable {
 	 *  @return mixed
 	 */
 	public function getControllerParam( string $name ) {
-		$this->controller->addParam([ $name ]);
-		
 		return $this->controller->getParam( $name );
 	}
 	
