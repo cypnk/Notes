@@ -633,7 +633,7 @@ enum InputType {
 	/**
 	 *  Background data retrieval for autocomplete types
 	 */
-	public static function builDatalist( 
+	public static function buildDatalist( 
 		\Notes\Parser	$parser,
 		\DOMElement	$form, 
 		array		$data, 
