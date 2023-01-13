@@ -16,6 +16,7 @@ enum InputType {
 	case DateTime;
 	case Datalist;
 	
+	case Calendar;
 	case Hidden;
 	case Other;
 	
@@ -24,7 +25,6 @@ enum InputType {
 	case Button;
 	
 	// TODO
-	case Calendar;
 	case Upload;
 	case Range;
 	
@@ -66,6 +66,7 @@ enum InputType {
 			InputType::Submit,
 			InputType::Button,
 			InputType::Hidden,
+			InputType::Calendar,
 			InputType::Datalist	=> $node,
 			
 			// Wrap everything else
@@ -94,6 +95,10 @@ enum InputType {
 			InputType::Textarea,
 			InputType::Wysiwyg	=> 
 			static::buildMultiline( $form, $data, $input ),
+			
+			// Dates
+			InputType::Calendar	=>
+			static::buildCalendar( $parser, $form, $data, $input ),
 			
 			// Selection list
 			InputType::Datalist	=>
@@ -484,6 +489,14 @@ enum InputType {
 		$data['{special_extras}']	??= '';
 		$data['{desc_extras}']		??= '';
 		$data['{label_extras}']		??= '';
+		
+		// Calendar
+		$data['{calendar_classes}']	??= ''
+		$data['{calendar_h_classes}']	??= '';
+		$data['{calendar_dow_classes}']	??= '';
+		$data['{calendar_gr_classes}']	??= '';
+		$data['{calendar_day_classes}']	??= '';
+		$data['{calendar_dt_classes}']	??= '';
 	}
 	
 	/**
@@ -627,6 +640,85 @@ enum InputType {
 		
 		$e->setAttribute( 'rows', $input['rows'] ?? 5 );
 		$e->setAttribute( 'cols', $input['cols'] ?? 50 );
+		return $e;
+	}
+	
+	/**
+	 *  Calendar days
+	 */
+	public static function buildCalendar( 
+		\Notes\Parser	$parser,
+		\DOMElement	$form, 
+		array		$data, 
+		array		$input 
+	) : \DOMElement {
+		$e = $form->ownerDocument->createElement( 'section' );
+		$e->setAttribute( 'class', $data['{calendar_classes}'] );
+		
+		// Main month header
+		$h = $form->ownerDocument->createElement( 'header' );
+		$h->setAttribute( 
+			'class', 
+			$data['{calendar_h_classes}'] 
+		);
+		
+		// Formatted month
+		$t = 
+		$form->ownerDocument
+			->createElement( 
+				'time', 
+				$input['month_nice'] ?? '' 
+			);
+		
+		$t->setAttribute( 'datetime', $input['month'] ?? '' );
+		$h->appendChild( $t );
+		
+		// Days of the week
+		$w = $form->ownerDocument->createElement( 'header' );
+		$w->setAttribute( 'class', $data['{calendar_dow_classes}'] );
+		
+		// Monday, Tuesday etc... from language placeholders
+		foreach ( \range( 1, 7, 1 ) as $wd ) {
+			$ds = 
+			$form->ownerDocument->createElement( 
+				'div', $input['dow_' . $wd] ?? ''
+			);
+			$w->appendChild( $ds );
+		}
+		
+		$e->appendChild( $h );
+		$e->appendChild( $w );
+		
+		// Dates of the month
+		$g = $form->ownerDocument->createElement( 'div' );
+		$g->setAttribute( 'class', $data['{calendar_gr_classes}'] );
+		
+		// Starting day of week
+		$g->setAttribute( 'data-start', $input['start_day'] ?? '1' );
+		
+		foreach ( $input['days'] as $dt ) {
+			$day	= $parser->placeholders( $dt );
+			
+			// Date anchor
+			$d	= $form->ownerDocument->createElement( 'a' );
+			$d->setAttribute( 'href', $day['{day_url}'] ?? '#' );
+			$d->setAttribute( 'class', $data['{calendar_day_classes}'] );
+			
+			// Date stamp
+			$t	= 
+			$form->ownerDocument
+				->createElement( 
+					'time', $day['{day}'] ?? '' 
+				);
+			
+			$t->setAttribute( 'datetime', $day['{day_utc}' ?? '' );
+			$t->setAttribute( 'class', $data['{calendar_dt_classes}'] );
+			
+			$d->appendChild( $t );
+			$g->appendChild( $d );
+		}
+		
+		$e->appendChild( $g );
 		return $e;
 	}
 	
