@@ -16,23 +16,12 @@ class Parser extends Controllable {
 	/**
 	 *  General term match pattern
 	 */
-	const RX_MATCH	=
-	"/(:?\{)
-		(
-			([\w]+)
-			(:?\(([\w=\"\'\:,]+):?\))?
-		)
-		{repeat}
-	(:?\})/igx";
+	const RX_MATCH	= '/(?<=\{){repeat}(?=\})/x';
 	
 	/**
 	 *  Repeated matching sub pattern
 	 */
-	const RX_REPEAT	= 
-	"(\:?
-		([\w]+)
-		(:?\(([\w=\"\'\:,]+):?\))?
-	)?";
+	const RX_REPEAT	= '(?:[\s:]?([\w]+)(?:\s+([\w=\"\',\s]+))?)';
 	
 	/**
 	 *  Generated regular expression
@@ -66,7 +55,7 @@ class Parser extends Controllable {
 	 *  
 	 *  @example
 	 *  {Lang:label}
-	 *  {Workspace:Collection(id=:id)}
+	 *  {Workspace:Collection id=:id}
 	 * 
 	 *  @param string		$tpl	Raw render template
 	 */
@@ -88,23 +77,14 @@ class Parser extends Controllable {
 			return $groups;
 		}
 		
-		$config	= $this->getControllerParam( '\\Notes\Config' );
-		
-		// Preset limits
-		
-		// Item start
-		$rii	= $config->setting( 'parser_idx_item', 'int' );
-		
-		// Skip n items for next item/parameter
-		$ris	= $config->setting( 'parser_idx_skip', 'int' );
-		
-		// Parameter start
-		$rip	= $config->setting( 'parser_idx_param', 'int' );
-		
-		// Append segments to major clusters up to preset limits
-		$mrc	= \array_chunk( $matches, $rii + $ris );
-		foreach ( $mrc as $m ) {
-			$groups[$m[0]] = $m[$rip];
+		// Group segments to major clusters
+		$groups	= \array_values( $matches[0] );
+		while( false !== next( $matches ) ) {
+			$groups = 
+			\array_combine( 
+				\array_values( $matches[0] ), 
+				$groups 
+			);
 		}
 		
 		$this->$parsed[$key] = $groups;
@@ -113,10 +93,6 @@ class Parser extends Controllable {
 	
 	/**
 	 *  Placeholder match pattern builder
-	 *  
-	 *  @example 
-	 *  Items 3, 7, 11, 15, 19, 23
-	 *  Item params 5, 9, 13, 17, 21, 25
 	 */
 	public function getRenderRegex() : string {
 		if ( isset( $this->regex ) ) {
@@ -127,7 +103,10 @@ class Parser extends Controllable {
 		// Maximum number of sub matches (in addition to primary)
 		$mxd	= $config->setting( 'parser_max_depth', 'int' );
 		
-		$m		= \str_repeat( self::RX_REPEAT, $mxd );
+		$m		= 
+		self::RX_REPEAT . 
+			\str_repeat( self::RX_REPEAT . '?', $mxd );
+		
 		$this->regex	= 
 		\strtr( self::RX_MATCH, [ '{repeat}' => $m ] );
 		
