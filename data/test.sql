@@ -222,9 +222,6 @@ INSERT INTO configs ( settings )
 		"captcha_bg": "255, 255, 255",
 		"captcha_lines": "150, 200, 150, 200, 150, 200",
 		"captcha_colors": "0, 150, 10, 150, 10, 150", 
-		"parser_idx_item": 3,
-		"parser_idx_param": 5,
-		"parser_idx_skip": 4,
 		"parser_max_depth": 5,
 		"markers" : {
 			"*"	: "(?<all>.+)",
