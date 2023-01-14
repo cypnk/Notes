@@ -38,6 +38,19 @@ BEGIN
 		WHERE id = NEW.id;
 END;-- --
 
+CREATE TABLE themes(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	settings TEXT NOT NULL DEFAULT '{ "label" : "default" }' COLLATE NOCASE,
+	label TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.label' ), "default" )
+	) STORED NOT NULL,
+	realm TEXT GENERATED ALWAYS AS (
+		COALESCE( json_extract( settings, '$.realm' ), "" )
+	) STORED NOT NULL
+);-- --
+CREATE UNIQUE INDEX idx_theme_label ON themes ( label )
+	WHERE label IS NOT "";-- --
+CREATE INDEX idx_theme_realm ON themes ( realm );-- --
 
 -- Permanent events
 CREATE TABLE events (
