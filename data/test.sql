@@ -9,9 +9,7 @@ INSERT INTO events ( name, params )
 			"environment" : "Linux\/Manjaro",
 			"write" : "ltr",
 			"language" : "en-US",
-			"autosave" : 1,
-			"font" : "NotoSansMono-Regular.ttf",
-			"window" : "1024x800"
+			"autosave" : 1
 		}'
 	) ),
 	
@@ -157,8 +155,7 @@ INSERT INTO configs ( settings )
 		"files" : "{files}localhost\/",
 		"temp" : "{temp}localhost\/",
 		"jobs" : "{jobs}localhost\/",
-		"stylesheets": [ "\/css\/tachyons.min.css", "\/localhost\/style.css" ],
-		"scripts": [ "\/js\/squire.js" ], 
+		"theme" : "web_default",
 		"metatags": [ 
 			{ 
 				"params"	: { "charset" : "UTF-8" },
@@ -384,8 +381,27 @@ INSERT INTO configs ( settings )
 			"rt"		: [ "style", "class" ],
 			
 			"body"		: []
-		}, 
-		"classes" : {
+		}
+	}' ) );-- --
+
+INSERT INTO themes( settings )
+VALUES 
+	( json( '{
+		"label" : "desktop_default",
+		"realm" : "desktop",
+		"params" : {
+			"font" : "NotoSansMono-Regular.ttf",
+			"window" : "1024x800"
+		}
+	}' ) ),
+	
+	( json('{
+		"label" : "web_default",
+		"realm" : "http:\/\/localhost",
+		"params" : {
+			"stylesheets" : [ "\/css\/tachyons.min.css", "\/localhost\/style.css" ],
+			"scripts": [ "\/js\/squire.js" ], 
+			
 			"body_classes"			: "",
 			
 			"heading_classes"		: "",
@@ -404,6 +420,7 @@ INSERT INTO configs ( settings )
 			"legend_classes"		: "mb2 f4 measure",
 			"fieldset_classes"		: "",
 			
+			"input_wrap_classes"		: "pa4 black-80",
 			"label_classes"			: "f6 b db mb2",
 			"special_classes"		: "normal black-60",
 			"input_classes"			: "input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2",
@@ -458,7 +475,14 @@ INSERT INTO configs ( settings )
 			"table_td_classes"		: "pa2 table-td",
 			"table_td_center_classes"	: "tc",
 			"table_td_left_classes"		: "tl",
-			"table_td_right_classes"	: "tr"
+			"table_td_right_classes"	: "tr",
+			
+			"calendar_classes"		: "",
+			"calendar_h_classes"		: "",
+			"calendar_dow_classes"		: "",
+			"calendar_gr_classes"		: "",
+			"calendar_day_classes"		: "",
+			"calendar_dt_classes"		: ""
 		}
 	}' ) );-- --
 
