@@ -411,7 +411,13 @@ enum InputType {
 	/**
 	 *  Error/validity pseudo element message holder
 	 *   
-	 *  @param 
+	 *  @param \DOMElement	$wrap	Container element
+	 *  @param \DOMElement	$form	Parent document form
+	 *  @param array	$data	Content as placeholder values
+	 *  @param string	$wtype	Message output wrapper type
+	 *  @param bool		$skipv	Enable empty message checking if true
+	 *  @param string	$css	Custom CSS classes
+	 *  
 	 *  @example
 	 *  input:valid ~ .input-message { display:none; }
 	 *  input:required:invalid ~ .input-message::after { content: attr(data-required); }
@@ -421,9 +427,11 @@ enum InputType {
 		\DOMElement	$wrap, 
 		\DOMElement	$form, 
 		array		$data,
-		string		$wtype	= 'output'
+		string		$wtype	= 'output',
+		bool		$skipv	= false,
+		string		$css	= ''
 	) {
-		if ( empty( $data['{messages}'] ) ) {
+		if ( empty( $data['{messages}'] ) && !$skipv ) {
 			return;
 		}
 		$msg = 
@@ -435,7 +443,9 @@ enum InputType {
 		$msg->setAttribute( 'for', $data['{id}'] );
 		$msg->setAttribute( 'aria-live', 'polite' );
 		$msg->setAttribute( 'role', 'region' );
-		$msg->setAttribute( 'class', $data['{message_classes}'] );
+		$msg->setAttribute( 'class', 
+			empty( $css ) ? $data['{message_classes}'] : $css
+		);
 		$wrap->appendChild( $msg );
 	}
 	
@@ -490,13 +500,6 @@ enum InputType {
 		$data['{desc_extras}']		??= '';
 		$data['{label_extras}']		??= '';
 		
-		// Calendar
-		$data['{calendar_classes}']	??= ''
-		$data['{calendar_h_classes}']	??= '';
-		$data['{calendar_dow_classes}']	??= '';
-		$data['{calendar_gr_classes}']	??= '';
-		$data['{calendar_day_classes}']	??= '';
-		$data['{calendar_dt_classes}']	??= '';
 	}
 	
 	/**
@@ -540,6 +543,16 @@ enum InputType {
 			default			=> 
 			'input-reset db border-box black-80 w-100 ba b--black-50 pa2 mb2';
 		};
+		
+		// Calendar
+		$data['{calendar_classes}']	??= ''
+		$data['{calendar_h_classes}']	??= '';
+		$data['{calendar_dow_classes}']	??= '';
+		$data['{calendar_gr_classes}']	??= '';
+		$data['{calendar_day_classes}']	??= '';
+		$data['{calendar_dt_classes}']	??= '';
+		$data['{calendar_txt_classes}']	??= '';
+		$data['{calendar_msg_classes}']	??= '';
 	}
 	
 	public static function addOptions( 
@@ -652,6 +665,8 @@ enum InputType {
 		array		$data, 
 		array		$input 
 	) : \DOMElement {
+		$id = $input['id'] ?? '';
+		
 		$e = $form->ownerDocument->createElement( 'section' );
 		$e->setAttribute( 'class', $data['{calendar_classes}'] );
 		
@@ -692,30 +707,65 @@ enum InputType {
 		// Dates of the month
 		$g = $form->ownerDocument->createElement( 'div' );
 		$g->setAttribute( 'class', $data['{calendar_gr_classes}'] );
+		$s = $input['start_day'] ?? '1';
 		
-		// Starting day of week
-		$g->setAttribute( 'data-start', $input['start_day'] ?? '1' );
+		// Prepend dummy days until starting day of week
+		for ( $i = $s; $i > -1; $i-- ) {
+			$n = $form->ownderDocument->createElement( 'label' );
+			$n->setAttribute( 'class', $data['{calendar_dayinv_classes}'] ?? '' );
+			$n->setAttribute( 'data-day', $i );
+			$g->appendChild( $n );
+		}
 		
+		$j = $s;
+		$i = 0;
+		
+		// Build inputs
 		foreach ( $input['days'] as $dt ) {
-			$day	= $parser->placeholders( $dt );
+			$day		= $parser->placeholders( $dt );
+			$day['{id}']	= $id . $day['{day}'];
 			
-			// Date anchor
-			$d	= $form->ownerDocument->createElement( 'a' );
-			$d->setAttribute( 'href', $day['{day_url}'] ?? '#' );
+			// Date label
+			$d	= $form->ownerDocument->createElement( 'label' );
+			$n->setAttribute( 'id', $day['{id}'] . '-label' );
+			$n->setAttribute( 'for', $day['{id}'] );
+			$d->setAttribute( 'data-day', ( string ) $j );
 			$d->setAttribute( 'class', $data['{calendar_day_classes}'] );
 			
+			$t	= $form->ownerDocument->createElement( 'input' );
+			$t->setAttribute( 'id', $day['{id}'] );
+			$t->setAttribute( 'name', $id . '[][' . $day['{day}'] . ']' );
+			$t->setAttribute( 'type', 'text' );
+			$t->setAttribute( 'data-day', ( string ) $i );
+			$t->setAttribute( 'value', $day['{value}'] ?? '' );
+			$t->setAttribute( 'class', 
+				$data['{calendar_txt_classes}'] ?? '' 
+			);
+			
 			// Date stamp
-			$t	= 
+			$s	= 
 			$form->ownerDocument
 				->createElement( 
 					'time', $day['{day}'] ?? '' 
 				);
 			
-			$t->setAttribute( 'datetime', $day['{day_utc}' ?? '' );
-			$t->setAttribute( 'class', $data['{calendar_dt_classes}'] );
+			$s->setAttribute( 'datetime', $day['{day_utc}' ?? '' );
+			$s->setAttribute( 'class', $data['{calendar_dt_classes}'] );
 			
 			$d->appendChild( $t );
+			$d->appendChild( $s );
+			
+			// Messages
+			static::addMessages( 
+				$d, $form, $day, 
+				'output', true, 
+				$data['{calendar_msg_classes}'] 
+			);
+			
 			$g->appendChild( $d );
+			
+			$i++;
+			$j++;
 		}
 		
 		$e->appendChild( $g );
