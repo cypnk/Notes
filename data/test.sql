@@ -482,7 +482,9 @@ VALUES
 			"calendar_dow_classes"		: "",
 			"calendar_gr_classes"		: "",
 			"calendar_day_classes"		: "",
-			"calendar_dt_classes"		: ""
+			"calendar_dt_classes"		: "",
+			"calendar_msg_classes"		: "",
+			"calendar_txt_classes"		: ""
 		}
 	}' ) );-- --
 
