@@ -17,6 +17,14 @@
  */
 #define LOOP_WAIT	30
 
+// Color option
+struct
+RGB {
+	Uint8 R	= 0;
+	Uint8 B	= 0;
+	Uint8 G	= 0;
+	Uint8 A	= 1;
+};
 
 // Default colors
 struct
