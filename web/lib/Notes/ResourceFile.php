@@ -55,6 +55,22 @@ class ResourceFile extends Content {
 	}
 	
 	/**
+	 *  Check file accessibility
+	 *  
+	 *  @param string	$path	Current file path
+	 *  @return bool
+	 */
+	public static function readable( string $path ) : bool {
+		if ( empty( $path ) ) {
+			return false;
+		}
+		
+		return 
+		( \is_file( $path ) && \is_readable( $path ) ) ? 
+			true : false;
+	}
+	
+	/**
 	 *  Rename file to prevent overwriting existing ones by 
 	 *  appending _i where 'i' is incremented by 1 until no 
 	 *  more files with the same name are found
@@ -100,15 +116,30 @@ class ResourceFile extends Content {
 	 *  
 	 *  @param string	$src	File source location
 	 *  @param string	$mime	Image mime type
+	 *  @param int		$width	Default thumbnail size width
 	 */
 	public static function createThumbnail( 
 		string	$src,
-		string	$mime 
+		string	$mime		= '',
+		int	$width		= 100
 	) : string {
+		// Check if file can be read
+		if ( !static::readable( $src ) ) {
+			return '';
+		}
+		
+		if ( empty( $mime ) ) {
+			$mime = static::detectMime( $src );
+		}
+		
+		// Can't generate thumbnail for invalid types
+		if ( !\in_array( $mime, static::$thumbnail_types ) ) {
+			return '';
+		}
 		
 		// Get size and set proportions
 		list( $width, $height ) = \getimagesize( $src );
-		$t_width	= 100;
+		$t_width	= \Notes\Util::intRange( $width, 100, 1024 );
 		$t_height	= ( $t_width / $width ) * $height;
 		
 		// New thumbnail
@@ -175,6 +206,10 @@ class ResourceFile extends Content {
 			'vtt'	=> 'text/vtt',
 			
 			default	=> ( function() use ( $mime ) {
+				if ( !static::readable( $path ) ) {
+					return 'application/octet-stream';
+				}
+				
 				// Detect other mime types
 				$mime = \mime_content_type( $path );
 		
@@ -198,14 +233,56 @@ class ResourceFile extends Content {
 			'src'		=> $src,
 			'mime'		=> $mime,
 			'file_name'	=> \basename( $src ),
-			'file_size'	=> \filesize( $src ),
+			'file_size'	=> 
+			static::readable( $src ) ? \filesize( $src ) : 0,
+			
+			'file_hash'	=> static::fileDigest( $src ),
 			'description'	=> '',
 			
 			// Process thumbnail if needed
-			'thumbnail'	=>
-				\in_array( $mime, static::$thumbnail_types ) ? 
-				static::createThumbnail( $src, $mime ) : ''
+			'thumbnail'	=> 
+			static::createThumbnail( $src, $mime )
 		];
+	}
+	
+	/**
+	 *  Create a digest hash of a file
+	 *  
+	 *  @param string	$path	File path
+	 *  @param string	$algo	Hashing scheme
+	 */
+	public static function fileDigest( 
+		string	$path, 
+		string	$algo	= 'sha384' 
+	) : string {
+		// Cached list of hashes for this session
+		static $done	= [];
+		
+		if ( empty( $path ) || empty( $algo ) ) {
+			return '';
+		}
+		
+		$key = $algo . $path;
+		
+		// Already hashed?
+		if ( \array_key_exists( $key, $done ) ) {
+			return $done[$key];
+		}
+		
+		// Check algorithm validity
+		if ( !\in_array( $algo, \hash_algos() ) ) {
+			return '';
+		}
+		
+		// No need to go further if file can't be read
+		if ( !static::readable( $path ) ) {
+			return '';
+		}
+		
+		$done[$key] = 
+		\base64_encode( \hash_file( $algo, $path, true ) );
+		
+		return $done[$key];
 	}
 	
 	/** 
@@ -373,15 +450,27 @@ class ResourceFile extends Content {
 		$rf = isset( $this->id ) ? true : false;
 		
 		if ( !$rf ) {
-			if ( empty( $this->_content['file_size'] ) ) {
-				$this->error( 'Empty file being saved' );
-			}
-			
 			// Can't proceed without source
 			if ( empty( $this->_content['src'] ) ) {
 				$this->error( 'Attempted save without setting file source' );
 				return false;
 			}
+		}
+			
+		// (Re)build metadata
+		if ( 
+			empty( $this->_content['file_hash'] ) || 
+			empty( $this->_content['file_size'] )
+		) {
+			$this->_content	= [
+				...$this->_content, 
+				...static::processFile( $this->_content['src'] )
+			];
+		}
+		
+		// Check for empty file, but continue
+		if ( empty( $this->_content['file_size'] ) ) {
+			$this->error( 'Empty file being saved' );
 		}
 		
 		$params	= [
