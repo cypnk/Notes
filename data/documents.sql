@@ -22,20 +22,35 @@ CREATE TABLE configs (
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
 	realm TEXT GENERATED ALWAYS AS (
 		COALESCE( json_extract( settings, '$.realm' ), "" )
-	) STORED NOT NULL,
-	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+	) STORED NOT NULL
 );-- --
 -- Unique configuration per specific realm
 CREATE UNIQUE INDEX idx_config_realm ON configs ( realm ) 
 	WHERE realm IS NOT "";-- --
-CREATE INDEX idx_config_created ON configs ( created );-- --
-CREATE INDEX idx_config_updated ON configs ( updated );-- --
+
+CREATE TABLE config_stats (
+	config_id INTEGER NOT NULL,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_config_stats
+		FOREIGN KEY ( config_id ) 
+		REFERENCES configs ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_config_stats ON config_stats ( config_id );-- --
+CREATE INDEX idx_config_created ON config_stats ( created );-- --
+CREATE INDEX idx_config_updated ON config_stats ( updated );-- --
+
+CREATE TRIGGER config_insert AFTER INSERT ON configs FOR EACH ROW
+BEGIN
+	INSERT INTO config_stats ( config_id ) VALUES ( NEW.id );
+END;-- --
 
 CREATE TRIGGER config_update AFTER UPDATE ON configs FOR EACH ROW
 BEGIN
-	UPDATE configs SET updated = CURRENT_TIMESTAMP 
-		WHERE id = NEW.id;
+	UPDATE config_stats SET updated = CURRENT_TIMESTAMP 
+		WHERE config_id = NEW.id;
 END;-- --
 
 CREATE TABLE themes(
@@ -203,8 +218,6 @@ CREATE TABLE users (
 	user_clean TEXT NOT NULL COLLATE NOCASE,
 	display TEXT DEFAULT NULL COLLATE NOCASE,
 	bio TEXT DEFAULT NULL COLLATE NOCASE,
-	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
@@ -215,11 +228,23 @@ CREATE UNIQUE INDEX idx_user_name ON users( username );-- --
 CREATE UNIQUE INDEX idx_user_clean ON users( user_clean );-- --
 CREATE UNIQUE INDEX idx_user_uuid ON users( uuid )
 	WHERE uuid IS NOT NULL;-- --
-CREATE INDEX idx_user_created ON users ( created );-- --
-CREATE INDEX idx_user_updated ON users ( updated );-- --
 CREATE INDEX idx_user_settings ON users ( setting_id ) 
 	WHERE setting_id IS NOT "";-- --
 CREATE INDEX idx_user_status ON users ( status );-- --
+
+CREATE TABLE user_stats (
+	user_id INTEGER NOT NULL,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_user_stats
+		FOREIGN KEY ( user_id ) 
+		REFERENCES users ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_user_stats ON user_stats ( user_id );-- --
+CREATE INDEX idx_user_created ON user_stats ( created );-- --
+CREATE INDEX idx_user_updated ON user_stats ( updated );-- --
 
 -- User searching
 CREATE VIRTUAL TABLE user_search 
@@ -456,7 +481,6 @@ CREATE VIEW login_view AS SELECT
 CREATE VIEW user_view AS SELECT 
 	users.id AS id, 
 	users.uuid AS uuid, 
-	users.updated AS updated, 
 	users.status AS status, 
 	users.username AS username, 
 	users.password AS password, 
@@ -464,10 +488,13 @@ CREATE VIEW user_view AS SELECT
 	users.hash AS hash,
 	ua.is_approved AS is_approved, 
 	ua.is_locked AS is_locked, 
-	ua.expires AS expires
+	ua.expires AS expires, 
+	us.created AS created, 
+	us.updated AS updated
 	
 	FROM users
-	LEFT JOIN user_auth ua ON users.id = ua.user_id;-- --
+	LEFT JOIN user_auth ua ON users.id = ua.user_id
+	LEFT JOIN user_stats us ON users.id = us.user_id;-- --
 	
 
 -- Login regenerate. Not intended for SELECT
@@ -497,13 +524,15 @@ BEGIN
 	
 	UPDATE users SET uuid = ( SELECT id FROM uuid )
 		WHERE id = NEW.id;
+	
+	INSERT INTO user_stats ( user_id ) VALUES ( NEW.id );
 END;-- --
 
 -- Update last modified
 CREATE TRIGGER user_update AFTER UPDATE ON users FOR EACH ROW
 BEGIN
-	UPDATE users SET updated = CURRENT_TIMESTAMP 
-		WHERE id = NEW.id;
+	UPDATE user_stats SET updated = CURRENT_TIMESTAMP 
+		WHERE user_id = NEW.id;
 	
 	UPDATE user_search 
 		SET username = NEW.username || ' ' || NEW.display
@@ -675,8 +704,6 @@ CREATE TABLE documents (
 	lang_id INTEGER DEFAULT NULL,
 	summary TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
 	
-	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( settings, '$.setting_id' ), "" )
@@ -698,11 +725,24 @@ CREATE UNIQUE INDEX idx_doc_uuid ON documents( uuid )
 CREATE INDEX idx_doc_type ON documents ( type_id );-- --
 CREATE INDEX idx_doc_lang ON documents ( lang_id )
 	WHERE lang_id IS NOT NULL;-- --
-CREATE INDEX idx_doc_created ON documents ( created );-- --
-CREATE INDEX idx_doc_updated ON documents ( updated );-- --
 CREATE INDEX idx_doc_settings ON users ( setting_id ) 
 	WHERE setting_id IS NOT "";-- --
 CREATE INDEX idx_doc_status ON documents ( status );-- --
+
+CREATE TABLE document_stats (
+	document_id INTEGER NOT NULL,
+	page_count INTEGER NOT NULL DEFAULT 0,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_document_stats 
+		FOREIGN KEY ( document_id ) 
+		REFERENCES documents ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_doc_stats ON document_stats ( document_id );-- --
+CREATE INDEX idx_doc_created ON document_stats ( created );-- --
+CREATE INDEX idx_doc_updated ON document_stats ( updated );-- --
 
 
 -- Update document details
@@ -718,13 +758,15 @@ BEGIN
 			LIMIT 1
 		) WHERE id = NEW.id AND 
 			json_extract( NEW.settings, '$.lang' ) IS NOT "";
+	
+	INSERT INTO document_stats ( document_id ) VALUES ( NEW.id );
 END;-- --
 
 CREATE TRIGGER document_update AFTER UPDATE ON documents FOR EACH ROW
 BEGIN
-	UPDATE documents SET updated = CURRENT_TIMESTAMP 
-		WHERE id = NEW.id;
-		
+	UPDATE document_stats SET updated = CURRENT_TIMESTAMP 
+		WHERE document_id = NEW.id;
+	
 	UPDATE documents SET lang_id = (
 			SELECT COALESCE( id, NULL ) FROM languages 
 				WHERE iso_code = 
@@ -753,10 +795,42 @@ CREATE INDEX idx_page_document ON pages ( document_id );-- --
 CREATE INDEX idx_page_sort ON pages ( sort_order );-- --
 CREATE INDEX idx_page_status ON pages ( status );-- --
 
+CREATE TABLE page_stats (
+	page_id INTEGER NOT NULL,
+	block_count INTEGER NOT NULL DEFAULT 0,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_page_stats
+		FOREIGN KEY ( page_id ) 
+		REFERENCES pages ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_page_stats ON page_stats ( page_id );-- --
+CREATE INDEX idx_page_created ON page_stats ( created );-- --
+CREATE INDEX idx_page_updated ON page_stats ( updated );-- --
+
 CREATE TRIGGER page_insert AFTER INSERT ON pages FOR EACH ROW
 BEGIN
 	UPDATE pages SET uuid = ( SELECT id FROM uuid )
 		WHERE id = NEW.id;
+	
+	INSERT INTO page_stats ( page_id ) VALUES ( NEW.id );
+	
+	UPDATE document_stats SET page_count = ( page_count + 1 )
+		WHERE document_id = NEW.document_id;
+END;-- --
+
+CREATE TRIGGER page_update AFTER INSERT ON pages FOR EACH ROW
+BEGIN
+	UPDATE page_stats SET updated = CURRENT_TIMESTAMP 
+		WHERE page_id = NEW.id;
+END;-- --
+
+CREATE TRIGGER page_delete BEFORE DELETE ON pages FOR EACH ROW
+BEGIN
+	UPDATE document_stats SET page_count = ( page_count - 1 )
+		WHERE document_id = OLD.document_id;
 END;-- --
 
 -- Content types
@@ -830,6 +904,12 @@ BEGIN
 			json_extract( NEW.content, '$.lang' ) IS NOT "";
 END;-- --
 
+CREATE TRIGGER block_stat_insert AFTER INSERT ON page_blocks FOR EACH ROW
+BEGIN
+	UPDATE page_stats SET block_count = ( block_count + 1 )
+		WHERE page_id = NEW.page_id;
+END;-- --
+
 CREATE TRIGGER block_update AFTER UPDATE ON page_blocks FOR EACH ROW
 WHEN NEW.body IS NOT ""
 BEGIN
@@ -854,6 +934,9 @@ END;-- --
 CREATE TRIGGER block_delete BEFORE DELETE ON page_blocks FOR EACH ROW 
 BEGIN
 	DELETE FROM block_search WHERE docid = OLD.id;
+	
+	UPDATE page_stats SET block_count = ( block_count - 1 )
+		WHERE page_id = OLD.page_id;
 END;-- --
 
 
@@ -866,8 +949,6 @@ CREATE TABLE memos (
 		COALESCE( json_extract( content, '$.body' ), "" )
 	) STORED NOT NULL,
 	lang_id INTEGER DEFAULT NULL,
-	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	
 	CONSTRAINT fk_memo_lang 
 		FOREIGN KEY ( lang_id ) 
@@ -876,8 +957,20 @@ CREATE TABLE memos (
 );-- --
 CREATE INDEX idx_memo_lang ON memos ( lang_id )
 	WHERE lang_id IS NOT NULL;-- --
-CREATE INDEX idx_memo_created ON memos ( created );-- --
-CREATE INDEX idx_memo_updated ON memos ( updated );-- --
+
+CREATE TABLE memo_stats (
+	memo_id INTEGER NOT NULL,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	CONSTRAINT fk_memo_stats
+		FOREIGN KEY ( memo_id ) 
+		REFERENCES memos ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_memo_stats ON memo_stats ( memo_id );-- --
+CREATE INDEX idx_memo_created ON memo_stats ( created );-- --
+CREATE INDEX idx_memo_updated ON memo_stats ( updated );-- --
 
 -- Memo searching
 CREATE VIRTUAL TABLE memo_search 
@@ -890,6 +983,7 @@ BEGIN
 	INSERT INTO memo_search( docid, body ) 
 		VALUES ( NEW.id, NEW.body );
 	
+	INSERT INTO memo_stats ( memo_id ) VALUES ( NEW.id );
 END;-- --
 
 CREATE TRIGGER memo_update AFTER UPDATE ON memos FOR EACH ROW 
@@ -898,8 +992,8 @@ BEGIN
 	REPLACE INTO memo_search( docid, body ) 
 		VALUES ( NEW.id, NEW.body );
 	
-	UPDATE memos SET updated = CURRENT_TIMESTAMP 
-		WHERE id = NEW.id;
+	UPDATE memo_stats SET updated = CURRENT_TIMESTAMP 
+		WHERE memo_id = NEW.id;
 END;-- --
 
 CREATE TRIGGER memo_clear AFTER UPDATE ON memos FOR EACH ROW 
