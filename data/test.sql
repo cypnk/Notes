@@ -1034,7 +1034,7 @@ INSERT INTO forms( params )
 				"label"		: "{lang:forms:profile:bio}",
 				"special"	: "{lang:forms:profile:biopecial}",
 				"desc"		: "{lang:forms:profile:biodesc}",
-				"messages"	: "data-validation=\"{lang:forms:profile:bioinv}\""
+				"messages"	: "data-validation=\"{lang:forms:profile:bioinv}\"",
 				"required"	: "required"
 			}, {
 				"name"		: "profile_save",
