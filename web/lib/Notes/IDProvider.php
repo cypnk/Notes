@@ -73,7 +73,7 @@ class IDProvider extends Provider {
 		match( true ) {
 			// Basic auth only?
 			( 
-				!\Notes\Util::textHas( $auth, '=' )	|| 
+				!\Notes\Util::textHas( $auth, '=' )	&& 
 				!\Notes\Util::textHas( $auth, '[]' )
 			) 
 				=> ( function() use ( $auth ) {
