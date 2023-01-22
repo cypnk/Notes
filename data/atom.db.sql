@@ -18,7 +18,7 @@ CREATE TABLE services(
 		COALESCE( json_extract( settings, '$.realm' ), "" )
 	) STORED NOT NULL
 );-- --
-CREATE INDEX idx_service_uuid ON services ( uuid ) 
+CREATE UNIQUE INDEX idx_service_uuid ON services ( uuid ) 
 	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_service_realm ON services ( realm );-- --
 
@@ -70,7 +70,7 @@ CREATE TABLE workspaces(
 		REFERENCES services ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE INDEX idx_workspace_uuid ON workspaces ( uuid ) 
+CREATE UNIQUE INDEX idx_workspace_uuid ON workspaces ( uuid ) 
 	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_workspace_title ON workspaces ( title );-- --
 CREATE INDEX idx_workspace_service ON workspaces ( service_id ) 
@@ -137,7 +137,7 @@ CREATE TABLE collections(
 		REFERENCES workspaces ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE INDEX idx_collection_uuid ON collections ( uuid ) 
+CREATE UNIQUE INDEX idx_collection_uuid ON collections ( uuid ) 
 	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_collection_title ON collections ( title );-- --
 CREATE INDEX idx_collection_href ON collections ( href );-- --
@@ -227,16 +227,41 @@ CREATE TABLE categories(
 		json_extract( settings, '$.scheme' )
 	) STORED
 );-- --
-CREATE INDEX idx_category_uuid ON categories ( uuid ) 
+CREATE UNIQUE INDEX idx_category_uuid ON categories ( uuid ) 
 	WHERE uuid IS NOT NULL;-- --
-CREATE INDEX idx_category_term ON categories ( term );-- --
+CREATE UNIQUE INDEX idx_category_term ON categories ( term, scheme )
+	WHERE scheme IS NOT NULL;-- --
 CREATE INDEX idx_category_scheme ON categories ( scheme ) 
 	WHERE scheme IS NOT NULL;-- --
 
-CREATE TRIGGER category_insert AFTER INSERT ON categories FOR EACH ROW 
+CREATE TABLE category_stats (
+	category_id INTEGER NOT NULL,
+	entry_count INTEGER NOT NULL DEFAULT 0,
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+	
+	CONSTRAINT fk_category_stats
+		FOREIGN KEY ( category_id ) 
+		REFERENCES category ( id )
+		ON DELETE CASCADE
+);-- --
+CREATE INDEX idx_category_stats ON category_stats ( category_id );-- --
+CREATE INDEX idx_category_created ON category_stats ( created );-- --
+CREATE INDEX idx_category_updated ON category_stats ( updated );-- --
+
+CREATE TRIGGER category_insert AFTER INSERT ON categories FOR EACH ROW
 BEGIN
 	UPDATE categories SET uuid = ( SELECT id FROM uuid )
 		WHERE id = NEW.id;
+	
+	INSERT INTO category_stats ( category_id ) VALUES ( NEW.id );
+END;-- --
+
+CREATE TRIGGER category_insert_date AFTER INSERT ON categories FOR EACH ROW 
+WHEN OLD.uuid IS NOT NULL
+BEGIN
+	UPDATE category_stats SET updated = CURRENT_TIMESTAMP 
+		WHERE entry_id = NEW.id;
 END;-- --
 
 CREATE TABLE collection_categories(
@@ -256,7 +281,7 @@ CREATE TABLE collection_categories(
 );-- --
 CREATE UNIQUE INDEX idx_collection_category 
 	ON collection_categories ( collection_id, category_id );-- --
-
+CREATE INDEX idx_collection_cat_fixed ON collection_categories ( is_fixed );-- --
 
 CREATE TABLE entries (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -264,13 +289,15 @@ CREATE TABLE entries (
 	content TEXT NOT NULL DEFAULT '{ "title" : "" }' COLLATE NOCASE,
 	title TEXT GENERATED ALWAYS AS (
 		COALESCE( json_extract( content, '$.title' ), "" )
-	) STORED NOT NULL,
+	) STORED,
 	summary TEXT GENERATED ALWAYS AS ( 
-		json_extract( content, '$.summary' )
+		COALESCE( json_extract( content, '$.summary' ), "" )
 	) STORED
 );-- --
-CREATE INDEX idx_entry_uuid ON entries ( uuid ) 
+CREATE UNIQUE INDEX idx_entry_uuid ON entries ( uuid ) 
 	WHERE uuid IS NOT NULL;-- --
+CREATE INDEX idx_entry_title ON entries ( title )
+	WHERE title IS NOT "";-- --
 
 
 CREATE TABLE entry_stats(
@@ -303,11 +330,11 @@ CREATE TABLE entry_content(
 		REFERENCES entries ( id )
 		ON DELETE CASCADE
 );-- --
-CREATE UNIQUE INDEX idx_content_type 
+CREATE INDEX idx_content_type 
 	ON entry_content ( entry_id, content_type )
 	WHERE content_type IS NOT NULL;-- --
 CREATE UNIQUE INDEX idx_content_lsrc 
-	ON entry_content ( entry_id, src )
+	ON entry_content ( entry_id, content_type, src )
 	WHERE src IS NOT NULL;-- --
 CREATE INDEX idx_content_src ON entry_content ( src ) 
 	WHERE src IS NOT NULL;-- --
@@ -336,9 +363,9 @@ CREATE INDEX idx_link_href ON links ( href ) WHERE href IS NOT "";-- --
 
 CREATE TRIGGER entry_insert AFTER INSERT ON entries FOR EACH ROW
 BEGIN
-	-- TODO: Fix column error
-	-- UPDATE entries SET uuid = ( SELECT id FROM uuid ) 
-	--	WHERE id = NEW.id;
+	-- Append UUID
+	UPDATE entries SET uuid = ( SELECT id FROM uuid ) 
+		WHERE id = NEW.id;
 	
 	-- Create stats
 	INSERT INTO entry_stats ( entry_id ) VALUES ( NEW.id );
@@ -353,7 +380,7 @@ BEGIN
 	FROM json_each( json_extract( NEW.content, '$.links' ) );
 	
 	-- Insert content if any
-	INSERT INTO entry_content( entry_id, content_type, src, body, lang ) 
+	REPLACE INTO entry_content( entry_id, content_type, src, body, lang ) 
 	SELECT 
 		NEW.id,
 		COALESCE( json_extract( value, '$.content_type' ), "text/plain" ),
@@ -387,7 +414,7 @@ CREATE TRIGGER entry_update_date BEFORE UPDATE ON entries FOR EACH ROW
 WHEN OLD.uuid IS NOT NULL
 BEGIN
 	UPDATE entry_stats SET updated = CURRENT_TIMESTAMP 
-		WHERE id = NEW.id;
+		WHERE entry_id = NEW.id;
 END;-- --
 
 
