@@ -140,7 +140,8 @@ class HtmlNote extends Controllable {
    			$temp->appendChild( $temp->importNode( $child, true ) );
   		}
 		
-		return $temp->saveHTML();
+		return $this->is_xml ? 
+			$temp->saveXML() : $temp->saveHTML();
 	}
 }
 
