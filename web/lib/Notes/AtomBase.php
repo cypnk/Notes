@@ -1,6 +1,6 @@
 <?php declare( strict_types = 1 );
 /**
- *  @file	/lib/web/Notes/AtomBase.php
+ *  @file	/web/lib/Notes/AtomBase.php
  *  @brief	XML component builder base for AtomPub and Atom feeds
  *  @link	https://www.ietf.org/rfc/rfc5023.txt
  */
