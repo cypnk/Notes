@@ -1,6 +1,6 @@
 <?php declare( strict_types = 1 );
 /**
- *  @file	/lib/web/Notes/AtomFeed.php
+ *  @file	/web/lib/Notes/AtomFeed.php
  *  @brief	Available application feature discovery document
  *  @link	https://www.ietf.org/rfc/rfc4287.txt
  */
