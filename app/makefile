@@ -26,7 +26,7 @@ DEPS		:= $(OBJS:.o=.d)
 # Include settings
 INC_DIR		:= $(shell find $(SRC_DIR) -type d | LC_ALL=C sort)
 INC_FLAGS	:= $(addprefix -I,$(INC_DIR))
-LD_FLAGS	?= -Wl,-Bstatic
+LD_FLAGS	?= -Wl
 
 # C flags (Mostly SQLite stuff)
 CFLAGS		?= -DSQLITE_OMIT_DEPRECATED -DSQLITE_DQS=0 \
@@ -39,12 +39,22 @@ CFLAGS		?= -DSQLITE_OMIT_DEPRECATED -DSQLITE_DQS=0 \
 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS \
 -DSQLITE_ENABLE_FTS3_TOKENIZER -DSQLITE_ENABLE_FTS4 \
 -DSQLITE_LIKE_DOESNT_MATCH_BLOBS -DSQLITE_ENABLE_JSON1 \
--DSQLITE_OMIT_AUTHORIZATION -DSQLITE_OMIT_CAST \
--DSQLITE_ENABLE_SESSION -DSQLITE_ENABLE_PREUPDATE_HOOK
+-DSQLITE_OMIT_AUTHORIZATION -DSQLITE_ENABLE_PREUPDATE_HOOK \
+-DSQLITE_ENABLE_SESSION
 
 # C++ Flags
 CXXFLAGS	?= $(INC_FLAGS) -MMD -MP -Wall -Wextra -Wconversion \
 -Wunreachable-code -Wshadow -Werror -pedantic -std=c++17 -O2
+
+# Detect OS
+ifeq ($(OS),Windows_NT)
+	# Make target.exe
+	TARGET		:= $(TARGET).exe
+	
+	LD_FLAGS	+= -mwindows -static-libgcc -static-libstdc++
+else
+	LD_FLAGS	+= ,-Bstatic
+endif
 
 
 $(BIN_DIR)/$(TARGET): $(OBJS)
