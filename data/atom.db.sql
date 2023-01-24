@@ -302,6 +302,7 @@ CREATE INDEX idx_entry_title ON entries ( title )
 
 CREATE TABLE entry_stats(
 	entry_id INTEGER NOT NULL,
+	content_count INTEGER NOT NULL DEFAULT 0,
 	published DATETIME DEFAULT NULL,
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	updated DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, 
@@ -388,6 +389,10 @@ BEGIN
 		COALESCE( json_extract( value, '$.body' ), NULL ),
 		COALESCE( json_extract( value, '$.lang' ), NULL )
 	FROM json_each( NEW.content, '$.content' );
+	
+	UPDATE entry_stats SET content_count = ( 
+		SELECT COUNT(id) FROM entry_content WHERE entry_id = NEW.id )
+		WHERE entry_id = NEW.id;
 END;-- --
 
 CREATE TRIGGER entry_update_content BEFORE UPDATE ON entries FOR EACH ROW
@@ -408,6 +413,10 @@ BEGIN
 		COALESCE( json_extract( value, '$.body' ), NULL ),
 		COALESCE( json_extract( value, '$.lang' ), NULL )
 	FROM json_each( NEW.content, '$.content' );
+	
+	UPDATE entry_stats SET content_count = ( 
+		SELECT COUNT(id) FROM entry_content WHERE entry_id = NEW.id )
+		WHERE entry_id = NEW.id;
 END;-- --
 
 CREATE TRIGGER entry_update_date BEFORE UPDATE ON entries FOR EACH ROW
