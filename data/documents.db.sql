@@ -1152,6 +1152,7 @@ CREATE TABLE user_marks (
 	) STORED, 
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	expires DATETIME DEFAULT NULL,
+	sort_order INTEGER NOT NULL DEFAULT 0,
 	status INTEGER NOT NULL DEFAULT 0,
 	
 	CONSTRAINT fk_mark_user 
@@ -1196,6 +1197,7 @@ CREATE UNIQUE INDEX idx_mark_full ON user_marks ( document_id, page_id, block_id
 CREATE INDEX idx_mark_created ON user_marks ( created );-- --
 CREATE INDEX idx_mark_expires ON user_marks ( expires )
 	WHERE expires IS NOT NULL;-- --
+CREATE INDEX idx_mark_sort ON user_marks ( sort_order );-- --
 CREATE INDEX idx_mark_status ON user_marks ( status );-- --
 
 -- Mark self clean
@@ -1424,6 +1426,7 @@ CREATE INDEX idx_clip_created ON clipboard ( created );-- --
 
 -- Undo history
 CREATE TABLE history (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	content TEXT NOT NULL DEFAULT '{ "label" : "action" }' COLLATE NOCASE,
 	user_id INTEGER NOT NULL,
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1470,4 +1473,57 @@ CREATE UNIQUE INDEX idx_operation_event ON operations ( event )
 	WHERE event IS NOT "operation";-- --
 CREATE INDEX idx_operation_realm ON configs ( realm ) WHERE realm IS NOT "";-- --
 CREATE INDEX idx_operation_method ON operations ( method );-- --
+
+
+-- Search result history
+CREATE TABLE search_cache(
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	
+	-- Serialized JSON
+	settings TEXT NOT NULL DEFAULT 
+		'{ 
+			"label" : "",
+			"terms" : "",
+			"results" : [], 
+			"total" : 0 
+		}' COLLATE NOCASE,
+	label TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.label' ), "" )
+	) STORED NOT NULL,
+	terms TEXT GENERATED ALWAYS AS ( 
+		COALESCE( json_extract( settings, '$.terms' ), "" )
+	) STORED NOT NULL,
+	
+	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	expires DATETIME DEFAULT NULL
+);-- --
+CREATE UNIQUE INDEX idx_search_scope ON search_cache( label, terms )
+	WHERE label IS NOT "" AND terms IS NOT "";-- --
+CREATE INDEX idx_search_terms ON search_cache( terms );-- --
+CREATE INDEX idx_search_expires ON search_cache( expires )
+	WHERE expires IS NOT NULL;-- --
+
+-- Set default search expiration to 1 hour
+CREATE TRIGGER search_exp_after_insert AFTER INSERT ON search_cache FOR EACH ROW 
+WHEN NEW.expires IS NULL
+BEGIN
+	UPDATE search_cache SET updated = CURRENT_TIMESTAMP, 
+		expires = datetime( 
+			( strftime( '%s','now' ) + 3600 ), 
+			'unixepoch' 
+		) WHERE rowid = NEW.rowid;
+END;-- --
+
+CREATE TRIGGER search_after_insert AFTER INSERT ON search_cache FOR EACH ROW 
+BEGIN
+	-- Remove expired searches
+	DELETE FROM search_cache WHERE expires IS NOT NULL 
+		AND (
+			strftime( '%s', expires ) < 
+			strftime( '%s', 'now' ) 
+		);
+	
+	-- Empty searches
+	DELETE FROM search_cache WHERE terms IS "";
+END;-- --
 
