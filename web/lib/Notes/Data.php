@@ -149,8 +149,10 @@ class Data extends Controllable {
 		
 		// Preemptive defense
 		$this->db[$dsn]->exec( 'PRAGMA quick_check;' );
-		$this->db[$dsn]->exec( 'PRAGMA trusted_schema = OFF;' );
 		$this->db[$dsn]->exec( 'PRAGMA cell_size_check = ON;' );
+		
+		// SQLITE_VTAB_DIRECTONLY workaround
+		$this->db[$dsn]->exec( 'PRAGMA trusted_schema = ON;' );
 		
 		// Prepare defaults if first run
 		if ( $first_run ) {
