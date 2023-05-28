@@ -21,7 +21,7 @@ CREATE TABLE configs (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "" )
+		COALESCE( json_extract( settings, '$.realm' ), '' )
 	) STORED NOT NULL
 );-- --
 -- Unique configuration per specific realm
@@ -57,10 +57,10 @@ CREATE TABLE themes(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "label" : "default" }' COLLATE NOCASE,
 	label TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.label' ), "default" )
+		COALESCE( json_extract( settings, '$.label' ), 'default' )
 	) STORED NOT NULL,
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "" )
+		COALESCE( json_extract( settings, '$.realm' ), '' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_theme_label ON themes ( label )
@@ -75,7 +75,7 @@ CREATE TABLE events (
 	-- Execution parameters
 	params TEXT NOT NULL DEFAULT '{}' COLLATE NOCASE,
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( params, '$.realm' ), "" )
+		COALESCE( json_extract( params, '$.realm' ), '' )
 	) STORED NOT NULL,
 	sort_order INTEGER NOT NULL DEFAULT 0
 );-- --
@@ -110,7 +110,7 @@ CREATE TABLE handlers (
 	) STORED NOT NULL, 
 	event_name TEXT GENERATED ALWAYS AS ( 
 		REPLACE( LOWER( TRIM( 
-			COALESCE( json_extract( params, '$.event' ), ""	) 
+			COALESCE( json_extract( params, '$.event' ), ''	) 
 		) ), ' ', '_' )
 	) STORED NOT NULL, 
 	priority INTEGER GENERATED ALWAYS AS ( 
@@ -196,7 +196,7 @@ CREATE TABLE language_defs (
 	
 	content TEXT NOT NULL DEFAULT '{ "label" : "unknown" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.label' ), "unknown" )
+		COALESCE( json_extract( content, '$.label' ), 'unknown' )
 	) STORED NOT NULL,
 	
 	CONSTRAINT fk_definition_lang 
@@ -220,7 +220,7 @@ CREATE TABLE users (
 	bio TEXT DEFAULT NULL COLLATE NOCASE,
 	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+		COALESCE( json_extract( settings, '$.setting_id' ), '' )
 	) STORED NOT NULL,
 	status INTEGER NOT NULL DEFAULT 0
 );-- --
@@ -286,13 +286,13 @@ CREATE TABLE id_providers(
 			"scope" : "local"
 		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+		COALESCE( json_extract( settings, '$.setting_id' ), '' )
 	) STORED NOT NULL, 
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "http://localhost" )
+		COALESCE( json_extract( settings, '$.realm' ), 'http://localhost' )
 	) STORED NOT NULL,
 	realm_scope TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.scope' ), "local" )
+		COALESCE( json_extract( settings, '$.scope' ), 'local' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_provider_label ON id_providers( label );-- --
@@ -573,13 +573,13 @@ CREATE TABLE permission_providers(
 			"scope" : "local"
 		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+		COALESCE( json_extract( settings, '$.setting_id' ), '' )
 	) STORED NOT NULL, 
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "http://localhost" )
+		COALESCE( json_extract( settings, '$.realm' ), 'http://localhost' )
 	) STORED NOT NULL,
 	realm_scope TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.scope' ), "local" )
+		COALESCE( json_extract( settings, '$.scope' ), 'local' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_perm_provider_label ON permission_providers( label ASC );-- --
@@ -609,13 +609,13 @@ CREATE TABLE role_privileges(
 			"actions"	: []
 		}' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+		COALESCE( json_extract( settings, '$.setting_id' ), '' )
 	) STORED NOT NULL, 
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "http://localhost" )
+		COALESCE( json_extract( settings, '$.realm' ), 'http://localhost' )
 	) STORED NOT NULL,
 	realm_scope TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.scope' ), "local" )
+		COALESCE( json_extract( settings, '$.scope' ), 'local' )
 	) STORED NOT NULL,
 	
 	CONSTRAINT fk_privilege_role 
@@ -681,7 +681,7 @@ CREATE TABLE forms(
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	params TEXT NOT NULL DEFAULT '{ "label" : "generic" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( params, '$.label' ), "generic" )
+		COALESCE( json_extract( params, '$.label' ), 'generic' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_form_label ON forms ( label );-- --
@@ -691,7 +691,7 @@ CREATE TABLE document_types (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	content TEXT NOT NULL DEFAULT '{ "label" : "generic" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.label' ), "generic" )
+		COALESCE( json_extract( content, '$.label' ), 'generic' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_doc_label ON document_types ( label );-- --
@@ -706,7 +706,7 @@ CREATE TABLE documents (
 	
 	settings TEXT NOT NULL DEFAULT '{ "setting_id" : "" }' COLLATE NOCASE,
 	setting_id TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.setting_id' ), "" )
+		COALESCE( json_extract( settings, '$.setting_id' ), '' )
 	) STORED NOT NULL,
 	status INTEGER NOT NULL DEFAULT 0,
 	
@@ -838,7 +838,7 @@ CREATE TABLE block_types (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	content TEXT NOT NULL DEFAULT '{ "label" : "text" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.label' ), "text" )
+		COALESCE( json_extract( content, '$.label' ), 'text' )
 	) STORED NOT NULL,
 	view_template TEXT NOT NULL COLLATE NOCASE, 
 	create_template TEXT NOT NULL COLLATE NOCASE, 
@@ -853,7 +853,7 @@ CREATE TABLE page_blocks (
 	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE, 
 	
 	body TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.body' ), "" )
+		COALESCE( json_extract( content, '$.body' ), '' )
 	) STORED NOT NULL, 
 	
 	type_id INTEGER NOT NULL,
@@ -946,7 +946,7 @@ CREATE TABLE memos (
 	content TEXT NOT NULL DEFAULT '{ "body" : "" }' COLLATE NOCASE, 
 	
 	body TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.body' ), "" )
+		COALESCE( json_extract( content, '$.body' ), '' )
 	) STORED NOT NULL,
 	lang_id INTEGER DEFAULT NULL,
 	
@@ -1131,12 +1131,12 @@ CREATE TABLE user_marks (
 	user_id INTEGER NOT NULL,
 	content TEXT NOT NULL DEFAULT '{ "label" : "read" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.label' ), "read" )
+		COALESCE( json_extract( content, '$.label' ), 'read' )
 	) STORED NOT NULL,
 	
 	-- Text, highlight range {start,end}, flag, number, etc...
 	format TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.format' ), "text" )
+		COALESCE( json_extract( content, '$.format' ), 'text' )
 	) STORED NOT NULL, 
 	document_id INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( content, '$.document_id' ), NULL ) AS INTEGER )
@@ -1297,13 +1297,13 @@ CREATE TABLE resources (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	content TEXT NOT NULL DEFAULT '{ "src" : "" }' COLLATE NOCASE, 
 	src TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.src' ), "" )
+		COALESCE( json_extract( content, '$.src' ), '' )
 	) STORED NOT NULL,
 	mime_type TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.mime_type' ), "" )
+		COALESCE( json_extract( content, '$.mime_type' ), '' )
 	) STORED NOT NULL,
 	thumbnail TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.thumbnail' ), "" )
+		COALESCE( json_extract( content, '$.thumbnail' ), '' )
 	) STORED NOT NULL,
 	file_size INTEGER GENERATED ALWAYS AS (
 		CAST( COALESCE( json_extract( content, '$.file_size' ), 0 ) AS INTEGER )
@@ -1311,7 +1311,7 @@ CREATE TABLE resources (
 	
 	-- hash_file( 'sha256', src ) 
 	file_hash TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.file_hash' ), "" )
+		COALESCE( json_extract( content, '$.file_hash' ), '' )
 	) STORED NOT NULL,
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1340,10 +1340,10 @@ CREATE TABLE resource_captions (
 	
 	-- Description, subtitles etc...
 	label TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.label' ), "description" )
+		COALESCE( json_extract( content, '$.label' ), 'description' )
 	) STORED NOT NULL,
 	body TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.body' ), "" )
+		COALESCE( json_extract( content, '$.body' ), '' )
 	) STORED NOT NULL,
 	
 	CONSTRAINT fk_caption_resource 
@@ -1391,7 +1391,7 @@ CREATE TABLE resource_users (
 	
 	-- Uploader, Onwer, Editor etc...
 	label TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.label' ), "owner" )
+		COALESCE( json_extract( content, '$.label' ), 'owner' )
 	) STORED NOT NULL,
 	user_id INTEGER NOT NULL,
 	resource_id INTEGER NOT NULL,
@@ -1432,7 +1432,7 @@ CREATE TABLE history (
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	
 	label TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.label' ), "action" )
+		COALESCE( json_extract( content, '$.label' ), 'action' )
 	) STORED NOT NULL,
 	
 	CONSTRAINT fk_history_user 
@@ -1452,20 +1452,20 @@ CREATE TABLE operations (
 	pattern TEXT NOT NULL DEFAULT "" COLLATE NOCASE,
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "/" )
+		COALESCE( json_extract( settings, '$.realm' ), '/' )
 	) STORED NOT NULL,
 	
 	-- Pattern match event
 	event TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.event' ), "operation" )
+		COALESCE( json_extract( settings, '$.event' ), 'operation' )
 	) STORED NOT NULL,
 	
 	-- E.G. global, document, page, block, memo, user, role
 	op_scope TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.scope' ), "global" )
+		COALESCE( json_extract( settings, '$.scope' ), 'global' )
 	) STORED NOT NULL,
 	method TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.method' ), "get" )
+		COALESCE( json_extract( settings, '$.method' ), 'get' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_operation ON operations ( label, pattern, op_scope );-- --
@@ -1488,10 +1488,10 @@ CREATE TABLE search_cache(
 			"total" : 0 
 		}' COLLATE NOCASE,
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.label' ), "" )
+		COALESCE( json_extract( settings, '$.label' ), '' )
 	) STORED NOT NULL,
 	terms TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( settings, '$.terms' ), "" )
+		COALESCE( json_extract( settings, '$.terms' ), '' )
 	) STORED NOT NULL,
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
