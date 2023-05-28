@@ -15,7 +15,7 @@ CREATE TABLE services(
 	uuid TEXT DEFAULT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "realm" : "" }' COLLATE NOCASE,
 	realm TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.realm' ), "" )
+		COALESCE( json_extract( settings, '$.realm' ), '' )
 	) STORED NOT NULL
 );-- --
 CREATE UNIQUE INDEX idx_service_uuid ON services ( uuid ) 
@@ -58,7 +58,7 @@ CREATE TABLE workspaces(
 	uuid TEXT DEFAULT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "title" : "" }' COLLATE NOCASE,
 	title TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.title' ), "" )
+		COALESCE( json_extract( settings, '$.title' ), '' )
 	) STORED NOT NULL,
 	service_id INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( settings, '$.service_id' 
@@ -122,14 +122,14 @@ CREATE TABLE collections(
 	uuid TEXT DEFAULT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "title" : "" }' COLLATE NOCASE,
 	title TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.title' ), "" )
+		COALESCE( json_extract( settings, '$.title' ), '' )
 	) STORED NOT NULL,
 	workspace_id INTEGER GENERATED ALWAYS AS ( 
 		CAST( COALESCE( json_extract( settings, '$.workspace_id' 
 		), NULL ) AS INTEGER )
 	) STORED,
 	href TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.href' ), "" )
+		COALESCE( json_extract( settings, '$.href' ), '' )
 	) STORED NOT NULL,
 	
 	CONSTRAINT fk_collection_workspace
@@ -177,7 +177,7 @@ BEGIN
 	INSERT INTO collection_accept( collection_id, title ) 
 	SELECT 
 		NEW.id, 
-		COALESCE( json_extract( value, '$.accept' ), "" )
+		COALESCE( json_extract( value, '$.accept' ), '' )
 	FROM json_each( NEW.settings, '$.accept' );
 	
 	UPDATE workspace_stats SET collection_count = ( collection_count + 1 ) 
@@ -197,7 +197,7 @@ BEGIN
 	REPLACE INTO collection_accept( collection_id, title ) 
 	SELECT 
 		NEW.id, 
-		COALESCE( json_extract( value, '$.accept' ), "" )
+		COALESCE( json_extract( value, '$.accept' ), '' )
 	FROM json_each( NEW.settings, '$.accept' ) accept;
 END;-- --
 
@@ -221,7 +221,7 @@ CREATE TABLE categories(
 	uuid TEXT DEFAULT NULL,
 	settings TEXT NOT NULL DEFAULT '{ "term" : "" }' COLLATE NOCASE,
 	term TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( settings, '$.term' ), "" )
+		COALESCE( json_extract( settings, '$.term' ), '' )
 	) STORED NOT NULL,
 	scheme TEXT GENERATED ALWAYS AS (
 		json_extract( settings, '$.scheme' )
@@ -288,16 +288,16 @@ CREATE TABLE entries (
 	uuid TEXT DEFAULT NULL,
 	content TEXT NOT NULL DEFAULT '{ "title" : "" }' COLLATE NOCASE,
 	title TEXT GENERATED ALWAYS AS (
-		COALESCE( json_extract( content, '$.title' ), "" )
+		COALESCE( json_extract( content, '$.title' ), '' )
 	) STORED,
 	summary TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.summary' ), "" )
+		COALESCE( json_extract( content, '$.summary' ), '' )
 	) STORED
 );-- --
 CREATE UNIQUE INDEX idx_entry_uuid ON entries ( uuid ) 
 	WHERE uuid IS NOT NULL;-- --
 CREATE INDEX idx_entry_title ON entries ( title )
-	WHERE title IS NOT "";-- --
+	WHERE title IS NOT '';-- --
 
 
 CREATE TABLE entry_stats(
@@ -354,12 +354,12 @@ CREATE TABLE links(
 		ON DELETE CASCADE
 );-- --
 CREATE UNIQUE INDEX idx_link_href_rel ON links ( entry_id, rel, href )
-	WHERE rel IS NOT "" AND href IS NOT NULL;-- --
+	WHERE rel IS NOT '' AND href IS NOT NULL;-- --
 CREATE INDEX idx_link_entry ON links ( entry_id );-- --
 CREATE INDEX idx_link_rel ON links ( rel ) WHERE rel IS NOT NULL;-- --
 CREATE INDEX idx_link_type ON links ( link_type ) 
 	WHERE link_type IS NOT NULL;-- --
-CREATE INDEX idx_link_href ON links ( href ) WHERE href IS NOT "";-- --
+CREATE INDEX idx_link_href ON links ( href ) WHERE href IS NOT '';-- --
 
 
 CREATE TRIGGER entry_insert AFTER INSERT ON entries FOR EACH ROW
@@ -375,7 +375,7 @@ BEGIN
 	REPLACE INTO links( entry_id, rel, href, link_type ) 
 	SELECT 
 		NEW.id,
-		COALESCE( json_extract( value, '$.rel' ), "" ), 
+		COALESCE( json_extract( value, '$.rel' ), '' ), 
 		COALESCE( json_extract( value, '$.href' ), NULL ), 
 		COALESCE( json_extract( value, '$.type' ), NULL )
 	FROM json_each( json_extract( NEW.content, '$.links' ) );
@@ -384,7 +384,7 @@ BEGIN
 	REPLACE INTO entry_content( entry_id, content_type, src, body, lang ) 
 	SELECT 
 		NEW.id,
-		COALESCE( json_extract( value, '$.content_type' ), "text/plain" ),
+		COALESCE( json_extract( value, '$.content_type' ), 'text/plain' ),
 		COALESCE( json_extract( value, '$.src' ), NULL ),
 		COALESCE( json_extract( value, '$.body' ), NULL ),
 		COALESCE( json_extract( value, '$.lang' ), NULL )
@@ -400,7 +400,7 @@ BEGIN
 	REPLACE INTO links( entry_id, rel, href, link_type ) 
 	SELECT DISTINCT
 		NEW.id, 
-		COALESCE( json_extract( value, '$.rel' ), "" ), 
+		COALESCE( json_extract( value, '$.rel' ), '' ), 
 		COALESCE( json_extract( value, '$.href' ), NULL ), 
 		COALESCE( json_extract( value, '$.type' ), NULL ) 
 	FROM json_each( json_extract( NEW.content, '$.links' ) );
@@ -408,7 +408,7 @@ BEGIN
 	REPLACE INTO entry_content( entry_id, content_type, src, body, lang ) 
 	SELECT
 		NEW.id,
-		COALESCE( json_extract( value, '$.content_type' ), "text/plain" ),
+		COALESCE( json_extract( value, '$.content_type' ), 'text/plain' ),
 		COALESCE( json_extract( value, '$.src' ), NULL ),
 		COALESCE( json_extract( value, '$.body' ), NULL ),
 		COALESCE( json_extract( value, '$.lang' ), NULL )
