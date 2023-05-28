@@ -4,10 +4,10 @@ CREATE TABLE event_logs (
 	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
 	content TEXT NOT NULL DEFAULT '{ "label" : "event", "body" : "" }' COLLATE NOCASE, 
 	label TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.label' ), "event" )
+		COALESCE( json_extract( content, '$.label' ), 'event' )
 	) STORED NOT NULL,
 	body TEXT GENERATED ALWAYS AS ( 
-		COALESCE( json_extract( content, '$.body' ), "" )
+		COALESCE( json_extract( content, '$.body' ), '' )
 	) STORED NOT NULL,
 	host TEXT GENERATED ALWAYS AS ( 
 		COALESCE( json_extract( content, '$.host' ), NULL )
@@ -39,7 +39,7 @@ CREATE TABLE event_logs (
 	
 	created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	status INTEGER DEFAULT 0
-}
+);-- --
 CREATE INDEX idx_log_label ON event_logs ( label );-- --
 CREATE INDEX idx_log_host ON event_logs ( host )
 	WHERE host IS NOT NULL;-- --
