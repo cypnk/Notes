@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class Event implements \SplSubject extends NamedControllable  {
+class Event extends NamedControllable implements \SplSubject {
 	
 	/**
 	 *  Registered handlers
@@ -21,7 +21,7 @@ class Event implements \SplSubject extends NamedControllable  {
 	 *  
 	 *  @param \SplObserver	$handler	Event handler
 	 */
-	public function attach( \SplObserver $handler ) {
+	public function attach( \SplObserver $handler ) : void {
 		$name = $handler->getName();
 		if ( \array_key_exists( $name, $this->handlers ) ) {
 			return;
@@ -35,10 +35,21 @@ class Event implements \SplSubject extends NamedControllable  {
 	 *  
 	 *  @param \SplObserver	$handler	Event handler
 	 */
-	public function detach( \SplObserver $handler ) {
-		if ( \array_key_exists( $handler->getName(), $this->handlers ) ) {
+	public function detach( \SplObserver $handler ) : void {
+		if ( \array_key_exists( 
+			$handler->getName(), $this->handlers 
+		) ) {
 			unset( $this->handlers[$name] );
 		}
+	}
+	
+	/**
+	 *  Return notify results from handlers
+	 *  
+	 *  @return array
+	 */
+	public function getOutput() : array {
+		return $this->output;
 	}
 	
 	/**
@@ -57,9 +68,10 @@ class Event implements \SplSubject extends NamedControllable  {
 	 *  Sort handlers by priority
 	 */
 	public function sortHandlers() {
-		\usort( $this->handlers, function( $p, $h ) {
-			return $h[0] <=> $p[0];
-		} );
+		\usort( 
+			$this->handlers, 
+			fn( $p, $h ) => $h[0] <=> $p[0] 
+		);
 	}
 	
 	/**
@@ -81,7 +93,7 @@ class Event implements \SplSubject extends NamedControllable  {
 	 *  
 	 *  @params array	$params		Optional event data
 	 */
-	public function notify( ?array $params = null ) {
+	public function notify( ?array $params = null ) : void {
 		
 		// Reset event params if any new
 		if ( null !== $params ) {
@@ -100,14 +112,5 @@ class Event implements \SplSubject extends NamedControllable  {
 				...$h[1]->getOutput( $this->name )
 			];
 		}
-	}
-	
-	/**
-	 *  Return notify results from handlers
-	 *  
-	 *  @return array
-	 */
-	public function output() : array {
-		return $this->output;
 	}
 }
