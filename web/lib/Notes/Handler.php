@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class Handler implements \SplObserver extends Controllable {
+class Handler implements \SplObserver extends NamedControllable {
 	
 	/**
 	 *  Handler execution priority
@@ -29,9 +29,7 @@ class Handler implements \SplObserver extends Controllable {
 	 *  @param int			$_pri	Optional execution priority
 	 */
 	public function __construct( Controller	$ctrl, ?int $_pri = null ) {
-		if ( null !== $_pri ) {
-			$this->priority = $_pri;
-		}
+		$this->priority = $_pri ?? 0;
 		
 		parent::__construct( $ctrl );
 	}
@@ -42,19 +40,20 @@ class Handler implements \SplObserver extends Controllable {
 	 *  @return int
 	 */
 	public function getPriority() : int {
-		return $this->priority ?? 0;
+		return $this->priority;
 	}
 	
 	/**
 	 *  Set current handler's priority, if not fixed, returns true on success
 	 *  
+	 *  @param int		$priority New handler priority
 	 *  @return bool
 	 */
-	public function setPriority( int $p = 0 ) : bool {
+	public function setPriority( int $priority = 0 ) : bool {
 		if ( $this->fixed_priority ) {
 			return false;
 		}
-		$this->priority = $p;
+		$this->priority = $priority;
 		return true;
 	}
 	
