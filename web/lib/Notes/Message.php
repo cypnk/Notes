@@ -31,8 +31,7 @@ class Message extends Controllable {
 	public function __construct( \Notes\Controller $ctrl ) {
 		parent::__construct( $ctrl );
 		
-		$ctrl->addParam( '\\\Notes\\Config' );
-		$this->config	= $ctrl->getParam( '\\\Notes\\Config' );
+		$this->config	= $this->getControllerParam( '\\Notes\\Config' );
 	}
 	
 	/**
