@@ -2,7 +2,7 @@
 
 namespace Notes;
 
-class Handler implements \SplObserver extends NamedControllable {
+abstract class Handler extends NamedControllable implements \SplObserver {
 	
 	/**
 	 *  Handler execution priority
@@ -26,12 +26,17 @@ class Handler implements \SplObserver extends NamedControllable {
 	 *  Create handler with given controller and optional start priority
 	 *  
 	 *  @param \Notes\Controller	$ctrl	Main event controller
+	 *  @param string		$name	Current handler's name
 	 *  @param int			$_pri	Optional execution priority
 	 */
-	public function __construct( Controller	$ctrl, ?int $_pri = null ) {
+	public function __construct( 
+		Controller	$ctrl, 
+		?string		$name	= null, 
+		?int		$_pri	= null 
+	) {
 		$this->priority = $_pri ?? 0;
 		
-		parent::__construct( $ctrl );
+		parent::__construct( $ctrl, $name ?? __CLASS__ );
 	}
 	
 	/**
@@ -72,6 +77,6 @@ class Handler implements \SplObserver extends NamedControllable {
 	 *  @param SplSubject	$event Description for $event
 	 *  @param array	$params Description for $params
 	 */
-	public function notify( \SplSubject $event, ?array $params = null ) {}
+	abstract public function update( \SplSubject $event, ?array $params = null ) : void;
 }
 
