@@ -3,6 +3,13 @@
 namespace Notes;
 
 abstract class NamedControllable extends Controllable {
+	
+	/**
+	 *  Read-only current controllable name
+	 *  @var string
+	 */
+	protected readonly string $name;
+	
 	/**
 	 *  Create new runnable with controller and unique name
 	 *  
@@ -15,5 +22,14 @@ abstract class NamedControllable extends Controllable {
 	) {
 		$this->name		= $name;
 		parent::__construct( $ctrl );
+	}
+	
+	/**
+	 *  Current controllable's name (read-only)
+	 *  
+	 *  @return string
+	 */
+	public function getName() : string {
+		return $this->name ?? '';
 	}
 }
