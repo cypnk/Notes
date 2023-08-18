@@ -11,12 +11,6 @@ abstract class Controllable {
 	private readonly int $_id;
 	
 	/**
-	 *  Read-only current controllable name
-	 *  @var string
-	 */
-	protected readonly string $name;
-	
-	/**
 	 *  Main event controller
 	 *  @var \Notes\Controller
 	 */
@@ -90,15 +84,6 @@ abstract class Controllable {
 	protected function error( string $msg ) {
 		$this->errors[] = 
 			\get_called_class() . ' ' . $msg;
-	}
-	
-	/**
-	 *  Current controllable's name (read-only)
-	 *  
-	 *  @return string
-	 */
-	public function getName() : string {
-		return $this->name ?? '';
 	}
 	
 	/** 
