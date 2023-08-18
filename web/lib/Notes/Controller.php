@@ -14,7 +14,7 @@ class Controller {
 	 *  Shared parameters
 	 *  @var array
 	 */
-	protected array $params;
+	protected array $_params;
 	
 	public function __construct( ?array $_params = null ) {
 		// Default parameters
