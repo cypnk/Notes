@@ -28,9 +28,9 @@ class Controller {
 	/**
 	 *  Added shared parameters by class name
 	 *  
-	 *  @param array	$_params	Loading parameters
+	 *  @param array	$params		Loading parameters
 	 */
-	public function addParams( array $_params ) {
+	public function addParams( array $params ) {
 		
 		set_error_handler( function( 
 			$eno, $emsg, $efile, $eline 
@@ -46,7 +46,7 @@ class Controller {
 			);
 		}, E_WARNING | E_ERROR );
 		
-		foreach ( $_params as $p ) {
+		foreach ( $params as $p ) {
 			// Only handle strings and objects
 			if ( !\is_string( $p ) || !\is_object( $p ) ) {
 				continue;
@@ -81,15 +81,18 @@ class Controller {
 				continue;
 			}
 			
-			$this->params[$k]	= match( true ) {
+			$this->_params[$k]	= match( true ) {
 				// Type controllable
 				\is_subclass_of( 
-					'\\Notes\\Controllable', $p 
+					$p, '\\Notes\\Controllable'
 				)			=> new $p( $this ),
 				
 				// Other type of class
-				\class_exists( $p )	=> new $p()
-			}
+				\class_exists( $p )	=> new $p(),
+				
+				// String only
+				default			=> $p
+			};
 		}
 		
 		\restore_error_handler();
@@ -124,12 +127,29 @@ class Controller {
 	/**
 	 *  Current init parameter return helper
 	 *  
-	 *  @param string	$name		Property label
+	 *  @param mixed	$name		Property label(s)
 	 *  @return mixed
 	 */
-	public function getParam( string $name ) {
-		$this->addParams( [ $name ] );
-		return $this->params[$name] ?? null;
+	public function getParam( $name ) {
+		switch( true ) {
+			case \is_array( $name ) : {
+				$this->addParams( $name );
+				
+				return 
+				\array_intersect_key(
+					$this->_params,
+					\array_flip( $name )
+				);
+			}
+			
+			case \is_string( $name ) : {
+				$this->addParams( [ $name ] );
+				return $this->_params[$name] ?? null;
+			}
+			
+			default:
+				return null;
+		}
 	}
 	
 	/**
