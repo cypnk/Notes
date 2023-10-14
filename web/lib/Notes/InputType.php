@@ -67,7 +67,8 @@ enum InputType {
 		
 		// Input pre-build event
 		$ctrl->run( 'input_init', $input );
-		$input	= [ ...$input, $ctrl->output( 'input_init' ) ];
+		$out	= $ctrl->output( 'input_init' );
+		$input	= [ ...$input, ...$out ];
 		
 		$node	= 
 		$this->buildNode( $parser, $form, $input, $data );
@@ -174,8 +175,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'input_field_before', $data );
-		$data	= 
-		[ ...$data, ...$ctrl->output( 'input_field_before' ) ];
+		$out	= $ctrl->output( 'input_field_before' );
+		$data	= [ ...$data, ...$out ];
 		
 		match( $this ) {
 			// Wysiwyg needs an extra element inside the wrap
@@ -204,8 +205,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'input_field_after', $data );
-		$data	= 
-		[ ...$data, ...$ctrl->output( 'input_field_after' ) ];
+		$out	= $ctrl->output( 'input_field_after' );
+		$data	= [ ...$data, ...$out ];
 		
 		// Add description if given
 		static::addDescription( $ctrl, $wrap, $form, $data );
@@ -235,8 +236,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'label_before', $data );
-		$data	= 
-		[ ...$data, ...$ctrl->output( 'label_before' ) ]; 
+		$out	= $ctrl->output( 'label_before' );
+		$data	= [ ...$data, ...$out ]; 
 		
 		$label	= 
 		$form->ownerDocument->createElement( 'label', $data['{label}'] );
@@ -268,8 +269,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'label_after', $data );
-		$data	= 
-		[ ...$data, ...$ctrl->output( 'label_after' ) ];
+		$out	= $ctrl->output( 'label_after' );
+		$data	= [ ...$data, ...$out ];
 	}
 	
 	/**
@@ -292,8 +293,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'special_before', $data );
-		$data		= 
-		[ ...$data, ...$ctrl->output( 'special_before' ) ];
+		$out		= $ctrl->output( 'special_before' );
+		$data		= [ ...$data, ...$out ];
 		
 		$special	= 
 		$form->ownerDocument->createElement( 'span', $data['{special}'] );
@@ -310,8 +311,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'special_after', $data );
-		$data	= 
-		[ ...$data, ...$ctrl->output( 'special_after' ) ];
+		$out	= $ctrl->output( 'special_after' );
+		$data	= [ ...$data, ...$out ];
 	}
 	
 	/**
@@ -401,8 +402,8 @@ enum InputType {
 		);
 		
 		$ctrl->run( 'desc_before', $data );
-		$data	= 
-		[ ...$data, ...$ctrl->output( 'desc_before' ) ];
+		$out	= $ctrl->output( 'desc_before' );
+		$data	= [ ...$data, ...$out ];
 		
 		$desc	= 
 		$form->ownerDocument->createElement( 'small', $data['{desc}'] );
@@ -417,9 +418,9 @@ enum InputType {
 			)
 		);
 		
-		$ctrl->run( '{desc_after}', $data );
-		$data	= 
-		[ ...$data, $ctrl->output( 'desc_after' ) ];
+		$ctrl->run( 'desc_after', $data );
+		$out	= $ctrl->output( 'desc_after' );
+		$data	= [ ...$data, ...$out ];
 	}
 	
 	/**
