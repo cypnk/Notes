@@ -38,10 +38,8 @@ enum FormType {
 		
 		// Run placeholder event
 		$ctrl->run( 'form_before', $data );
-		$data	= [ 
-			...$data, 
-			...$ctrl->output( 'form_before' ) 
-		];
+		$out	= $ctrl->output( 'form_before' );
+		$data	= [ ...$data, ...$out ];
 		
 		// Base element and common attributes
 		$form = $note->dom->createElement( 'form' );
@@ -79,10 +77,8 @@ enum FormType {
 			$note->dom->createTextNode( '{form_after}' )
 		);
 		$ctrl->run( 'form_after', $data );
-		$data	= [ 
-			...$data, 
-			...$ctrl->output( 'form_after' ) 
-		];
+		$out	= $ctrl->output( 'form_after' );
+		$data	= [ ...$data, ...$out ];
 		
 		// Send back with remaining placeholders replaced
 		return \strtr( $note->render(), $data );
