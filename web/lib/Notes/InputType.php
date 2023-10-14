@@ -303,7 +303,7 @@ enum InputType {
 	/**
 	 *  Add common input elements
 	 */
-	public static addAttributes( \DOMElement $node, array $data ) {
+	public static function addAttributes( \DOMElement $node, array $data ) {
 		
 		foreach ( $data as $k => $v ) {
 			$success = 
@@ -403,9 +403,9 @@ enum InputType {
 			)
 		);
 		
-		$ctrl->run( '{desc_before}', $data );
+		$ctrl->run( '{desc_after}', $data );
 		$data	= 
-		[ ...$data, $ctrl->output( 'desc_before' ) ];
+		[ ...$data, $ctrl->output( 'desc_after' ) ];
 	}
 	
 	/**
