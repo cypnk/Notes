@@ -4,29 +4,43 @@ namespace Notes;
 
 enum InputType {
 	
+	
+	// Base text types
 	case Text;
-	case Email;
-	case Radio;
-	case Select;
-	case Search;
-	case Wysiwyg;
-	case Checkbox;
-	case Password;
 	case Textarea;
+	case Password;
 	case DateTime;
+	case Url;
+	
+	// Long formatted text
+	case Wysiwyg;
+	
+	// Query types
+	case Search;
+	case Email;
+	
+	// Multiple values
+	case Select;
+	case Checkbox;
+	case Radio;
+	case Calendar;
+	
+	// Form processing
+	case Hidden;
 	case Datalist;
 	
-	case Calendar;
-	case Hidden;
-	case Other;
-	
+	// Buttons
 	case Submit;
-	case Reset;
+	case Clear; // Reset
 	case Button;
 	
 	// TODO
 	case Upload;
-	case Range;
+	case Number;
+	case NumRange;
+	
+	// Any other type
+	case Other;
 	
 	/**
 	 *  Render the current input type in the above templates
@@ -532,7 +546,7 @@ enum InputType {
 			InputType::Submit	=> 
 			'f6 button-reset pointer dim pa2 mb2 dib white bg-dark-blue',
 			
-			InputType::Reset	=> 
+			InputType::Clear	=> 
 			'f6 button-reset pointer dim pa2 mb2 dib white bg-dark-red',
 			
 			// Multiline
