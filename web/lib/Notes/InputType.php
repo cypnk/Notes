@@ -42,6 +42,13 @@ enum InputType {
 	// Any other type
 	case Other;
 	
+	
+	protected static string $input_message	= '{messages}';
+	
+	public function setMessage( $msg ) {
+		static::$input_message = $msg;
+	}
+	
 	/**
 	 *  Render the current input type in the above templates
 	 */
@@ -155,14 +162,22 @@ enum InputType {
 	
 	/**
 	 *  Form field wrapper
+	 *  
+	 *  @param \Notes\Controller	$ctrl	Web event controller
+	 *  @param \DOMElement		$node	Input element node
+	 *  @param \DOMElement		$form	Parent document form
+	 *  @param array		$data	Content as placeholder values
+	 *  @param string		$wtype	Element wrapper type
 	 */
 	protected function wrapInput( 
 		\Notes\Controller	$ctrl,
 		\DOMElement		$node, 
 		\DOMElement		$form, 
-		array			&$data 
-	) {
-		$wrap = $form->ownerDocument->createElement( 'p' );
+		array			&$data,
+		string			$wtype	=	'p'
+	) : void {
+		$wrap = 
+		$form->ownerDocument->createElement( \strtolower( $wtype ) );
 		$wrap->setAttribute( 'class', $data['{input_wrap_classes}'] );
 		
 		$this->addLabel( $wrap, $node, $form, $data );
@@ -489,7 +504,7 @@ enum InputType {
 		$data['{input_message}']	??= (
 			empty( $data['{messages}'] ) ? 
 			'' : 
-			\strtr( static::InputMessage, [ 
+			\strtr( static::$input_message, [ 
 				'{messages}' => ( string ) $data['{messages}'] 
 			] )
 		);
